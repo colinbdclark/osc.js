@@ -35,7 +35,7 @@
     };
 
     var roundTo = function (val, numDecimals) {
-        return parseFloat(val.toFixed(numDecimals))
+        return typeof val === "number" ? parseFloat(val.toFixed(numDecimals)) : val;
     };
 
     var equalRoundedTo = function (actual, expected, numDecimals, msg) {
@@ -50,7 +50,8 @@
 
         for (var i = 0; i < arr.length; i++) {
             var val = arr[i];
-            togo[i] = typeof val === "number" ? roundTo(val, numDecimals) : val;
+            var type = typeof val;
+            togo[i] = type === "object" ? roundAllValues(val, numDecimals) : roundTo(val, numDecimals);
         }
 
         return togo;
@@ -68,7 +69,13 @@
 
         for (var key in obj) {
             var val = obj[key];
-            togo[key] = isArray(val) ? roundArrayValues(val) : val;
+            if (isArray(val)) {
+                togo[key] = roundArrayValues(val, numDecimals);
+            } else if (typeof val === "object") {
+                togo[key] = roundAllValues(val, numDecimals);
+            } else {
+                togo[key] = roundTo(val, numDecimals);
+            }
         }
 
         return togo;
@@ -330,7 +337,7 @@
         }
     ];
 
-    test("osc.readArguments()", function () {
+    test("readArguments", function () {
         for (var i = 0; i < argumentTestSpecs.length; i++) {
             var testSpec = argumentTestSpecs[i];
             testArguments(testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals);
@@ -348,7 +355,7 @@
         };
 
         var dv = new DataView(testSpec.rawMessageBuffer.buffer),
-            actual = osc.readMessage(dv, testSpec.offsetState),
+            actual = osc.readMessage(dv, testSpec.offsetState, testSpec.withMetadata),
             msg = "The returned message object should match the raw message data.";
 
         if (testSpec.roundToDecimals !== undefined) {
@@ -378,11 +385,11 @@
         },
         {
             rawMessageBuffer: new Uint8Array([
-                // "/foo" | ",iisff" | 1000, -1, "hello", 1.1234, 5.678
-                0x2f, 0x66, 0x6f, 0x6f,
-                0, 0, 0, 0,
-                0x2c, 0x69, 0x69, 0x73,
-                0x66, 0x66, 0, 0,
+                // "/foo" | ",iisTff" | 1000, -1, "hello", 1.1234, 5.678
+                0x2f, 0x66, 0x6f, 0x6f, // "/foo"
+                0, 0, 0, 0,             // padding
+                0x2c, 0x69, 0x69, 0x73, // ,iis
+                0x54, 0x66, 0x66, 0,    // Tff padding
                 0, 0, 0x3, 0xe8,
                 0xff, 0xff, 0xff, 0xff,
                 0x68, 0x65, 0x6c, 0x6c,
@@ -392,17 +399,45 @@
             ]),
 
             expected: {
-                "/foo": [1000, -1, "hello", 1.234, 5.678]
+                "/foo": [
+                    {
+                        type: "i",
+                        value: 1000
+                    },
+                    {
+                        type: "i",
+                        value: -1
+                    },
+                    {
+                        type: "s",
+                        value: "hello"
+                    },
+                    {
+                        type: "T",
+                        value: true
+                    },
+                    {
+                        type: "f",
+                        value: 1.234
+                    },
+                    {
+                        type: "f",
+                        value: 5.678
+                    }
+                ]
             },
 
-            roundToDecimals: 3
+            roundToDecimals: 3,
+
+            withMetadata: true
         }
     ];
 
-    test("osc.readMessage()", function () {
+    test("readMessage", function () {
         for (var i = 0; i < messageTestSpecs.length; i++) {
             var testSpec = messageTestSpecs[i];
             testMessage(testSpec);
         }
     });
+
 }());

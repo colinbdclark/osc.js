@@ -71,7 +71,7 @@ var osc = osc || {};
         // TODO: Implement.
     };
 
-    osc.readArguments = function (data, offsetState) {
+    osc.readArguments = function (data, offsetState, withMetadata) {
         var typeTagString = osc.readString(data, offsetState);
         if (typeTagString.indexOf(",") !== 0) {
             // Despite what the OSC 1.0 spec says,
@@ -99,20 +99,28 @@ var osc = osc || {};
             }
 
             arg = osc[argReader](data, offsetState);
+
+            if (withMetadata) {
+                arg = {
+                    type: argType,
+                    value: arg
+                };
+            }
+
             args.push(arg);
         }
 
         return args;
     };
 
-    osc.readMessage = function (data, offsetState) {
+    osc.readMessage = function (data, offsetState, withMetadata) {
         var address = osc.readString(data, offsetState);
         if (address.indexOf("/") !== 0) {
             throw new Error("A malformed OSC address was found while reading " +
                 "an OSC message. String was: " + address);
         }
 
-        var args = osc.readArguments(data, offsetState);
+        var args = osc.readArguments(data, offsetState, withMetadata);
         if (args.length === 1) {
             args = args[0];
         }

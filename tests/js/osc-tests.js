@@ -2,6 +2,10 @@
 
     module("OSC Reader");
 
+    /*************
+     * Utilities *
+     *************/
+
     var stringToDataView = function (str) {
         var data = new Uint8Array(str.length),
             dv = new DataView(data.buffer);
@@ -12,6 +16,75 @@
 
         return dv;
     };
+
+    var numbersToDataView = function (nums, type, width) {
+        var arrayBuf = new ArrayBuffer(nums.length * width),
+            setter = "set" + type[0].toUpperCase() + type.substring(1),
+            dv = new DataView(arrayBuf);
+
+        for (var i = 0, offset = 0; i < nums.length; i++, offset = i * width) {
+            var num = nums[i];
+            dv[setter](offset, num, false);
+        }
+
+        return dv;
+    };
+
+    var isArray = function (obj) {
+        return obj && Object.prototype.toString.call(obj) === "[object Array]";
+    };
+
+    var roundTo = function (val, numDecimals) {
+        return parseFloat(val.toFixed(numDecimals))
+    };
+
+    var equalRoundedTo = function (actual, expected, numDecimals, msg) {
+        var actualRounded = roundTo(actual, numDecimals),
+            expectedRounded = roundTo(expected, numDecimals);
+
+        equal(actualRounded, expectedRounded, msg + " Unrounded value was: " + expected);
+    };
+
+    var roundArrayValues = function (arr, numDecimals) {
+        var togo = [];
+
+        for (var i = 0; i < arr.length; i++) {
+            var val = arr[i];
+            togo[i] = typeof val === "number" ? roundTo(val, numDecimals) : val;
+        }
+
+        return togo;
+    };
+
+    var arrayEqualRounded = function (actual, expected, numDecimals, msg) {
+        var actualRounded = roundArrayValues(actual, numDecimals),
+            expectedRounded = roundArrayValues(expected, numDecimals);
+
+        deepEqual(actualRounded, expectedRounded, msg + " Actual unrounded array: " + actual);
+    };
+
+    var roundAllValues = function (obj, numDecimals) {
+        var togo = {};
+
+        for (var key in obj) {
+            var val = obj[key];
+            togo[key] = isArray(val) ? roundArrayValues(val) : val;
+        }
+
+        return togo;
+    };
+
+    var roundedDeepEqual = function (actual, expected, numDecimals, msg) {
+        var roundedActual = roundAllValues(actual, numDecimals),
+            roundedExpected = roundAllValues(expected, numDecimals);
+
+        deepEqual(roundedActual, roundedExpected, msg = " Unrounded actual object was: " +
+            JSON.stringify(roundedActual));
+    };
+
+    /*****************
+     * Read Strings  *
+     *****************/
 
     var testString = function (input, expected, offsetState) {
         offsetState = offsetState || {
@@ -44,18 +117,9 @@
         }
     });
 
-    var numbersToDataView = function (nums, type, width) {
-        var arrayBuf = new ArrayBuffer(nums.length * width),
-            setter = "set" + type[0].toUpperCase() + type.substring(1),
-            dv = new DataView(arrayBuf);
-
-        for (var i = 0, offset = 0; i < nums.length; i++, offset = i * width) {
-            var num = nums[i];
-            dv[setter](offset, num, false);
-        }
-
-        return dv;
-    };
+    /****************
+     * Read Numbers *
+     ****************/
 
     var typeTesters = {
         "int32": {
@@ -68,17 +132,6 @@
             reader: osc.readFloat32,
             width: 4
         }
-    };
-
-    var roundTo = function (val, numDecimals) {
-        return parseFloat(val.toFixed(numDecimals))
-    };
-
-    var equalRoundedTo = function (actual, expected, numDecimals, msg) {
-        var actualRounded = roundTo(actual, numDecimals),
-            expectedRounded = roundTo(expected, numDecimals);
-
-        equal(actualRounded, expectedRounded, msg + " Unrounded value was: " + expected);
     };
 
     var testPrimitive = function (type, arr, expected, offsetState) {
@@ -160,6 +213,10 @@
 
     primitiveTests(primitiveTestSpecs);
 
+    /**********************************************
+     * Read Type-Only Arguments (e.g. T, F, N, I) *
+     **********************************************/
+
     test("Type-only arguments", function () {
         var arr = new Uint8Array(255, 0, 128, 63, 255, 0),
             dv = new DataView(arr.buffer),
@@ -184,23 +241,10 @@
         equal(offsetState.idx, 27, "The offset state should not have been changed.");
     });
 
-    var roundArrayValues = function (arr, numDecimals) {
-        var togo = [];
 
-        for (var i = 0; i < arr.length; i++) {
-            var val = arr[i];
-            togo[i] = typeof val === "number" ? roundTo(val, numDecimals) : val;
-        }
-
-        return togo;
-    };
-
-    var arrayEqualRounded = function (actual, expected, numDecimals, msg) {
-        var actualRounded = roundArrayValues(actual, numDecimals),
-            expectedRounded = roundArrayValues(expected, numDecimals);
-
-        deepEqual(actualRounded, expectedRounded, msg + " Actual unrounded array: " + actual);
-    };
+    /******************
+     * Read Arguments *
+     ******************/
 
     var testArguments = function (rawArgBuffer, expected, roundToDecimals, offsetState) {
         offsetState = offsetState || {
@@ -248,6 +292,75 @@
         for (var i = 0; i < argumentTestSpecs.length; i++) {
             var testSpec = argumentTestSpecs[i];
             testArguments(testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals);
+        }
+    });
+
+
+    /*****************
+     * Read Messages *
+     *****************/
+
+    var testMessage = function (testSpec) {
+        testSpec.offsetState = testSpec.offsetState || {
+            idx: 0
+        };
+
+        var dv = new DataView(testSpec.rawMessageBuffer.buffer),
+            actual = osc.readMessage(dv, testSpec.offsetState),
+            msg = "The returned message object should match the raw message data.";
+
+        if (testSpec.roundToDecimals !== undefined) {
+            roundedDeepEqual(actual, testSpec.expected, testSpec.roundToDecimals, msg);
+        } else {
+            deepEqual(actual, testSpec.expected, msg);
+        }
+    };
+
+    var messageTestSpecs = [
+        {
+            // "/oscillator/4/frequency" | ",f" | 440
+            rawMessageBuffer: new Uint8Array([
+                0x2f, 0x6f, 0x73, 0x63,
+                0x69, 0x6c, 0x6c, 0x61,
+                0x74, 0x6f, 0x72, 0x2f,
+                0x34, 0x2f, 0x66, 0x72,
+                0x65, 0x71, 0x75, 0x65,
+                0x6e, 0x63, 0x79, 0,
+                0x2c, 0x66, 0, 0,
+                0x43, 0xdc, 0, 0
+            ]),
+
+            expected: {
+                "/oscillator/4/frequency": 440
+            }
+        },
+        {
+            rawMessageBuffer: new Uint8Array([
+                // "/foo" | ",iisff" | 1000, -1, "hello", 1.1234, 5.678
+                0x2f, 0x66, 0x6f, 0x6f,
+                0, 0, 0, 0,
+                0x2c, 0x69, 0x69, 0x73,
+                0x66, 0x66, 0, 0,
+                0, 0, 0x3, 0xe8,
+                0xff, 0xff, 0xff, 0xff,
+                0x68, 0x65, 0x6c, 0x6c,
+                0x6f, 0, 0, 0,
+                0x3f, 0x9d, 0xf3, 0xb6,
+                0x40, 0xb5, 0xb2, 0x2d
+            ]),
+
+            expected: {
+                "/foo": [1000, -1, "hello", 1.234, 5.678]
+            },
+
+            roundToDecimals: 3
+        }
+    ];
+
+    test("osc.readMessage()", function () {
+        for (var i = 0; i < messageTestSpecs.length; i++) {
+            var testSpec = messageTestSpecs[i];
+            testMessage(testSpec);
         }
     });
 }());

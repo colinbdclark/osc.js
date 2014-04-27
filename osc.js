@@ -77,7 +77,7 @@ var osc = osc || {};
             // Despite what the OSC 1.0 spec says,
             // it just doesn't make sense to handle messages without type tags.
             // scsynth appears to read such messages as if they have a single
-            // Uint8 argument. sclang throws an error.
+            // Uint8 argument. sclang throws an error if the type tag is omitted.
             throw new Error("A malformed type tag string was found while reading " +
                 "the arguments of an OSC message. String was: " +
                 typeTagString, " at offset: " + offState.idx);
@@ -94,8 +94,8 @@ var osc = osc || {};
             argType = argTypes[i];
             argReader = osc.argumentReaders[argType];
             if (!argReader) {
-                throw new Error("No reader was found for OSC type tag '" + argType +
-                    "'. Type tag string was: " + typeTagString);
+                throw new Error("'" + argType + "' is not a valid OSC type tag. Type tag string was: " +
+                    typeTagString);
             }
 
             arg = osc[argReader](data, offsetState);

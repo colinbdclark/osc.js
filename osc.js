@@ -5,30 +5,31 @@ var osc = osc || {};
     osc.readString = function (data, offsetState) {
         var charCodes = [],
             idx = offsetState.idx,
+            end = false,
             j,
             charCode;
 
-        for (idx; idx < data.byteLength; idx += 4) {
-            for (j = 0; j < 4; j++) {
-                charCode = data.getUint8(idx + j);
-                if (charCode !== 0) {
-                    charCodes.push(charCode);
-                } else {
-                    break;
-                }
+        for (; idx < data.byteLength; idx++) {
+            charCode = data.getUint8(idx);
+            if (charCode !== 0) {
+                charCodes.push(charCode);
+            } else {
+                idx++;
+                break;
             }
         }
 
+        // Round to the nearest 4-byte block.
+        idx = (idx + 3) & ~0x03;
         offsetState.idx = idx;
-        var str = String.fromCharCode.apply(null, charCodes);
 
-        return str;
+        return String.fromCharCode.apply(null, charCodes);
     };
 
     osc.readPrimitive = function (data, readerName, numBytes, offsetState) {
         var val = data[readerName](offsetState.idx, false);
         offsetState.idx += numBytes;
-        
+
         return val;
     };
 
@@ -89,6 +90,11 @@ var osc = osc || {};
         for (i = 0; i < argTypes.length; i++) {
             argType = argTypes[i];
             argReader = osc.argumentReaders[argType];
+            if (!argReader) {
+                throw new Error("No reader was found for OSC type tag '" + argType +
+                    "'. Type tag string was: " + typeTagString);
+            }
+
             arg = osc[argReader](data, offsetState);
             args.push(arg);
         }

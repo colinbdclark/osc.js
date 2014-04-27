@@ -70,10 +70,13 @@
         }
     };
 
+    var roundTo = function (val, numDecimals) {
+        return parseFloat(val.toFixed(numDecimals))
+    };
 
     var equalRoundedTo = function (actual, expected, numDecimals, msg) {
-        var actualRounded = parseFloat(actual.toFixed(numDecimals)),
-            expectedRounded = parseFloat(expected.toFixed(numDecimals));
+        var actualRounded = roundTo(actual, numDecimals),
+            expectedRounded = roundTo(expected, numDecimals);
 
         equal(actualRounded, expectedRounded, msg + " Unrounded value was: " + expected);
     };
@@ -179,5 +182,72 @@
         var imp = osc.readImpulse();
         equal(imp, 1.0, "readImpulse() should return 1.0.");
         equal(offsetState.idx, 27, "The offset state should not have been changed.");
+    });
+
+    var roundArrayValues = function (arr, numDecimals) {
+        var togo = [];
+
+        for (var i = 0; i < arr.length; i++) {
+            var val = arr[i];
+            togo[i] = typeof val === "number" ? roundTo(val, numDecimals) : val;
+        }
+
+        return togo;
+    };
+
+    var arrayEqualRounded = function (actual, expected, numDecimals, msg) {
+        var actualRounded = roundArrayValues(actual, numDecimals),
+            expectedRounded = roundArrayValues(expected, numDecimals);
+
+        deepEqual(actualRounded, expectedRounded, msg + " Actual unrounded array: " + actual);
+    };
+
+    var testArguments = function (rawArgBuffer, expected, roundToDecimals, offsetState) {
+        offsetState = offsetState || {
+            idx: 0
+        };
+
+        var dv = new DataView(rawArgBuffer.buffer),
+            actual = osc.readArguments(dv, offsetState);
+
+        if (roundToDecimals !== undefined) {
+            arrayEqualRounded(actual, expected, roundToDecimals, offsetState);
+        } else {
+            deepEqual(actual, expected,
+                "The returned arguments should have the correct values in the correct order.");
+        }
+    };
+
+    var argumentTestSpecs = [
+        {
+            // ",f" | 440
+            rawArgBuffer: new Uint8Array([
+                0x2c, 0x66, 0, 0,
+                0x43, 0xdc, 0 ,0
+            ]),
+            expected: [440]
+        },
+        {
+            // ",iisff" | 1000, -1, "hello", 1.1234, 5.678
+            rawArgBuffer: new Uint8Array([
+                0x2c, 0x69, 0x69, 0x73,
+                0x66, 0x66, 0, 0,
+                0, 0, 0x3, 0xe8,
+                0xff, 0xff, 0xff, 0xff,
+                0x68, 0x65, 0x6c, 0x6c,
+                0x6f, 0, 0, 0,
+                0x3f, 0x9d, 0xf3, 0xb6,
+                0x40, 0xb5, 0xb2, 0x2d
+            ]),
+            expected: [1000, -1, "hello", 1.234, 5.678],
+            roundToDecimals: 3
+        }
+    ];
+
+    test("osc.readArguments()", function () {
+        for (var i = 0; i < argumentTestSpecs.length; i++) {
+            var testSpec = argumentTestSpecs[i];
+            testArguments(testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals);
+        }
     });
 }());

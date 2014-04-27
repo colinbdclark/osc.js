@@ -213,6 +213,36 @@
 
     primitiveTests(primitiveTestSpecs);
 
+
+    /**************
+     * Read Blobs *
+     **************/
+
+    test("readBlob", function () {
+        var raw = new Uint8Array([
+            0, 0, 0, 3,            // Length 3
+            0x63, 0x61, 0x74, 0,   // raw bytes
+            1, 2, 3, 4             // some random stuff afterwards.
+        ]);
+
+        var dv = new DataView(raw.buffer);
+
+        var expected = new Uint8Array([
+            0x63, 0x61, 0x74
+        ]);
+
+        var offsetState = {
+            idx: 0
+        };
+
+        var actual = osc.readBlob(dv, offsetState);
+
+        deepEqual(actual, expected, "The blob should be returned as-is.");
+        ok(actual instanceof Uint8Array, "The blob should be returned as a Uint8Array.");
+        equal(offsetState.idx, 8, "The offset state should have been updated correctly.");
+    });
+
+
     /**********************************************
      * Read Type-Only Arguments (e.g. T, F, N, I) *
      **********************************************/
@@ -267,9 +297,21 @@
             // ",f" | 440
             rawArgBuffer: new Uint8Array([
                 0x2c, 0x66, 0, 0,
-                0x43, 0xdc, 0 ,0
+                0x43, 0xdc, 0 , 0
             ]),
             expected: [440]
+        },
+        {
+            // ",bf" | 3 | [0x63 0x61 0x74], 440
+            rawArgBuffer: new Uint8Array([
+                0x2c, 0x62, 0x66, 0,
+                0, 0, 0, 3,
+                0x63, 0x61, 0x74, 0,
+                0x43, 0xdc, 0 , 0
+            ]),
+            expected: [new Uint8Array([
+                0x63, 0x61, 0x74,
+            ]), 440]
         },
         {
             // ",iisff" | 1000, -1, "hello", 1.1234, 5.678

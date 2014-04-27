@@ -43,9 +43,12 @@ var osc = osc || {};
 
     osc.readBlob = function (data, offsetState) {
         var dataLength = osc.readInt32(data, offsetState),
-            paddedLength = dataLength; // TODO: Calculate this properly!
+            paddedLength = (dataLength + 3) & ~0x03,
+            blob = new Uint8Array(data.buffer, offsetState.idx, dataLength);
 
-        return new Uint8Array(data.buffer, offsetState.idx, paddedLength);
+        offsetState.idx += paddedLength;
+
+        return blob;
     };
 
     osc.readTrue = function () {
@@ -106,7 +109,7 @@ var osc = osc || {};
         var address = osc.readString(data, offsetState);
         if (address.indexOf("/") !== 0) {
             throw new Error("A malformed OSC address was found while reading " +
-                " an OSC message. String was: " + address);
+                "an OSC message. String was: " + address);
         }
 
         var args = osc.readArguments(data, offsetState);
@@ -139,7 +142,6 @@ var osc = osc || {};
         // r: "readColor",
         // m: "readMIDI"
     };
-
 
     // If we're in a require-compatible environment, export ourselves.
     if (typeof this.module !== "undefined") {

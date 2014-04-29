@@ -130,8 +130,10 @@ var osc = osc || {};
             args = args[0];
         }
 
-        var message = {};
-        message[address] = args;
+        var message = {
+            address: address,
+            args: args
+        };
 
         return message;
     };
@@ -174,8 +176,10 @@ var osc = osc || {};
 
     // If we're in a require-compatible environment, export ourselves.
     if (typeof module !== "undefined" && module.exports) {
+
+        // Check if we're in Node.js and override makeDataView to support
+        // native Node.js Buffers using the buffer-dataview library.
         if (typeof Buffer !== "undefined") {
-            // We're in Node.js.
             var BufferDataView = require("buffer-dataview");
             osc.makeDataView = function (data) {
                 if (data instanceof DataView || data instanceof BufferDataView) {
@@ -196,9 +200,9 @@ var osc = osc || {};
 
                 return new DataView(new Uint8Array(data));
             };
-
-            module.exports = osc;
         }
+
+        module.exports = osc;
     }
 
 }());

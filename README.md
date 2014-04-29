@@ -1,7 +1,7 @@
 osc.js
 ======
 
-osc.js is a library for reading and writing [Open Sound Control](http://opensoundcontrol.org) messages in JavaScript. It has no dependencies on a particular environment or type of transport. As a result, it can be used in both Node.js and the browser.
+osc.js is a library for reading and writing [Open Sound Control](http://opensoundcontrol.org) messages in JavaScript. It has no dependencies on a particular environment or type of transport. As a result, it can be used in Node.js or in a web browser.
 
 Why osc.js?
 -----------
@@ -11,7 +11,7 @@ There are several other OSC libraries written in JavaScript. All of them depend 
 What Does it Do?
 ----------------
 
-osc.js is transport- and source-agnostic. It simply reads and writes binary data, taking care of translating between ordinary JavaScript objects and OSC's low-level binary format. osc.js provides adaptors for reading/writing Node.js Buffer objects as well as standard ArrayBuffer objects.
+osc.js reads and writes OSC-formatted binary data into plain JavaScript objects. osc.js provides adaptors for reading/writing Node.js Buffer objects as well as standard ArrayBuffer objects.
 
 You can receive OSC data in whatever manner works best for your application: serial port APIs such as node-serialport or chrome.serial, socket APIs such as Node.js dgram or WebRTC data channels, WebSockets or binary XHR messages should all work. Connect osc.js up to your source of incoming/outgoing data, and you're all set.
 

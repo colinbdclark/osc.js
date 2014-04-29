@@ -397,7 +397,8 @@
             ]),
 
             expected: {
-                "/oscillator/4/frequency": 440
+                address: "/oscillator/4/frequency",
+                args: 440
             }
         },
         {
@@ -416,7 +417,8 @@
             ]),
 
             expected: {
-                "/foo": [
+                address: "/foo",
+                args: [
                     {
                         type: "i",
                         value: 1000

@@ -1,6 +1,6 @@
 (function () {
 
-    module("OSC Reader");
+    QUnit.module("OSC Reader");
 
     /*************
      * Utilities *
@@ -34,6 +34,22 @@
         return obj && Object.prototype.toString.call(obj) === "[object Array]";
     };
 
+    var arrayEqual = function (actual, expected, msg) {
+        var mismatch = false;
+        equal(actual.length, expected.length, "The array should be the expected length.");
+        for (var i = 0; i < actual.length; i++) {
+            var actualVal = actual[i];
+            // We've got an array-like thing here.
+            if (typeof actualVal === "object" && typeof actualVal.length === "number") {
+                arrayEqual(actualVal, expected[i], msg);
+            } else if (actualVal !== expected[i]) {
+                mismatch = true;
+            }
+        }
+
+        ok(!mismatch, msg);
+    };
+
     var roundTo = function (val, numDecimals) {
         return typeof val === "number" ? parseFloat(val.toFixed(numDecimals)) : val;
     };
@@ -42,7 +58,7 @@
         var actualRounded = roundTo(actual, numDecimals),
             expectedRounded = roundTo(expected, numDecimals);
 
-        equal(actualRounded, expectedRounded, msg + " Unrounded value was: " + expected);
+        equal(actualRounded, expectedRounded, msg + "\nUnrounded value was: " + expected);
     };
 
     var roundArrayValues = function (arr, numDecimals) {
@@ -61,7 +77,7 @@
         var actualRounded = roundArrayValues(actual, numDecimals),
             expectedRounded = roundArrayValues(expected, numDecimals);
 
-        deepEqual(actualRounded, expectedRounded, msg + " Actual unrounded array: " + actual);
+        arrayEqual(actualRounded, expectedRounded, msg + "\nActual unrounded array: " + actual);
     };
 
     var roundAllValues = function (obj, numDecimals) {
@@ -85,7 +101,7 @@
         var roundedActual = roundAllValues(actual, numDecimals),
             roundedExpected = roundAllValues(expected, numDecimals);
 
-        deepEqual(roundedActual, roundedExpected, msg = " Unrounded actual object was: " +
+        deepEqual(roundedActual, roundedExpected, msg = "\nUnrounded actual object was: " +
             JSON.stringify(roundedActual));
     };
 
@@ -123,6 +139,7 @@
             testString(testSpec.oscString, testSpec.expected);
         }
     });
+
 
     /****************
      * Read Numbers *
@@ -244,7 +261,7 @@
 
         var actual = osc.readBlob(dv, offsetState);
 
-        deepEqual(actual, expected, "The blob should be returned as-is.");
+        arrayEqual(actual, expected, "The blob should be returned as-is.");
         ok(actual instanceof Uint8Array, "The blob should be returned as a Uint8Array.");
         equal(offsetState.idx, 8, "The offset state should have been updated correctly.");
     });
@@ -294,7 +311,7 @@
         if (roundToDecimals !== undefined) {
             arrayEqualRounded(actual, expected, roundToDecimals, offsetState);
         } else {
-            deepEqual(actual, expected,
+            arrayEqual(actual, expected,
                 "The returned arguments should have the correct values in the correct order.");
         }
     };

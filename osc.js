@@ -80,7 +80,7 @@ var osc = osc || {};
             // Uint8 argument. sclang throws an error if the type tag is omitted.
             throw new Error("A malformed type tag string was found while reading " +
                 "the arguments of an OSC message. String was: " +
-                typeTagString, " at offset: " + offState.idx);
+                typeTagString, " at offset: " + offsetState.idx);
         }
 
         var argTypes = typeTagString.substring(1).split(""),
@@ -114,6 +114,11 @@ var osc = osc || {};
     };
 
     osc.readMessage = function (data, offsetState, withMetadata) {
+        data = osc.makeDataView(data);
+        offsetState = offsetState || {
+            idx: 0
+        };
+
         var address = osc.readString(data, offsetState);
         if (address.indexOf("/") !== 0) {
             throw new Error("A malformed OSC address was found while reading " +
@@ -129,6 +134,22 @@ var osc = osc || {};
         message[address] = args;
 
         return message;
+    };
+
+    osc.makeDataView = function (data) {
+        if (data instanceof DataView) {
+            return data;
+        }
+
+        if (data.buffer) {
+            return new DataView(data.buffer);
+        }
+
+        if (data instanceof ArrayBuffer) {
+            return new DataView(data);
+        }
+
+        return new DataView(new Uint8Array(data));
     };
 
     osc.argumentReaders = {
@@ -152,8 +173,32 @@ var osc = osc || {};
     };
 
     // If we're in a require-compatible environment, export ourselves.
-    if (typeof this.module !== "undefined") {
-        module.exports = osc;
+    if (typeof module !== "undefined" && module.exports) {
+        if (typeof Buffer !== "undefined") {
+            // We're in Node.js.
+            var BufferDataView = require("buffer-dataview");
+            osc.makeDataView = function (data) {
+                if (data instanceof DataView || data instanceof BufferDataView) {
+                    return data;
+                }
+
+                if (data instanceof Buffer) {
+                    return new BufferDataView(data);
+                }
+
+                if (data.buffer) {
+                    return new DataView(data.buffer);
+                }
+
+                if (data instanceof ArrayBuffer) {
+                    return new DataView(data);
+                }
+
+                return new DataView(new Uint8Array(data));
+            };
+
+            module.exports = osc;
+        }
     }
 
 }());

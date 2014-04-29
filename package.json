@@ -1,0 +1,41 @@
+{
+  "name": "osc",
+  "main": "osc.js",
+  "version": "0.0.1",
+  "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
+  "author": "Colin Clark",
+  "homepage": "http://flockingjs.org/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/colinbdclark/osc.js.git"
+  },
+  "bugs": "https://github.com/colinbdclark/osc.js/issues",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    },
+    {
+      "type": "GPL",
+      "url": "http://opensource.org/licenses/GPL-3.0"
+    }
+  ],
+  "keywords": [
+    "Open Sound Control",
+    "OSC",
+    "sound",
+    "audio",
+    "music",
+    "Flocking"
+  ],
+  "readmeFilename": "README.md",
+  "devDependencies": {
+      "qunit": "0.6.2"
+  },
+  "dependencies": {
+      "buffer-dataview": ">=0.0.2"
+  },
+  "engines": {
+    "node": "0.10.x"
+  }
+}

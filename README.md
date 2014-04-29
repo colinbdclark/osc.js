@@ -22,8 +22,6 @@ osc.js is in early, active development. It does not yet (but will) support:
 
 * Writing OSC messages
 * Reading OSC bundles
-* Adaptors for Node.js Buffers and ArrayBuffer objects
-* Use as Node.js module
 * OSC time tags
 * int64 types
 * float64 types

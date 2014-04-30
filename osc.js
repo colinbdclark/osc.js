@@ -4,13 +4,10 @@ var osc = osc || {};
 
     osc.readString = function (data, offsetState) {
         var charCodes = [],
-            idx = offsetState.idx,
-            end = false,
-            j,
-            charCode;
+            idx = offsetState.idx;
 
         for (; idx < data.byteLength; idx++) {
-            charCode = data.getUint8(idx);
+            var charCode = data.getUint8(idx);
             if (charCode !== 0) {
                 charCodes.push(charCode);
             } else {
@@ -84,21 +81,18 @@ var osc = osc || {};
         }
 
         var argTypes = typeTagString.substring(1).split(""),
-            args = [],
-            i,
-            argType,
-            argReader,
-            arg;
+            args = [];
 
-        for (i = 0; i < argTypes.length; i++) {
-            argType = argTypes[i];
-            argReader = osc.argumentReaders[argType];
+        for (var i = 0; i < argTypes.length; i++) {
+            var argType = argTypes[i],
+                argReader = osc.argumentReaders[argType];
+
             if (!argReader) {
                 throw new Error("'" + argType + "' is not a valid OSC type tag. Type tag string was: " +
                     typeTagString);
             }
 
-            arg = osc[argReader](data, offsetState);
+            var arg = osc[argReader](data, offsetState);
 
             if (withMetadata) {
                 arg = {

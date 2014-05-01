@@ -158,7 +158,7 @@
         }
     };
 
-    var testPrimitive = function (type, arr, expected, offsetState) {
+    var testReadPrimitive = function (type, arr, expected, offsetState) {
         offsetState = offsetState || {
             idx: 0
         };
@@ -172,26 +172,26 @@
         equal(offsetState.idx, expectedOffsetIdx, "The offset state should have been updated appropriately.");
     };
 
-    var makeTester = function (type, testSpec) {
+    var makeReadPrimitiveTester = function (type, testSpec) {
         return function () {
-            testPrimitive(type, testSpec.nums, testSpec.expected, {
+            testReadPrimitive(type, testSpec.nums, testSpec.expected, {
                 idx: testSpec.offset
             });
         };
     };
 
-    var primitiveTests = function (testSpecs) {
+    var readPrimitiveTests = function (testSpecs) {
         for (var type in testSpecs) {
             var specsForType = testSpecs[type];
 
             for (var i = 0; i < specsForType.length; i++) {
                 var spec = specsForType[i];
-                test(spec.name, makeTester(type, spec));
+                test(spec.name, makeReadPrimitiveTester(type, spec));
             }
         }
     };
 
-    var primitiveTestSpecs = {
+    var readPrimitiveTestSpecs = {
         "int32": [
             {
                 name: "Read an int32 value in the middle of a byte array",
@@ -235,7 +235,84 @@
         ]
     };
 
-    primitiveTests(primitiveTestSpecs);
+    readPrimitiveTests(readPrimitiveTestSpecs);
+
+
+    /*****************
+     * Write Numbers *
+     *****************/
+
+    test("writeInt32", function () {
+        var val = 32,
+            size = 4,
+            expected = new Uint8Array([0, 0, 0, 32]),
+            actual = osc.writeInt32(val, new DataView(new ArrayBuffer(size)));
+
+        arrayEqual(actual, expected.buffer, "The value should have been written to the output buffer.");
+    });
+
+    var testWritePrimitive = function (testSpec) {
+        test(testSpec.writer + " " + testSpec.name, function () {
+            var expected = testSpec.expected.buffer,
+                outBuf = new ArrayBuffer(expected.byteLength),
+                dv = new DataView(outBuf),
+                actual = osc[testSpec.writer](testSpec.val, dv, testSpec.offset);
+
+            arrayEqual(actual, expected, "The value should have been written to the output buffer.");
+        });
+    };
+
+    var writePrimitiveTestSpecs = [
+        {
+            writer: "writeInt32",
+            name: "simple value",
+            val: 32,
+            expected: new Uint8Array([0, 0, 0, 32])
+        },
+        {
+            writer: "writeInt32",
+            name: "negative 32 bit value",
+            val: -1,
+            expected: new Uint8Array([255, 255, 255, 255])
+        },
+        {
+            writer: "writeInt32",
+            name: "with offset",
+            val: -1,
+            offset: 4,
+            expected: new Uint8Array([0, 0, 0, 0, 255, 255, 255, 255])
+        },
+        {
+            writer: "writeFloat32",
+            name: "simple value",
+            val: 42.42,
+            expected: new Uint8Array([66, 41, 174, 20])
+        },
+        {
+            writer: "writeFloat32",
+            name: "negative value",
+            val: -3.14159,
+            expected: new Uint8Array([192, 73, 15, 208])
+        },
+        {
+            writer: "writeFloat32",
+            name: "simple value with offset",
+            val: 1,
+            offset: 12,
+            expected: new Uint8Array([
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
+            ])
+        }
+    ];
+
+    var writePrimitiveTests = function (testSpecs) {
+        for (var i = 0; i < testSpecs.length; i++) {
+            var testSpec = testSpecs[i];
+            testWritePrimitive(testSpec);
+        }
+    };
+
+    writePrimitiveTests(writePrimitiveTestSpecs);
 
 
     /**************

@@ -38,6 +38,21 @@ var osc = osc || {};
         return osc.readPrimitive(data, "getFloat32", 4, offsetState);
     };
 
+    osc.writePrimitive = function (val, dv, writerName, numBytes, offset) {
+        offset = offset === undefined ? 0 : offset;
+        dv[writerName](offset, val, false);
+
+        return dv.buffer;
+    };
+
+    osc.writeInt32 = function (val, dv, offset) {
+        return osc.writePrimitive(val, dv, "setInt32", 4, offset);
+    };
+
+    osc.writeFloat32 = function (val, dv, offset) {
+        return osc.writePrimitive(val, dv, "setFloat32", 4, offset);
+    };
+
     osc.readBlob = function (data, offsetState) {
         var dataLength = osc.readInt32(data, offsetState),
             paddedLength = (dataLength + 3) & ~0x03,
@@ -46,6 +61,41 @@ var osc = osc || {};
         offsetState.idx += paddedLength;
 
         return blob;
+    };
+
+    osc.normalizeBuffer = function (obj) {
+        if (obj instanceof ArrayBuffer) {
+            return obj;
+        } else if (obj.buffer) {
+            // TypedArray or DataView
+            return obj.buffer;
+        }
+
+        // Node.js Buffer or something we'll assume is array-like.
+        obj.byteLength = obj.length;
+        return obj;
+    };
+
+    osc.writeBlob = function (data) {
+        data = osc.normalizeBuffer(data);
+
+        var dataLength = data.byteLength,
+            paddedLength = (dataLength + 3) & ~0x03,
+            offset = 4, // Extra 4 bytes is for the size.
+            msgLength = paddedLength + offset,
+            msgBuffer = new ArrayBuffer(msgLength),
+            dv = new DataView(msgBuffer);
+
+        // Write the size.
+        osc.writeInt32(paddedLength, dv);
+
+        // Write the data.
+        // Since we're using an ArrayBuffer, we don't need to pad the remaining bytes.
+        for (var i = 0; i < dataLength; i++, offset++) {
+            dv.setUint8(offset, arrayBuf[i]);
+        }
+
+        return dv.buffer;
     };
 
     osc.readTrue = function () {

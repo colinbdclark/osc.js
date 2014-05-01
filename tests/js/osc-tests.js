@@ -7,8 +7,8 @@
      *************/
 
     var stringToDataView = function (str) {
-        var data = new Uint8Array(str.length),
-            dv = new DataView(data.buffer);
+        var arr = new Uint8Array(str.length),
+            dv = new DataView(arr.buffer);
 
         for (var i = 0; i < str.length; i++) {
             dv.setUint8(i, str.charCodeAt(i));
@@ -18,9 +18,9 @@
     };
 
     var numbersToDataView = function (nums, type, width) {
-        var arrayBuf = new ArrayBuffer(nums.length * width),
+        var arr = new ArrayBuffer(nums.length * width),
             setter = "set" + type[0].toUpperCase() + type.substring(1),
-            dv = new DataView(arrayBuf);
+            dv = new DataView(arr);
 
         for (var i = 0, offset = 0; i < nums.length; i++, offset = i * width) {
             var num = nums[i];
@@ -315,22 +315,25 @@
     writePrimitiveTests(writePrimitiveTestSpecs);
 
 
-    /**************
-     * Read Blobs *
-     **************/
+    /*********
+     * Blobs *
+     *********/
+
+    var oscBlobOctets = [
+        0, 0, 0, 3,            // Length 3
+        0x63, 0x61, 0x74, 0   // raw bytes
+    ];
+    var oscBlob = new Uint8Array(oscBlobOctets);
+    var oscBlobOctetsWithExtra = oscBlobOctets.concat([1, 2, 3, 4]);  // some random stuff afterwards.
+    var oscExtraBlob = new Uint8Array(oscBlobOctetsWithExtra);
+
+    var rawData = new Uint8Array([
+        0x63, 0x61, 0x74
+    ]);
 
     test("readBlob", function () {
-        var raw = new Uint8Array([
-            0, 0, 0, 3,            // Length 3
-            0x63, 0x61, 0x74, 0,   // raw bytes
-            1, 2, 3, 4             // some random stuff afterwards.
-        ]);
-
-        var dv = new DataView(raw.buffer);
-
-        var expected = new Uint8Array([
-            0x63, 0x61, 0x74
-        ]);
+        var dv = new DataView(oscExtraBlob.buffer);
+        var expected = rawData;
 
         var offsetState = {
             idx: 0
@@ -341,6 +344,17 @@
         arrayEqual(actual, expected, "The blob should be returned as-is.");
         ok(actual instanceof Uint8Array, "The blob should be returned as a Uint8Array.");
         equal(offsetState.idx, 8, "The offset state should have been updated correctly.");
+    });
+
+
+    test("writeBlob", function () {
+        var data = rawData,
+            expected = oscBlob,
+            actual = osc.writeBlob(rawData);
+
+        arrayEqual(new Uint8Array(actual), expected,
+            "The data should have been packed into a correctly-formatted OSC blob.");
+        ok(actual instanceof ArrayBuffer, "The written blob should be an ArrayBuffer");
     });
 
 

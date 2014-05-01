@@ -105,40 +105,63 @@
             JSON.stringify(roundedActual));
     };
 
-    /*****************
-     * Read Strings  *
-     *****************/
 
-    var testString = function (input, expected, offsetState) {
-        offsetState = offsetState || {
+    /************
+     * Strings  *
+     ************/
+
+     var testReadString = function (testSpec) {
+        var offsetState = testSpec.offsetState || {
             idx: 0
         };
 
-        var dv = stringToDataView(input),
-            actual = osc.readString(dv, offsetState);
+        test("readString " + testSpec.name, function () {
+            var expected = testSpec.rawString,
+                dv = stringToDataView(testSpec.paddedString),
+                actual = osc.readString(dv, offsetState);
 
-         equal(actual, expected, "The string should have been read correctly.");
-         equal(offsetState.idx, input.length,
-             "The offset state should correctly reflect the null padding of the OSC string.")
+             equal(actual, expected, "The string should have been read correctly.");
+             equal(offsetState.idx, testSpec.paddedString.length,
+                 "The offset state should correctly reflect the null padding of the OSC string.")
+        });
+
     };
 
-    var readStringTestSpecs = [
+
+    var testWriteString = function (testSpec) {
+        test("writeString " + testSpec.name, function () {
+            var expectedDV = stringToDataView(testSpec.paddedString),
+                expected = new Uint8Array(expectedDV.buffer),
+                actualBuf = osc.writeString(testSpec.rawString),
+                actual = new Uint8Array(actualBuf);
+
+            arrayEqual(actual, expected, "The string should have been written correctly.");
+            ok(actualBuf instanceof ArrayBuffer, "The returned value should be an ArrayBuffer.");
+        });
+    };
+
+    var stringTestSpecs = [
         {
-            oscString: "data\u0000\u0000\u0000\u0000",
-            expected: "data"
+            name: "four character (eight byte) string",
+            paddedString: "data\u0000\u0000\u0000\u0000",
+            rawString: "data"
         },
         {
-            oscString: "OSC\u0000",
-            expected: "OSC"
+            name: "three character (four byte) string",
+            paddedString: "OSC\u0000",
+            rawString: "OSC"
         }
     ];
 
-    test("readString", function () {
-        for (var i = 0; i < readStringTestSpecs.length; i++) {
-            var testSpec = readStringTestSpecs[i];
-            testString(testSpec.oscString, testSpec.expected);
+    var stringTests = function (testSpecs) {
+        for (var i = 0; i < testSpecs.length; i++) {
+            var testSpec = testSpecs[i];
+            testReadString(testSpec);
+            testWriteString(testSpec);
         }
-    });
+    }
+
+    stringTests(stringTestSpecs);
 
 
     /****************

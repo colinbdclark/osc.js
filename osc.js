@@ -46,6 +46,21 @@ var osc = osc || {};
         return String.fromCharCode.apply(null, charCodes);
     };
 
+    osc.writeString = function (str) {
+        var terminated = str + "\u0000",
+            len = terminated.length,
+            paddedLen = (len + 3) & ~0x03,
+            buf = new ArrayBuffer(paddedLen),
+            arr = new Uint8Array(buf);
+
+        for (var i = 0; i < terminated.length; i++) {
+            var charCode = terminated.charCodeAt(i);
+            arr[i] = charCode;
+        }
+
+        return buf;
+    };
+
     osc.readPrimitive = function (dv, readerName, numBytes, offsetState) {
         var val = dv[readerName](offsetState.idx, false);
         offsetState.idx += numBytes;
@@ -98,9 +113,9 @@ var osc = osc || {};
         var len = data.byteLength,
             paddedLen = (len + 3) & ~0x03,
             offset = 4, // Extra 4 bytes is for the size.
-            msgLen = paddedLen + offset,
-            msgBuf = new ArrayBuffer(msgLen),
-            dv = new DataView(msgBuf);
+            blobLen = paddedLen + offset,
+            blobBuf = new ArrayBuffer(blobLen),
+            dv = new DataView(blobBuf);
 
         // Write the size.
         osc.writeInt32(len, dv);
@@ -111,7 +126,7 @@ var osc = osc || {};
             dv.setUint8(offset, data[i]);
         }
 
-        return dv.buffer;
+        return blobBuf;
     };
 
     osc.readTrue = function () {

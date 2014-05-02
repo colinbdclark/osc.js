@@ -136,7 +136,7 @@
                 actual = new Uint8Array(actualBuf);
 
             arrayEqual(actual, expected, "The string should have been written correctly.");
-            ok(actualBuf instanceof ArrayBuffer, "The returned value should be an ArrayBuffer.");
+            ok(actualBuf instanceof Uint8Array, "The returned value should be a Uint8Array.");
         });
     };
 
@@ -265,19 +265,10 @@
      * Write Numbers *
      *****************/
 
-    test("writeInt32", function () {
-        var val = 32,
-            size = 4,
-            expected = new Uint8Array([0, 0, 0, 32]),
-            actual = osc.writeInt32(val, new DataView(new ArrayBuffer(size)));
-
-        arrayEqual(actual, expected.buffer, "The value should have been written to the output buffer.");
-    });
-
     var testWritePrimitive = function (testSpec) {
         test(testSpec.writer + " " + testSpec.name, function () {
-            var expected = testSpec.expected.buffer,
-                outBuf = new ArrayBuffer(expected.byteLength),
+            var expected = testSpec.expected,
+                outBuf = new ArrayBuffer(expected.buffer.byteLength),
                 dv = new DataView(outBuf),
                 actual = osc[testSpec.writer](testSpec.val, dv, testSpec.offset);
 
@@ -323,7 +314,7 @@
             val: 1,
             offset: 12,
             expected: new Uint8Array([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 128, 0, 0, 0, 0, 0, 0
             ])
         }
     ];
@@ -377,7 +368,7 @@
 
         arrayEqual(new Uint8Array(actual), expected,
             "The data should have been packed into a correctly-formatted OSC blob.");
-        ok(actual instanceof ArrayBuffer, "The written blob should be an ArrayBuffer");
+        ok(actual instanceof Uint8Array, "The written blob should be a Uint8Array");
     });
 
 

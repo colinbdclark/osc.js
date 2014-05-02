@@ -2,6 +2,8 @@ var osc = osc || {};
 
 (function () {
 
+    "use strict";
+
     /**
      * Wraps the specified object in a DataView.
      *
@@ -43,7 +45,7 @@ var osc = osc || {};
         var buf = obj.buffer ? obj.buffer : obj;
 
         if (typeof obj.length === "undefined" || typeof obj === "string") {
-            throw new Error("Can't write from a non-array-like object: " + obj);
+            throw new Error("Can't wrap a non-array-like object as Uint8Array. Object was: " + obj);
         }
 
         return new Uint8Array(buf);
@@ -81,7 +83,7 @@ var osc = osc || {};
      * Writes a JavaScript string as an OSC-formatted string.
      *
      * @param {String} str the string to write
-     * @return {ArrayBuffer} a buffer containing the OSC-formatted string
+     * @return {Uint8Array} a buffer containing the OSC-formatted string
      */
     osc.writeString = function (str) {
         var terminated = str + "\u0000",
@@ -95,7 +97,7 @@ var osc = osc || {};
             arr[i] = charCode;
         }
 
-        return buf;
+        return arr;
     };
 
     osc.readPrimitive = function (dv, readerName, numBytes, offsetState) {
@@ -108,9 +110,18 @@ var osc = osc || {};
     // Unsupported, non-API function.
     osc.writePrimitive = function (val, dv, writerName, numBytes, offset) {
         offset = offset === undefined ? 0 : offset;
+
+        var arr;
+        if (!dv) {
+            arr = new Uint8Array(numBytes);
+            dv = new DataView(arr.buffer);
+        } else {
+            arr = new Uint8Array(dv.buffer);
+        }
+
         dv[writerName](offset, val, false);
 
-        return dv.buffer;
+        return arr;
     };
 
     /**
@@ -128,7 +139,7 @@ var osc = osc || {};
      * Writes an OSC int32 ("i") value.
      *
      * @param {Number} val the number to write
-     * @param {DataView} dv a DataView instance to write the number into
+     * @param {DataView} [dv] a DataView instance to write the number into
      * @param {Number} [offset] an offset into dv
      */
     osc.writeInt32 = function (val, dv, offset) {
@@ -150,7 +161,7 @@ var osc = osc || {};
      * Writes an OSC float32 ("f") value.
      *
      * @param {Number} val the number to write
-     * @param {DataView} dv a DataView instance to write the number into
+     * @param {DataView} [dv] a DataView instance to write the number into
      * @param {Number} [offset] an offset into dv
      */
     osc.writeFloat32 = function (val, dv, offset) {
@@ -187,8 +198,8 @@ var osc = osc || {};
             paddedLen = (len + 3) & ~0x03,
             offset = 4, // Extra 4 bytes is for the size.
             blobLen = paddedLen + offset,
-            blobBuf = new ArrayBuffer(blobLen),
-            dv = new DataView(blobBuf);
+            arr = new Uint8Array(blobLen),
+            dv = new DataView(arr.buffer);
 
         // Write the size.
         osc.writeInt32(len, dv);
@@ -199,7 +210,7 @@ var osc = osc || {};
             dv.setUint8(offset, data[i]);
         }
 
-        return blobBuf;
+        return arr;
     };
 
     /**
@@ -288,6 +299,59 @@ var osc = osc || {};
     };
 
     /**
+     * Writes the specified arguments.
+     *
+     * @param {Array} args an array of arguments
+     * @param {Boolean} withMetadata if false, the argument types will be inferred automatically
+     * @return {Uint8Array} a buffer containing the OSC-formatted argument type tag and values
+     */
+    osc.writeArguments = function (args, withMetadata) {
+        var argCollection = osc.collectArguments(args, withMetadata);
+        return osc.joinParts(argCollection);
+    };
+
+    // Unsupported, non-API function.
+    osc.joinParts = function (dataCollection) {
+        var buf = new Uint8Array(dataCollection.byteLength);
+        buf.set(dataCollection.parts);
+
+        return buf;
+    };
+
+    // Unsupported, non-API function.
+    osc.collectArguments = function (args, withMetadata) {
+        if (!withMetadata) {
+            args = osc.annotateArguments(args);
+        }
+
+        var typeTagString = ",",
+            len = 0,
+            argData = [];
+
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i],
+                type = arg.type,
+                writer = osc.argumentTypes[type];
+
+            typeTagString += arg.type;
+            if (writer) {
+                var data = osc[writer](arg.value);
+                len += data.byteLength;
+                argData.push(data);
+            }
+        }
+
+        var typeData = osc.writeString(typeTagString);
+        len += typeData.byteLength;
+        argData.shift(typeData);
+
+        return {
+            byteLength: len,
+            parts: argData
+        };
+    };
+
+    /**
      * Reads an OSC message.
      *
      * @param {DataView} dv a DataView instance to read from
@@ -320,6 +384,19 @@ var osc = osc || {};
         return message;
     };
 
+    osc.writeMessage = function (address, args, withMetadata) {
+        var argCollection = osc.collectArguments(args, withMetadata),
+            parts = argCollection.parts,
+            addressData = osc.writeString(address);
+
+        parts.shift(addressData);
+
+        return osc.joinParts({
+            byteLength: argCollection.byteLength + addressData.length,
+            parts: parts
+        });
+    };
+
     // Unsupported, non-API.
     osc.argumentTypes = {
         i: {
@@ -344,7 +421,7 @@ var osc = osc || {};
         },
         t: {
             reader: "readTimeTag",
-            reader: "writeTimeTag"
+            writer: "writeTimeTag"
         },
         T: {
             reader: "readTrue"
@@ -365,6 +442,49 @@ var osc = osc || {};
         // c: "readChar32",
         // r: "readColor",
         // m: "readMIDI"
+    };
+
+    // Unsupported, non-API function.
+    osc.inferTypeForArgument = function (arg) {
+        var type = typeof arg;
+
+        // TODO: This is freaking hideous.
+        switch (type) {
+            case "boolean":
+                return arg ? "T" : "F";
+            case "string":
+                return "s";
+            case "number":
+                return "f";
+            case "undefined":
+                return "N";
+            case "object":
+                if (arg === null) {
+                    return "N";
+                } else if (arg instanceof Uint8Array ||
+                    arg instanceof ArrayBuffer ||
+                    (typeof Buffer !== "undefined" && arg instanceof Buffer)) {
+                    return "b";
+                }
+            default:
+                throw new Error("Can't infer OSC argument type for value: " + arg);
+        }
+    };
+
+    // Unsupported, non-API function.
+    osc.annotateArguments = function (args) {
+        var annotated = [];
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i],
+                oscType = osc.inferTypeForArgument(arg);
+
+            annotated.push({
+                type: oscType,
+                value: arg
+            });
+        }
+
+        return annotated;
     };
 
 

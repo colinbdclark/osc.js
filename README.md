@@ -11,7 +11,7 @@ There are several other OSC libraries written in JavaScript. All of them depend 
 What Does it Do?
 ----------------
 
-osc.js reads and writes OSC-formatted binary data into plain JavaScript objects. osc.js provides adaptors for reading/writing Node.js Buffer objects as well as standard ArrayBuffer objects.
+osc.js reads and writes OSC-formatted binary data into plain JavaScript objects. It provides adaptors for reading/writing Node.js Buffer objects as well as standard ArrayBuffer objects.
 
 You can receive OSC data in whatever manner works best for your application: serial port APIs such as node-serialport or chrome.serial, socket APIs such as Node.js dgram or WebRTC data channels, WebSockets or binary XHR messages should all work. Connect osc.js up to your source of incoming/outgoing data, and you're all set.
 
@@ -20,8 +20,7 @@ Status
 
 osc.js is in early, active development. It does not yet (but will) support:
 
-* Writing OSC messages
-* Reading OSC bundles
+* OSC bundles
 * OSC time tags
 * int64 types
 * float64 types

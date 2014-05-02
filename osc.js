@@ -4,6 +4,11 @@ var osc = osc || {};
 
     "use strict";
 
+    // Unsupported, non-API function.
+    osc.isArray = function (obj) {
+        return obj && Object.prototype.toString.call(obj) === "[object Array]";
+    };
+
     /**
      * Wraps the specified object in a DataView.
      *
@@ -37,7 +42,7 @@ var osc = osc || {};
      * @returns {Uint8Array} a typed array of octets
      */
     // Unsupported, non-API function.
-    osc.normalizeByteArray = function (obj) {
+    osc.byteArray = function (obj) {
         if (obj instanceof Uint8Array) {
             return obj;
         }
@@ -192,7 +197,7 @@ var osc = osc || {};
      * @return {ArrayBuffer} a buffer containing the OSC-formatted blob
      */
     osc.writeBlob = function (data) {
-        data = osc.normalizeByteArray(data);
+        data = osc.byteArray(data);
 
         var len = data.byteLength,
             paddedLen = (len + 3) & ~0x03,
@@ -312,8 +317,15 @@ var osc = osc || {};
 
     // Unsupported, non-API function.
     osc.joinParts = function (dataCollection) {
-        var buf = new Uint8Array(dataCollection.byteLength);
-        buf.set(dataCollection.parts);
+        var buf = new Uint8Array(dataCollection.byteLength),
+            parts = dataCollection.parts,
+            offset = 0;
+
+        for (var i = 0; i < parts.length; i++) {
+            var part = parts[i];
+            buf.set(part, offset);
+            offset += part.length;
+        }
 
         return buf;
     };
@@ -331,7 +343,7 @@ var osc = osc || {};
         for (var i = 0; i < args.length; i++) {
             var arg = args[i],
                 type = arg.type,
-                writer = osc.argumentTypes[type];
+                writer = osc.argumentTypes[type].writer;
 
             typeTagString += arg.type;
             if (writer) {
@@ -343,7 +355,7 @@ var osc = osc || {};
 
         var typeData = osc.writeString(typeTagString);
         len += typeData.byteLength;
-        argData.shift(typeData);
+        argData.unshift(typeData);
 
         return {
             byteLength: len,
@@ -384,12 +396,12 @@ var osc = osc || {};
         return message;
     };
 
-    osc.writeMessage = function (address, args, withMetadata) {
-        var argCollection = osc.collectArguments(args, withMetadata),
+    osc.writeMessage = function (msg, withMetadata) {
+        var argCollection = osc.collectArguments(msg.args, withMetadata),
             parts = argCollection.parts,
-            addressData = osc.writeString(address);
+            addressData = osc.writeString(msg.address);
 
-        parts.shift(addressData);
+        parts.unshift(addressData);
 
         return osc.joinParts({
             byteLength: argCollection.byteLength + addressData.length,
@@ -473,6 +485,10 @@ var osc = osc || {};
 
     // Unsupported, non-API function.
     osc.annotateArguments = function (args) {
+        if (!osc.isArray(args)) {
+            args = [args];
+        }
+        
         var annotated = [];
         for (var i = 0; i < args.length; i++) {
             var arg = args[i],

@@ -30,10 +30,6 @@
         return dv;
     };
 
-    var isArray = function (obj) {
-        return obj && Object.prototype.toString.call(obj) === "[object Array]";
-    };
-
     var arrayEqual = function (actual, expected, msg) {
         var mismatch = false;
         equal(actual.length, expected.length, "The array should be the expected length.");
@@ -85,7 +81,7 @@
 
         for (var key in obj) {
             var val = obj[key];
-            if (isArray(val)) {
+            if (osc.isArray(val)) {
                 togo[key] = roundArrayValues(val, numDecimals);
             } else if (typeof val === "object") {
                 togo[key] = roundAllValues(val, numDecimals);
@@ -471,26 +467,40 @@
      * Read Messages *
      *****************/
 
-    var testMessage = function (testSpec) {
+    var testReadMessage = function (testSpec) {
         testSpec.offsetState = testSpec.offsetState || {
             idx: 0
         };
 
-        var dv = new DataView(testSpec.rawMessageBuffer.buffer),
-            actual = osc.readMessage(dv, testSpec.offsetState, testSpec.withMetadata),
-            msg = "The returned message object should match the raw message data.";
+        test("readMessage " + testSpec.name, function () {
+            var expected = testSpec.message,
+                dv = new DataView(testSpec.oscMessageBuffer.buffer),
+                actual = osc.readMessage(dv, testSpec.offsetState, testSpec.withMetadata),
+                msg = "The returned message object should match the raw message data.";
 
-        if (testSpec.roundToDecimals !== undefined) {
-            roundedDeepEqual(actual, testSpec.expected, testSpec.roundToDecimals, msg);
-        } else {
-            deepEqual(actual, testSpec.expected, msg);
-        }
+            if (testSpec.roundToDecimals !== undefined) {
+                roundedDeepEqual(actual, expected, testSpec.roundToDecimals, msg);
+            } else {
+                deepEqual(actual, expected, msg);
+            }
+        });
+    };
+
+    var testWriteMessage = function (testSpec) {
+        test("writeMessage " + testSpec.name, function () {
+            var expected = testSpec.oscMessageBuffer,
+                actual = osc.writeMessage(testSpec.message, testSpec.withMetadata);
+
+            arrayEqual(actual, expected, "The message should have been written correctly.");
+        });
     };
 
     var messageTestSpecs = [
         {
+            name: "without type metadata",
+
             // "/oscillator/4/frequency" | ",f" | 440
-            rawMessageBuffer: new Uint8Array([
+            oscMessageBuffer: new Uint8Array([
                 0x2f, 0x6f, 0x73, 0x63,
                 0x69, 0x6c, 0x6c, 0x61,
                 0x74, 0x6f, 0x72, 0x2f,
@@ -501,13 +511,15 @@
                 0x43, 0xdc, 0, 0
             ]),
 
-            expected: {
+            message: {
                 address: "/oscillator/4/frequency",
                 args: 440
             }
         },
         {
-            rawMessageBuffer: new Uint8Array([
+            name: "with type metadata",
+
+            oscMessageBuffer: new Uint8Array([
                 // "/foo" | ",iisTff" | 1000, -1, "hello", 1.1234, 5.678
                 0x2f, 0x66, 0x6f, 0x6f, // "/foo"
                 0, 0, 0, 0,             // padding
@@ -521,7 +533,7 @@
                 0x40, 0xb5, 0xb2, 0x2d
             ]),
 
-            expected: {
+            message: {
                 address: "/foo",
                 args: [
                     {
@@ -557,11 +569,14 @@
         }
     ];
 
-    test("readMessage", function () {
+    var testMessages = function (testSpecs) {
         for (var i = 0; i < messageTestSpecs.length; i++) {
             var testSpec = messageTestSpecs[i];
-            testMessage(testSpec);
+            testReadMessage(testSpec);
+            testWriteMessage(testSpec);
         }
-    });
+    };
+
+    testMessages(messageTestSpecs);
 
 }());

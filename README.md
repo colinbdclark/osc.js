@@ -20,8 +20,8 @@ Status
 
 osc.js is in early, active development. It does not yet (but will) support:
 
-* OSC bundles
-* OSC time tags
+* Bundles
+* Time tags
 * int64 types
 * float64 types
 * char32 types

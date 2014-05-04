@@ -4,6 +4,8 @@ var osc = osc || {};
 
     "use strict";
 
+    osc.SEVENTY_YEARS_SECS = 2208988800;
+
     // Unsupported, non-API function.
     osc.isArray = function (obj) {
         return obj && Object.prototype.toString.call(obj) === "[object Array]";
@@ -105,6 +107,7 @@ var osc = osc || {};
         return arr;
     };
 
+    // Unsupported, non-API function.
     osc.readPrimitive = function (dv, readerName, numBytes, offsetState) {
         var val = dv[readerName](offsetState.idx, false);
         offsetState.idx += numBytes;
@@ -152,6 +155,30 @@ var osc = osc || {};
     };
 
     /**
+     * Reads an OSC int64 ("h") value.
+     *
+     * @param {DataView} dv a DataView containing the raw bytes
+     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
+     * @return {Number} the number that was read
+     */
+    // TODO: Unit tests.
+    osc.readInt64 = function (dv, offsetState) {
+        return osc.readPrimitive(dv, "getInt64", 8, offsetState);
+    };
+
+    /**
+     * Writes an OSC int64 ("h") value.
+     *
+     * @param {Number} val the number to write
+     * @param {DataView} [dv] a DataView instance to write the number into
+     * @param {Number} [offset] an offset into dv
+     */
+    // TODO: Unit tests.
+    osc.writeInt64 = function (val, dv, offset) {
+        return osc.writePrimitive(val, dv, "setInt64", 8, offset);
+    };
+
+    /**
      * Reads an OSC float32 ("f") value.
      *
      * @param {DataView} dv a DataView containing the raw bytes
@@ -171,6 +198,61 @@ var osc = osc || {};
      */
     osc.writeFloat32 = function (val, dv, offset) {
         return osc.writePrimitive(val, dv, "setFloat32", 4, offset);
+    };
+
+    /**
+     * Reads an OSC float64 ("d") value.
+     *
+     * @param {DataView} dv a DataView containing the raw bytes
+     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
+     * @return {Number} the number that was read
+     */
+    // TODO: Unit tests.
+    osc.readFloat64 = function (dv, offsetState) {
+        return osc.readPrimitive(dv, "getFloat64", 8, offsetState);
+    };
+
+    /**
+     * Writes an OSC float64 ("d") value.
+     *
+     * @param {Number} val the number to write
+     * @param {DataView} [dv] a DataView instance to write the number into
+     * @param {Number} [offset] an offset into dv
+     */
+    // TODO: Unit tests.
+    osc.writeFloat64 = function (val, dv, offset) {
+        return osc.writePrimitive(val, dv, "setFloat64", 8, offset);
+    };
+
+    /**
+     * Reads an OSC 32-bit ASCII character ("c") value.
+     *
+     * @param {DataView} dv a DataView containing the raw bytes
+     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
+     * @return {String} a string containing the read character
+     */
+    // TODO: Unit tests.
+    osc.readChar32 = function (dv, offsetState) {
+        var charCode = osc.readPrimitive(dv, "getUint32", 4, offsetState);
+        return String.fromCharCode(charCode);
+    };
+
+    /**
+     * Writes an OSC 32-bit ASCII character ("c") value.
+     *
+     * @param {String} str the string from which the first character will be written
+     * @param {DataView} [dv] a DataView instance to write the character into
+     * @param {Number} [offset] an offset into dv
+     * @return {String} a string containing the read character
+     */
+    // TODO: Unit tests.
+    osc.readChar32 = function (str, dv, offset) {
+        var charCode = str.charCodeAt(0);
+        if (charCode === undefined || charCode < -1) {
+            return undefined;
+        }
+
+        return osc.writePrimitive(charCode, dv, "setUint32", 4, offsetState);
     };
 
     /**
@@ -246,12 +328,65 @@ var osc = osc || {};
         return 1.0;
     };
 
+    /**
+     * Reads an OSC time tag.
+     *
+     * @param {DataView} dv the DataView instance to read from
+     * @param {Object} offsetState an offset state object containing the current index into dv
+     * @param {Object} a time tag object containing both the raw NTP as well as the converted native (i.e. JS/UNIX) time
+     */
     osc.readTimeTag = function (dv, offsetState) {
-        // TODO: Implement.
+        var secs1900 = osc.readPrimitive(dv, "getUint32", 4, offsetState),
+            frac = osc.readPrimitive(dv, "getUint32", 4, offsetState),
+            native = osc.ntpToJSTime(secs1900, frac);
+
+        return {
+            raw: [secs1900, frac],
+            native: native
+        };
     };
 
+    // TODO: Unit tests.
     osc.writeTimeTag = function (timeTag) {
-        // TODO: Implement.
+        var raw = timeTag.raw ? timeTag.raw : osc.jsTimeToNTP(timeTag.native),
+            arr = new Uint8Array(8), // Two Unit32s.
+            dv = new DataView(arr.buffer);
+
+        osc.writeInt32(raw[0], dv, 0);
+        osc.writeInt32(raw[1], dv, 4);
+
+        return arr;
+    };
+
+    // TODO: Unit tests.
+    osc.futureTimeTag = function (secs) {
+        var ms = sec * 1000,
+            futureMS = Date.now() + ms;
+
+        return {
+            native: futureMS
+        };
+    };
+
+    // TODO: Unit tests.
+    osc.ntpToJSTime = function (secs1900, frac) {
+        var secs1970 = secs1900 - osc.SEVENTY_YEARS_SECS,
+            ms1970 = secs1970 * 1000,
+            decimals = (frac / 4294967296) * 1000,
+            msTime = ms1970 + decimals;
+
+        return msTime;
+    };
+
+    // TODO: Unit tests.
+    osc.jsTimeToNTP = function (jsTime) {
+        var ms = jsTime | 0,
+            secs = (ms / 1000) | 0,
+            secs1900 = secs + osc.SEVENTY_YEARS_SECS,
+            fracMs = jsTime - ms,
+            fracSec = ((fracMs / 1000) * 4294967296) | 0;
+
+        return [secs1900, fracSec];
     };
 
     /**
@@ -446,12 +581,21 @@ var osc = osc || {};
         },
         I: {
             reader: "readImpulse"
+        },
+        h: {
+            reader: "readInt64",
+            writer: "writeInt64"
+        },
+        d: {
+            reader: "readFloat64",
+            writer: "writeFloat64"
+        },
+        c: {
+            reader: "readChar32",
+            writer: "writeChar32"
         }
 
         // Missing optional OSC 1.0 types:
-        // h: "readInt64",
-        // d: "readFloat64",
-        // c: "readChar32",
         // r: "readColor",
         // m: "readMIDI"
     };
@@ -488,7 +632,7 @@ var osc = osc || {};
         if (!osc.isArray(args)) {
             args = [args];
         }
-        
+
         var annotated = [];
         for (var i = 0; i < args.length; i++) {
             var arg = args[i],

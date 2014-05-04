@@ -368,6 +368,61 @@
     });
 
 
+    /*************
+     * Time Tags *
+     *************/
+
+    var testTimeTag = function (testSpec) {
+        test("Time tag " + testSpec.name, function () {
+            var expected = testSpec.timeTag,
+                dv = new DataView(testSpec.timeTagBytes.buffer);
+
+            var actual = osc.readTimeTag(dv, {
+                idx: 0
+            });
+
+            deepEqual(actual, expected, "The date should have be read correctly.");
+        });
+    };
+
+    var timeTagTestSpecs = [
+        {
+            name: "Seconds-only time tag",
+            // May 4, 2014 at 0:00:00 UTC.
+            timeTagBytes: new Uint8Array([
+                215, 15, 243, 112,
+                0, 0, 0, 0
+            ]),
+            timeTag: {
+                raw: [3608146800, 0],
+                native: 1399158000 * 1000
+            }
+        },
+        {
+            name: "with fractions of a second",
+            // Half a second past midnight on Sunday May 4, 2014.
+            timeTagBytes: new Uint8Array([
+                // [3608146800, 2147483648]
+                215, 15, 243, 112,
+                128, 0, 0 , 0
+            ]),
+            timeTag: {
+                raw: [3608146800, 4294967296 / 2],
+                native: (1399158000 * 1000) + 500
+            }
+        }
+    ];
+
+    var timeTagTests = function (testSpecs) {
+        for (var i = 0; i < testSpecs.length; i++) {
+            var testSpec = testSpecs[i];
+            testTimeTag(testSpec);
+        }
+    };
+
+    timeTagTests(timeTagTestSpecs);
+
+
     /**********************************************
      * Read Type-Only Arguments (e.g. T, F, N, I) *
      **********************************************/

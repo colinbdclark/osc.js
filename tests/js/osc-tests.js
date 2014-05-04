@@ -1,5 +1,7 @@
 (function () {
 
+    "use strict";
+
     QUnit.module("OSC Reader");
 
     /*************
@@ -372,8 +374,8 @@
      * Time Tags *
      *************/
 
-    var testTimeTag = function (testSpec) {
-        test("Time tag " + testSpec.name, function () {
+    var testReadTimeTag = function (testSpec) {
+        test("Read time tag " + testSpec.name, function () {
             var expected = testSpec.timeTag,
                 dv = new DataView(testSpec.timeTagBytes.buffer);
 
@@ -385,9 +387,18 @@
         });
     };
 
+    var testWriteTimeTag = function (testSpec) {
+        test("Write time tag " + testSpec.name, function () {
+            var expected = testSpec.timeTagBytes,
+                actual = osc.writeTimeTag(testSpec.timeTag);
+
+            arrayEqual(actual, expected, "The raw time tag should have have been written correctly.");
+        });
+    }
+
     var timeTagTestSpecs = [
         {
-            name: "Seconds-only time tag",
+            name: "with seconds only",
             // May 4, 2014 at 0:00:00 UTC.
             timeTagBytes: new Uint8Array([
                 215, 15, 243, 112,
@@ -416,7 +427,8 @@
     var timeTagTests = function (testSpecs) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            testTimeTag(testSpec);
+            testReadTimeTag(testSpec);
+            testWriteTimeTag(testSpec)
         }
     };
 

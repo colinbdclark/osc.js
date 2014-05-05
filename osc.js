@@ -380,13 +380,13 @@ var osc = osc || {};
 
     // TODO: Unit tests.
     osc.jsTimeToNTP = function (jsTime) {
-        var ms = jsTime | 0,
-            secs = (ms / 1000) | 0,
+        var ms = Math.floor(jsTime),
+            secs = ms / 1000,
+            fracSec = secs - Math.floor(secs),
             secs1900 = secs + osc.SEVENTY_YEARS_SECS,
-            fracMs = jsTime - ms,
-            fracSec = ((fracMs / 1000) * 4294967296) | 0;
+            ntpFracs = 4294967296 * fracSec;
 
-        return [secs1900, fracSec];
+        return [secs1900, ntpFracs];
     };
 
     /**

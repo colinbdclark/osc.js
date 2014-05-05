@@ -434,6 +434,17 @@
 
     timeTagTests(timeTagTestSpecs);
 
+    test("Write native-only time tag.", function () {
+        var testSpec = timeTagTestSpecs[1],
+            expected = testSpec.timeTagBytes,
+            timeTag = {
+                native: testSpec.timeTag.native
+            };
+
+        var actual = osc.writeTimeTag(timeTag);
+        arrayEqual(actual, expected,
+            "A time tag with no raw value (only a native value) should be written correctly.");
+    });
 
     /**********************************************
      * Read Type-Only Arguments (e.g. T, F, N, I) *

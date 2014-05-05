@@ -329,7 +329,7 @@ var osc = osc || {};
     };
 
     /**
-     * Reads an OSC time tag.
+     * Reads an OSC time tag ("t").
      *
      * @param {DataView} dv the DataView instance to read from
      * @param {Object} offsetState an offset state object containing the current index into dv
@@ -346,7 +346,17 @@ var osc = osc || {};
         };
     };
 
-    // TODO: Unit tests.
+    /**
+     * Writes an OSC time tag ("t").
+     *
+     * Takes, as its argument, a time tag object containing either a "raw" or "native property."
+     * The raw timestamp must conform to the NTP standard representation, consisting of two unsigned int32
+     * values. The first represents the number of seconds since January 1, 1900; the second, fractions of a second.
+     * "Native" JavaScript timestamps are specified as a Number representing milliseconds since January 1, 1970.
+     *
+     * @param {Object} timeTag time tag object containing either a native JS timestamp (in ms) or a NTP timestamp pair
+     * @return {Uint8Array} raw bytes for the written time tag
+     */
     osc.writeTimeTag = function (timeTag) {
         var raw = timeTag.raw ? timeTag.raw : osc.jsTimeToNTP(timeTag.native),
             arr = new Uint8Array(8), // Two Unit32s.
@@ -358,6 +368,13 @@ var osc = osc || {};
         return arr;
     };
 
+    /**
+     * Produces a time tag consisting of a JavaScript timestamp that is
+     * in the future by the specified number of seconds.
+     *
+     * @param {Number} secs the number of seconds in the future
+     * @return {Object} the time tag
+     */
     // TODO: Unit tests.
     osc.futureTimeTag = function (secs) {
         var ms = sec * 1000,
@@ -368,7 +385,14 @@ var osc = osc || {};
         };
     };
 
-    // TODO: Unit tests.
+    /**
+     * Converts OSC's standard time tag representation (which is the NTP format)
+     * into the JavaScript/UNIX format in milliseconds.
+     *
+     * @param {Number} secs1900 the number of seconds since 1900
+     * @param {Number} frac the number of fractions of a second (between 0 and 2^32)
+     * @return {Number} a JavaScript-compatible timestamp in milliseconds
+     */
     osc.ntpToJSTime = function (secs1900, frac) {
         var secs1970 = secs1900 - osc.SEVENTY_YEARS_SECS,
             ms1970 = secs1970 * 1000,
@@ -378,7 +402,12 @@ var osc = osc || {};
         return msTime;
     };
 
-    // TODO: Unit tests.
+    /**
+     * Converts a JavaScript timestamp into OSC's standard NTP timestamp format.
+     *
+     * @param {Number} jsTime the JavaScript timestamp
+     * @return {Array} a tuple consisting of the number of seconds since 1900 and the number of fractions of a second
+     */
     osc.jsTimeToNTP = function (jsTime) {
         var ms = Math.floor(jsTime),
             secs = ms / 1000,

@@ -494,14 +494,24 @@ var osc = osc || {};
     };
 
     // Unsupported, non-API function.
-    osc.collectArguments = function (args, withMetadata) {
+    osc.addDataPart = function (dataPart, dataCollection) {
+        dataCollection.parts.push(dataPart);
+        dataCollection.byteLength += dataPart.length;
+    };
+
+    // Unsupported, non-API function.
+    osc.collectArguments = function (args, withMetadata, dataCollection) {
+        dataCollection = dataCollection || {
+            byteLength: 0,
+            parts: []
+        };
+
         if (!withMetadata) {
             args = osc.annotateArguments(args);
         }
 
         var typeTagString = ",",
-            len = 0,
-            argData = [];
+            currPartIdx = dataCollection.parts.length;
 
         for (var i = 0; i < args.length; i++) {
             var arg = args[i],
@@ -511,19 +521,15 @@ var osc = osc || {};
             typeTagString += arg.type;
             if (writer) {
                 var data = osc[writer](arg.value);
-                len += data.byteLength;
-                argData.push(data);
+                osc.addDataPart(data, dataCollection);
             }
         }
 
         var typeData = osc.writeString(typeTagString);
-        len += typeData.byteLength;
-        argData.unshift(typeData);
+        dataCollection.byteLength += typeData.byteLength;
+        dataCollection.parts.splice(currPartIdx, 0, typeData);
 
-        return {
-            byteLength: len,
-            parts: argData
-        };
+        return dataCollection;
     };
 
     /**
@@ -552,16 +558,22 @@ var osc = osc || {};
         }
 
         var args = osc.readArguments(dv, withMetadata, offsetState);
-        if (args.length === 1) {
-            args = args[0];
-        }
 
-        var message = {
+        return {
             address: address,
             args: args
         };
+    };
 
-        return message;
+    // Unsupported, non-API function.
+    osc.collectMessageParts = function (msg, withMetadata, dataCollection) {
+        dataCollection = dataCollection || {
+            byteLength: 0,
+            parts: []
+        };
+
+        osc.addDataPart(osc.writeString(msg.address), dataCollection);
+        return osc.collectArguments(msg.args, withMetadata, dataCollection);
     };
 
     /**
@@ -572,16 +584,8 @@ var osc = osc || {};
      * @return {Uint8Array} an array of bytes containing the OSC message
      */
     osc.writeMessage = function (msg, withMetadata) {
-        var argCollection = osc.collectArguments(msg.args, withMetadata),
-            parts = argCollection.parts,
-            addressData = osc.writeString(msg.address);
-
-        parts.unshift(addressData);
-
-        return osc.joinParts({
-            byteLength: argCollection.byteLength + addressData.length,
-            parts: parts
-        });
+        var msgCollection = osc.collectMessageParts(msg, withMetadata);
+        return osc.joinParts(msgCollection);
     };
 
     /**
@@ -594,6 +598,46 @@ var osc = osc || {};
      */
     osc.readBundle = function (dv, withMetadata, offsetState) {
         return osc.readPacket(dv, withMetadata, offsetState);
+    };
+
+    // Unsupported, non-API function.
+    osc.collectBundlePackets = function (bundle, withMetadata, dataCollection) {
+        dataCollection = dataCollection || {
+            byteLength: 0,
+            parts: []
+        };
+
+        osc.addDataPart(osc.writeString("#bundle"), dataCollection);
+        osc.addDataPart(osc.writeTimeTag(bundle.timeTag), dataCollection);
+
+        for (var i = 0; i < bundle.packets.length; i++) {
+            var packet = bundle.packets[i],
+                collector = packet.address ? osc.collectMessageParts : osc.collectBundlePackets,
+                packetCollection = collector(packet, withMetadata);
+
+            dataCollection.byteLength += packetCollection.byteLength;
+            osc.addDataPart(osc.writeInt32(packetCollection.byteLength), dataCollection);
+            dataCollection.parts = dataCollection.parts.concat(packetCollection.parts);
+        }
+
+        return dataCollection;
+    };
+
+    /**
+     * Writes an OSC bundle.
+     *
+     * @param {Object} a bundle object containing "timeTag" and "packets" properties
+     * @param {Boolean} [withMetadata] a flag specifying if type metadata is included or if it should be inferred; defaults to false
+     * @return {Uint8Array} an array of bytes containing the message
+     */
+    osc.writeBundle = function (bundle, withMetadata) {
+        if (!bundle.timeTag || !bundle.packets) {
+            return;
+        }
+
+        var bundleCollection = osc.collectBundlePackets(bundle, withMetadata);
+
+        return osc.joinParts(bundleCollection);
     };
 
     // Unsupported, non-API function.
@@ -641,6 +685,18 @@ var osc = osc || {};
 
         throw new Error("The header of an OSC packet didn't contain an OSC address or a #bundle string." +
             "Header was: " + header);
+    };
+
+    /**
+     * Writes an OSC packet, which may consist of either of a bundle or a message.
+     *
+     * @param {Object} a bundle or message object
+     * @param {Boolean} [withMetadata] a flag specifying if type metadata is included or if it should be inferred; defaults to false
+     * @return {Uint8Array} an array of bytes containing the message
+     */
+    osc.writePacket = function (packet, withMetadata) {
+        var writer = packet.address ? osc.writeMessage : osc.writeBundle;
+        return writer(packet, withMetadata);
     };
 
     // Unsupported, non-API.

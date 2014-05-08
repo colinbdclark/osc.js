@@ -24,7 +24,6 @@ osc.js is still under development. It supports all OSC 1.0 and 1.1 required type
 
 osc.js does not yet (but will) support:
 
-* Writing bundles
 * color types
 * MIDI types
 * array types ("[" and "]")

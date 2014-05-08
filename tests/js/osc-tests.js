@@ -591,7 +591,7 @@
 
             message: {
                 address: "/oscillator/4/frequency",
-                args: 440
+                args: [440]
             }
         },
         {
@@ -678,6 +678,16 @@
         });
     };
 
+    var testWriteBundle = function (testSpec) {
+        test("writeBundle " + testSpec.name, function () {
+            var expected = testSpec.bytes,
+                actual = osc.writeBundle(testSpec.bundle, testSpec.withMetadata);
+
+            arrayEqual(actual, expected,
+                "The bundle should have been written correctly.");
+        });
+    };
+
     var bundleTestSpecs = [
         {
             name: "with nested bundles.",
@@ -754,7 +764,12 @@
                         // 47 99 97 116 | 47 109 101 111 | 119 47 102 114 | 101 113 0 0
                         address: "/cat/meow/freq",
                         // type tag: ,f: 44 102 0 0 | values: 67 94 51 51
-                        args: 222.2
+                        args: [
+                            {
+                                type: "f",
+                                value: 222.2,
+                            }
+                        ]
                     },
                     {
                         timeTag: {
@@ -767,7 +782,12 @@
                                 // 47 104 97 109 | 115 116 101 114 | 47 119 104 101 | 101 108 47 102 | 114 101 113 0
                                 address: "/hamster/wheel/freq",
                                 // type tag ,i: 44 105 0 0 | values: 66 200 0 0
-                                args: 100
+                                args: [
+                                    {
+                                        type: "i",
+                                        value: 100
+                                    }
+                                ]
                             }
                         ]
                     },
@@ -775,10 +795,21 @@
                         // 47 102 105 115 | 104 47 98 117 | 114 98 108 101 | 47 97 109 112 | 0 0 0 0
                         address: "/fish/burble/amp",
                         // type tag ,fs: 44 102 115 0 | values: 255 255 255 250, 100 66 0 0
-                        args: [-6, "dB"]
+                        args: [
+                            {
+                                type: "f",
+                                value: -6
+                            },
+                            {
+                                type: "s",
+                                value: "dB"
+                            }
+                        ]
                     }
                 ]
-            }
+            },
+
+            withMetadata: true
         }
     ];
 
@@ -786,6 +817,7 @@
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
             testReadBundle(testSpec);
+            testWriteBundle(testSpec);
         }
     };
 

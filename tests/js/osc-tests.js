@@ -120,7 +120,7 @@
 
              equal(actual, expected, "The string should have been read correctly.");
              equal(offsetState.idx, testSpec.paddedString.length,
-                 "The offset state should correctly reflect the null padding of the OSC string.")
+                 "The offset state should correctly reflect the null padding of the OSC string.");
         });
 
     };
@@ -157,7 +157,7 @@
             testReadString(testSpec);
             testWriteString(testSpec);
         }
-    }
+    };
 
     stringTests(stringTestSpecs);
 
@@ -394,7 +394,7 @@
 
             arrayEqual(actual, expected, "The raw time tag should have have been written correctly.");
         });
-    }
+    };
 
     var timeTagTestSpecs = [
         {
@@ -428,7 +428,7 @@
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
             testReadTimeTag(testSpec);
-            testWriteTimeTag(testSpec)
+            testWriteTimeTag(testSpec);
         }
     };
 
@@ -656,5 +656,139 @@
     };
 
     testMessages(messageTestSpecs);
+
+
+    /***********
+     * Bundles *
+     ***********/
+
+    var testReadBundle = function (testSpec) {
+        test("readBundle " + testSpec.name, function () {
+            var expected = testSpec.bundle,
+                dv = new DataView(testSpec.bytes.buffer),
+                offsetState = {
+                    idx: 0
+                };
+
+            var actual = osc.readBundle(dv, offsetState);
+            roundedDeepEqual(actual, expected,
+                "The bundle should have been read correctly.");
+            equal(offsetState.idx, dv.byteLength,
+                "The offset state should have been adjusted correctly.");
+        });
+    };
+
+    var bundleTestSpecs = [
+        {
+            name: "with nested bundles.",
+            bytes: new Uint8Array([
+                // "#bundle"
+                35, 98, 117, 110,
+                100, 108, 101, 0,
+                // timetag [3608492400, 0]
+                215, 21, 57, 112,
+                0, 0, 0, 0,
+
+                // first packet:
+                // size 24 bytes
+                0, 0, 0, 24,
+                // "/cat/meow/freq"
+                47, 99, 97, 116,
+                47, 109, 101, 111,
+                119, 47, 102, 114,
+                101, 113, 0, 0,
+                //,f
+                44, 102, 0, 0,
+                // 222.2
+                67, 94, 51, 51,
+
+                // second packet:
+                // size 44 bytes
+                0, 0, 0, 48,
+                // "#bundle"
+                35, 98, 117, 110,
+                100, 108, 101, 0,
+                // timetag [3608406000, 0]
+                215, 19, 231, 240,
+                0, 0, 0, 0,
+
+                // packet 2.a:
+                // size 28 bytes
+                0, 0, 0, 28,
+                // "/hamster/wheel/freq"
+                47, 104, 97, 109,
+                115, 116, 101, 114,
+                47, 119, 104, 101,
+                101, 108, 47, 102,
+                114, 101, 113, 0,
+                // type tag ,i
+                44, 105, 0, 0,
+                // 100
+                0, 0, 0, 100,
+
+                // third packet:
+                // size 32 bytes
+                0, 0, 0, 32,
+                // "/fish/burble/amp"
+                47, 102, 105, 115,
+                104, 47, 98, 117,
+                114, 98, 108, 101,
+                47, 97, 109, 112,
+                0, 0, 0, 0,
+                // type tag ,fs
+                44, 102, 115, 0,
+                // -6, "dB"
+                192, 192, 0, 0,
+                100, 66, 0, 0
+            ]),
+
+            bundle: {
+                timeTag: {
+                    // 215, 21, 57, 112 | 0, 0, 0, 0
+                    raw: [3608492400, 0],
+                    native: 1399503600000
+                },
+
+                packets: [
+                    {
+                        // 47 99 97 116 | 47 109 101 111 | 119 47 102 114 | 101 113 0 0
+                        address: "/cat/meow/freq",
+                        // type tag: ,f: 44 102 0 0 | values: 67 94 51 51
+                        args: 222.2
+                    },
+                    {
+                        timeTag: {
+                            // 215 19 231 240 | 0 0 0 0
+                            raw: [3608406000, 0],
+                            native: 1399417200000
+                        },
+                        packets: [
+                            {
+                                // 47 104 97 109 | 115 116 101 114 | 47 119 104 101 | 101 108 47 102 | 114 101 113 0
+                                address: "/hamster/wheel/freq",
+                                // type tag ,i: 44 105 0 0 | values: 66 200 0 0
+                                args: 100
+                            }
+                        ]
+                    },
+                    {
+                        // 47 102 105 115 | 104 47 98 117 | 114 98 108 101 | 47 97 109 112 | 0 0 0 0
+                        address: "/fish/burble/amp",
+                        // type tag ,fs: 44 102 115 0 | values: 255 255 255 250, 100 66 0 0
+                        args: [-6, "dB"]
+                    }
+                ]
+            }
+        }
+    ];
+
+    var testBundles = function (testSpecs) {
+        for (var i = 0; i < testSpecs.length; i++) {
+            var testSpec = testSpecs[i];
+            testReadBundle(testSpec);
+        }
+    };
+
+    testBundles(bundleTestSpecs);
 
 }());

@@ -443,8 +443,7 @@ var osc = osc || {};
 
         for (var i = 0; i < argTypes.length; i++) {
             var argType = argTypes[i],
-                typeSpec = osc.argumentTypes[argType],
-                argReader;
+                typeSpec = osc.argumentTypes[argType];
 
             if (!typeSpec) {
                 throw new Error("'" + argType + "' is not a valid OSC type tag. Type tag string was: " +
@@ -542,6 +541,11 @@ var osc = osc || {};
         };
 
         var address = osc.readString(dv, offsetState);
+        return osc.readMessageContents(address, dv, offsetState, withMetadata);
+    };
+
+    // Unsupported, non-API function.
+    osc.readMessageContents = function (address, dv, offsetState, withMetadata) {
         if (address.indexOf("/") !== 0) {
             throw new Error("A malformed OSC address was found while reading " +
                 "an OSC message. String was: " + address);
@@ -571,6 +575,50 @@ var osc = osc || {};
             byteLength: argCollection.byteLength + addressData.length,
             parts: parts
         });
+    };
+
+    osc.readBundle = function (dv, offsetState, withMetadata) {
+        return osc.readPacket(dv, offsetState, withMetadata);
+    };
+
+    // Unsupported, non-API function.
+    osc.readBundleContents = function (dv, offsetState, withMetadata) {
+        var timeTag = osc.readTimeTag(dv, offsetState),
+            packets = [];
+
+        while (offsetState.idx < dv.byteLength) {
+            var packetSize = osc.readInt32(dv, offsetState),
+                // TODO: Improve performance  by not splitting the underlying ArrayBuffer when we recurse.
+                packetArr = dv.buffer.slice(offsetState.idx, offsetState.idx + packetSize),
+                packet = osc.readPacket(packetArr, undefined, withMetadata);
+
+            packets.push(packet);
+            offsetState.idx += packetSize;
+        }
+
+        return {
+            timeTag: timeTag,
+            packets: packets
+        };
+    };
+
+    osc.readPacket = function (dv, offsetState, withMetadata) {
+        dv = osc.wrapAsDataView(dv);
+        offsetState = offsetState || {
+            idx: 0
+        };
+
+        var header = osc.readString(dv, offsetState),
+            firstChar = header[0];
+
+        if (firstChar === "#") {
+            return osc.readBundleContents(dv, offsetState, withMetadata);
+        } else if (firstChar === "/") {
+            return osc.readMessageContents(header, dv, offsetState, withMetadata);
+        }
+
+        throw new Error("The header of an OSC packet didn't contain an OSC address or a #bundle string." +
+            "Header was: " + header);
     };
 
     // Unsupported, non-API.
@@ -651,9 +699,10 @@ var osc = osc || {};
                     (typeof Buffer !== "undefined" && arg instanceof Buffer)) {
                     return "b";
                 }
-            default:
-                throw new Error("Can't infer OSC argument type for value: " + arg);
+                break;
         }
+
+        throw new Error("Can't infer OSC argument type for value: " + arg);
     };
 
     // Unsupported, non-API function.

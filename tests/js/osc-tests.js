@@ -485,7 +485,7 @@
         };
 
         var dv = new DataView(rawArgBuffer.buffer),
-            actual = osc.readArguments(dv, offsetState);
+            actual = osc.readArguments(dv, false, offsetState);
 
         if (roundToDecimals !== undefined) {
             arrayEqualRounded(actual, expected, roundToDecimals, offsetState);
@@ -553,7 +553,7 @@
         test("readMessage " + testSpec.name, function () {
             var expected = testSpec.message,
                 dv = new DataView(testSpec.oscMessageBuffer.buffer),
-                actual = osc.readMessage(dv, testSpec.offsetState, testSpec.withMetadata),
+                actual = osc.readMessage(dv, testSpec.withMetadata, testSpec.offsetState),
                 msg = "The returned message object should match the raw message data.";
 
             if (testSpec.roundToDecimals !== undefined) {
@@ -670,7 +670,7 @@
                     idx: 0
                 };
 
-            var actual = osc.readBundle(dv, offsetState);
+            var actual = osc.readBundle(dv, testSpec.withMetadata, offsetState);
             roundedDeepEqual(actual, expected,
                 "The bundle should have been read correctly.");
             equal(offsetState.idx, dv.byteLength,

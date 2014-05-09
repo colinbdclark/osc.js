@@ -1,3 +1,5 @@
+/*global QUnit, equal, deepEqual, osc, test, ok*/
+
 (function () {
 
     "use strict";
@@ -106,7 +108,7 @@
      * Strings  *
      ************/
 
-     var testReadString = function (testSpec) {
+    var testReadString = function (testSpec) {
         var offsetState = testSpec.offsetState || {
             idx: 0
         };
@@ -116,9 +118,9 @@
                 dv = stringToDataView(testSpec.paddedString),
                 actual = osc.readString(dv, offsetState);
 
-             equal(actual, expected, "The string should have been read correctly.");
-             equal(offsetState.idx, testSpec.paddedString.length,
-                 "The offset state should correctly reflect the null padding of the OSC string.");
+            equal(actual, expected, "The string should have been read correctly.");
+            equal(offsetState.idx, testSpec.paddedString.length,
+                "The offset state should correctly reflect the null padding of the OSC string.");
         });
 
     };
@@ -358,8 +360,7 @@
 
 
     test("writeBlob", function () {
-        var data = rawData,
-            expected = oscBlob,
+        var expected = oscBlob,
             actual = osc.writeBlob(rawData);
 
         arrayEqual(new Uint8Array(actual), expected,
@@ -449,11 +450,9 @@
      **********************************************/
 
     test("Type-only arguments", function () {
-        var arr = new Uint8Array(255, 0, 128, 63, 255, 0),
-            dv = new DataView(arr.buffer),
-            offsetState = {
-                idx: 27
-            };
+        var offsetState = {
+            idx: 27
+        };
 
         var bool = osc.readTrue();
         equal(bool, true, "readTrue() should return a true value");
@@ -477,37 +476,48 @@
      * Read Arguments *
      ******************/
 
-    var testArguments = function (rawArgBuffer, expected, roundToDecimals, offsetState) {
-        offsetState = offsetState || {
-            idx: 0
-        };
+    var testArguments = function (testSpec) {
+        //rawArgBuffer, expected, roundToDecimals, offsetState
+        //testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals
+        test("readArguments " + testSpec.name, function () {
+            var offsetState = {
+                idx: 0
+            };
 
-        var dv = new DataView(rawArgBuffer.buffer),
-            actual = osc.readArguments(dv, false, offsetState);
+            var expected = testSpec.expected,
+                dv = new DataView(testSpec.rawArgBuffer.buffer),
+                actual = osc.readArguments(dv, false, offsetState);
 
-        if (roundToDecimals !== undefined) {
-            arrayEqualRounded(actual, expected, roundToDecimals, offsetState);
-        } else {
-            arrayEqual(actual, expected,
-                "The returned arguments should have the correct values in the correct order.");
-        }
+            if (testSpec.roundToDecimals !== undefined) {
+                arrayEqualRounded(actual, expected, testSpec.roundToDecimals, offsetState);
+            } else {
+                arrayEqual(actual, expected,
+                    "The returned arguments should have the correct values in the correct order.");
+            }
+        });
     };
 
     var argumentTestSpecs = [
         {
-            // ",f" | 440
+            name: "single argument",
             rawArgBuffer: new Uint8Array([
+                // ",f"
                 0x2c, 0x66, 0, 0,
+                // 440
                 0x43, 0xdc, 0 , 0
             ]),
             expected: [440]
         },
         {
-            // ",bf" | 3 | [0x63 0x61 0x74], 440
+            name: "blob and float",
             rawArgBuffer: new Uint8Array([
+                // ",bf"
                 0x2c, 0x62, 0x66, 0,
+                // 3
                 0, 0, 0, 3,
+                // blob
                 0x63, 0x61, 0x74, 0,
+                // 440
                 0x43, 0xdc, 0 , 0
             ]),
             expected: [new Uint8Array([
@@ -515,21 +525,28 @@
             ]), 440]
         },
         {
-            // ",iisff" | 1000, -1, "hello", 1.1234, 5.678
+            name: "multiple arguments of the same type",
             rawArgBuffer: new Uint8Array([
+                //",iisff"
                 0x2c, 0x69, 0x69, 0x73,
                 0x66, 0x66, 0, 0,
+                // 1000
                 0, 0, 0x3, 0xe8,
+                // -1
                 0xff, 0xff, 0xff, 0xff,
+                // "hello"
                 0x68, 0x65, 0x6c, 0x6c,
                 0x6f, 0, 0, 0,
+                // 1.1234
                 0x3f, 0x9d, 0xf3, 0xb6,
+                // 5.678
                 0x40, 0xb5, 0xb2, 0x2d
             ]),
             expected: [1000, -1, "hello", 1.234, 5.678],
             roundToDecimals: 3
         },
         {
+            name: "colours",
             rawArgBuffer: new Uint8Array([
                 // ,rr
                 44, 114, 114, 0,
@@ -541,15 +558,109 @@
                 255, 128, 64, 12
             ]),
             expected: [{r: 255, g: 255, b: 255, a: 0}, {r: 0, g: 255, b: 0, a: 77 / 255}]
+        },
+        {
+            name: "arrays",
+            rawArgBuffer: new Uint8Array([
+                // ,s[rr]i
+                44, 115, 91, 114,
+                114, 93, 105, 0,
+                // "cat",
+                99, 97, 116, 0,
+                // White color
+                255, 255, 255, 0,
+                // Green color rba(255, 255, 255, 0.3)
+                0, 255, 0, 77,
+                // #42
+                0, 0, 0, 42
+            ]),
+            expected: [
+                "cat",
+                [{r: 255, g: 255, b: 255, a: 0}, {r: 0, g: 255, b: 0, a: 77 / 255}],
+                42
+            ]
+        },
+        {
+            name: "every type of arg",
+            rawArgBuffer: new Uint8Array([
+                // ",ifsSbtTFNI[ii]dcrm"
+                //44 105 102 115 83 98 116 84 70 78 73 91 105 105 93 100 99 114 109
+                44, 105, 102, 115,
+                83, 98, 116, 84,
+                70, 78, 73, 91,
+                105, 105, 93, 100,
+                99, 114, 109, 0,
+                // i: 1
+                0, 0, 0, 1,
+                //f: 1.234
+                0x3f, 0x9d, 0xf3, 0xb6,
+                // s: "cat"
+                99, 97, 116, 0,
+                //"\cat"
+                92, 99, 97, 116,
+                0, 0, 0, 0,
+                // blob{3, [255, 255, 0]}
+                0, 0, 0, 3,
+                255, 255, 0, 0,
+                // t: {raw: [2208988800, 0], native: 0}
+                131, 170, 126, 128,
+                0, 0, 0, 0,
+                // [ii]: [42, 47]
+                0, 0, 0, 42,
+                0, 0, 0, 47,
+                // d: 2.1
+                0x40, 0x00, 0xCC, 0xCC,
+                0xCC, 0xCC, 0xCC, 0xCD,
+                // c: "z"
+                0, 0, 0, 122,
+                // {r: 128, g: 64, b: 192, a: 1.0},
+                128, 64, 192, 255,
+                // m: [1, 144, 69, 101] // port id 1 , note on chan 1, C3, velocity 101]
+                1, 144, 69, 101
+
+            ]),
+            // ",ifsSbtTFNI[ii]dcrm"
+
+            expected: [
+                1,
+                1.234,
+                "cat",
+                "\\cat",
+                new Uint8Array([255, 255, 0]),
+                {
+                    raw: [2208988800, 0],
+                    native: 0
+                },
+                true,
+                false,
+                null,
+                1.0,
+                [
+                    42,
+                    47
+                ],
+                2.1,
+                "z",
+                {
+                    r: 128,
+                    g: 64,
+                    b: 192,
+                    a: 1.0
+                },
+                new Uint8Array([1, 144, 69, 101])
+            ],
+            roundToDecimals: 3
         }
     ];
 
-    test("readArguments", function () {
-        for (var i = 0; i < argumentTestSpecs.length; i++) {
-            var testSpec = argumentTestSpecs[i];
-            testArguments(testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals);
+    var readArgumentsTests = function (testSpecs) {
+        for (var i = 0; i < testSpecs.length; i++) {
+            var testSpec = testSpecs[i];
+            testArguments(testSpec);
         }
-    });
+    };
+
+    readArgumentsTests(argumentTestSpecs);
 
 
     /*****************
@@ -659,8 +770,8 @@
     ];
 
     var testMessages = function (testSpecs) {
-        for (var i = 0; i < messageTestSpecs.length; i++) {
-            var testSpec = messageTestSpecs[i];
+        for (var i = 0; i < testSpecs.length; i++) {
+            var testSpec = testSpecs[i];
             testReadMessage(testSpec);
             testWriteMessage(testSpec);
         }

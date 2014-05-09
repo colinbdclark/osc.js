@@ -1,3 +1,5 @@
+/* global require, module, Buffer */
+
 var osc = osc || {};
 
 (function () {
@@ -155,30 +157,6 @@ var osc = osc || {};
     };
 
     /**
-     * Reads an OSC int64 ("h") value.
-     *
-     * @param {DataView} dv a DataView containing the raw bytes
-     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
-     * @return {Number} the number that was read
-     */
-    // TODO: Unit tests.
-    osc.readInt64 = function (dv, offsetState) {
-        return osc.readPrimitive(dv, "getInt64", 8, offsetState);
-    };
-
-    /**
-     * Writes an OSC int64 ("h") value.
-     *
-     * @param {Number} val the number to write
-     * @param {DataView} [dv] a DataView instance to write the number into
-     * @param {Number} [offset] an offset into dv
-     */
-    // TODO: Unit tests.
-    osc.writeInt64 = function (val, dv, offset) {
-        return osc.writePrimitive(val, dv, "setInt64", 8, offset);
-    };
-
-    /**
      * Reads an OSC float32 ("f") value.
      *
      * @param {DataView} dv a DataView containing the raw bytes
@@ -246,13 +224,13 @@ var osc = osc || {};
      * @return {String} a string containing the read character
      */
     // TODO: Unit tests.
-    osc.readChar32 = function (str, dv, offset) {
+    osc.writeChar32 = function (str, dv, offset) {
         var charCode = str.charCodeAt(0);
         if (charCode === undefined || charCode < -1) {
             return undefined;
         }
 
-        return osc.writePrimitive(charCode, dv, "setUint32", 4, offsetState);
+        return osc.writePrimitive(charCode, dv, "setUint32", 4, offset);
     };
 
     /**
@@ -441,7 +419,7 @@ var osc = osc || {};
      */
     // TODO: Unit tests.
     osc.futureTimeTag = function (secs) {
-        var ms = sec * 1000,
+        var ms = secs * 1000,
             futureMS = Date.now() + ms;
 
         return {
@@ -505,29 +483,60 @@ var osc = osc || {};
         var argTypes = typeTagString.substring(1).split(""),
             args = [];
 
-        for (var i = 0; i < argTypes.length; i++) {
-            var argType = argTypes[i],
-                typeSpec = osc.argumentTypes[argType];
-
-            if (!typeSpec) {
-                throw new Error("'" + argType + "' is not a valid OSC type tag. Type tag string was: " +
-                    typeTagString);
-            }
-
-            var argReader = typeSpec.reader,
-                arg = osc[argReader](dv, offsetState);
-
-            if (withMetadata) {
-                arg = {
-                    type: argType,
-                    value: arg
-                };
-            }
-
-            args.push(arg);
-        }
+        osc.readArgumentsIntoArray(args, argTypes, typeTagString, dv, withMetadata, offsetState);
 
         return args;
+    };
+
+    // Unsupported, non-API function.
+    osc.readArgument = function (argType, typeTagString, dv, withMetadata, offsetState) {
+        var typeSpec = osc.argumentTypes[argType];
+        if (!typeSpec) {
+            throw new Error("'" + argType + "' is not a valid OSC type tag. Type tag string was: " + typeTagString);
+        }
+
+        var argReader = typeSpec.reader,
+            arg = osc[argReader](dv, offsetState);
+
+        if (withMetadata) {
+            arg = {
+                type: argType,
+                value: arg
+            };
+        }
+
+        return arg;
+    };
+
+    // Unsupported, non-API function.
+    osc.readArgumentsIntoArray = function (arr, argTypes, typeTagString, dv, withMetadata, offsetState) {
+        var i = 0;
+
+        while (i < argTypes.length) {
+            var argType = argTypes[i],
+                arg;
+
+            if (argType === "[") {
+                var fromArrayOpen = argTypes.slice(i + 1),
+                    endArrayIdx = fromArrayOpen.indexOf("]");
+
+                if (endArrayIdx < 0) {
+                    throw new Error("Invalid argument type tag: an open array type tag ('[') was found "+
+                        "without a matching close array tag ('[]'). Type tag was: " + typeTagString);
+                }
+
+                var typesInArray = fromArrayOpen.slice(0, endArrayIdx);
+                arg = osc.readArgumentsIntoArray([], typesInArray, typeTagString, dv, withMetadata, offsetState);
+                i += endArrayIdx + 2;
+            } else {
+                arg = osc.readArgument(argType, typeTagString, dv, withMetadata, offsetState);
+                i++;
+            }
+
+            arr.push(arg);
+        }
+
+        return arr;
     };
 
     /**
@@ -801,10 +810,6 @@ var osc = osc || {};
         I: {
             reader: "readImpulse"
         },
-        h: {
-            reader: "readInt64",
-            writer: "writeInt64"
-        },
         d: {
             reader: "readFloat64",
             writer: "writeFloat64"
@@ -820,10 +825,8 @@ var osc = osc || {};
         m: {
             reader: "readMIDIBytes",
             writer: "writeMIDIBytes"
-        }
-
-        // Missing optional OSC 1.0 types:
-        // []
+        },
+        // [] are special cased within read/writeArguments()
     };
 
     // Unsupported, non-API function.

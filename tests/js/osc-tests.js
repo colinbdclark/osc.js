@@ -33,19 +33,17 @@
     };
 
     var arrayEqual = function (actual, expected, msg) {
-        var mismatch = false;
         equal(actual.length, expected.length, "The array should be the expected length.");
         for (var i = 0; i < actual.length; i++) {
-            var actualVal = actual[i];
-            // We've got an array-like thing here.
+            var actualVal = actual[i],
+                expectedVal = expected[i];
+
             if (typeof actualVal === "object" && typeof actualVal.length === "number") {
-                arrayEqual(actualVal, expected[i], msg);
-            } else if (actualVal !== expected[i]) {
-                mismatch = true;
+                arrayEqual(actualVal, expectedVal, msg);
+            } else {
+                deepEqual(actualVal, expectedVal, msg);
             }
         }
-
-        ok(!mismatch, msg);
     };
 
     var roundTo = function (val, numDecimals) {
@@ -530,6 +528,19 @@
             ]),
             expected: [1000, -1, "hello", 1.234, 5.678],
             roundToDecimals: 3
+        },
+        {
+            rawArgBuffer: new Uint8Array([
+                // ,rr
+                44, 114, 114, 0,
+                // White color
+                255, 255, 255, 0,
+                // Green color rba(255, 255, 255, 0.3)
+                0, 255, 0, 77,
+                // Some junk
+                255, 128, 64, 12
+            ]),
+            expected: [{r: 255, g: 255, b: 255, a: 0}, {r: 0, g: 255, b: 0, a: 77 / 255}]
         }
     ];
 

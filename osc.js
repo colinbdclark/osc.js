@@ -293,9 +293,73 @@ var osc = osc || {};
 
         // Since we're writing to a real ArrayBuffer,
         // we don't need to pad the remaining bytes.
-        for (var i = 0; i < len; i++, offset++) {
-            dv.setUint8(offset, data[i]);
-        }
+        arr.set(data, offset);
+
+        return arr;
+    };
+
+    /**
+     * Reads an OSC 4-byte MIDI message.
+     *
+     * @param {DataView} dv the DataView instance to read from
+     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
+     * @return {Uint8Array} an array containing (in order) the port ID, status, data1 and data1 bytes
+     */
+    // TODO: Unit tests
+    osc.readMIDIBytes = function (dv, offsetState) {
+        var midi = new Uint8Array(dv.buffer, offsetState.idx, 4);
+        offsetState.idx += 4;
+
+        return midi;
+    };
+
+    /**
+     * Writes an OSC 4-byte MIDI message.
+     *
+     * @param {Array-like} bytes a 4-element array consisting of the port ID, status, data1 and data1 bytes
+     * @return {Uint8Array} the written message
+     */
+    // TODO: Unit tests
+    osc.writeMIDIBytes = function (bytes) {
+        bytes = osc.byteArray(bytes);
+
+        var arr = new Uint8Array(4);
+        arr.set(bytes);
+
+        return arr;
+    };
+
+    /**
+     * Reads an OSC RGBA colour value.
+     *
+     * @param {DataView} dv the DataView instance to read from
+     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
+     * @return {Object} a colour object containing r, g, b, and a properties
+     */
+    osc.readColor = function (dv, offsetState) {
+        var bytes = new Uint8Array(dv.buffer, offsetState.idx, 4),
+            alpha = bytes[3] / 255;
+
+        offsetState.idx += 4;
+
+        return {
+            r: bytes[0],
+            g: bytes[1],
+            b: bytes[2],
+            a: alpha
+        };
+    };
+
+    /**
+     * Writes an OSC RGBA colour value.
+     *
+     * @param {Object} color a colour object containing r, g, b, and a properties
+     * @return {Uint8Array} a byte array containing the written color
+     */
+    // TODO: Unit tests
+    osc.writeColor = function (color) {
+        var alpha = Math.round(color.a * 255),
+            arr = new Uint8Array([color.r, color.g, color.b, alpha]);
 
         return arr;
     };
@@ -748,11 +812,18 @@ var osc = osc || {};
         c: {
             reader: "readChar32",
             writer: "writeChar32"
+        },
+        r: {
+            reader: "readColor",
+            writer: "writeColor"
+        },
+        m: {
+            reader: "readMIDIBytes",
+            writer: "writeMIDIBytes"
         }
 
         // Missing optional OSC 1.0 types:
-        // r: "readColor",
-        // m: "readMIDI"
+        // []
     };
 
     // Unsupported, non-API function.

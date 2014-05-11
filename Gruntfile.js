@@ -38,7 +38,7 @@ module.exports = function(grunt) {
 
         oscjs: {
             banners: {
-                short: "/*! osc.js <%= pkg.version %> (<%= grunt.template.today('mmmm d, yyyy') %>), Copyright <%= grunt.template.today('yyyy') %> Colin Clark | flockingjs.org */\n\n"
+                short: "/*! osc.js <%= pkg.version %>, Copyright <%= grunt.template.today('yyyy') %> Colin Clark | flockingjs.org */\n\n"
             }
         }
     });

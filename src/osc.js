@@ -6,7 +6,8 @@ var osc = osc || {};
 
     "use strict";
 
-    osc.SEVENTY_YEARS_SECS = 2208988800;
+    osc.SECS_70YRS = 2208988800;
+    osc.TWO_32 = 4294967296;
 
     // Unsupported, non-API function.
     osc.isArray = function (obj) {
@@ -400,7 +401,7 @@ var osc = osc || {};
      * @return {Uint8Array} raw bytes for the written time tag
      */
     osc.writeTimeTag = function (timeTag) {
-        var raw = timeTag.raw ? timeTag.raw : osc.jsTimeToNTP(timeTag.native),
+        var raw = timeTag.raw ? timeTag.raw : osc.jsToNTPTime(timeTag.native),
             arr = new Uint8Array(8), // Two Unit32s.
             dv = new DataView(arr.buffer);
 
@@ -411,19 +412,35 @@ var osc = osc || {};
     };
 
     /**
-     * Produces a time tag consisting of a JavaScript timestamp that is
-     * in the future by the specified number of seconds.
+     * Produces a time tag containing a raw NTP timestamp
+     * relative to now by the specified number of seconds.
      *
-     * @param {Number} secs the number of seconds in the future
+     * @param {Number} secs the number of seconds relative to now (i.e. + for the future, - for the past)
      * @return {Object} the time tag
      */
-    // TODO: Unit tests.
-    osc.futureTimeTag = function (secs) {
-        var ms = secs * 1000,
-            futureMS = Date.now() + ms;
+    osc.timeTag = function (secs) {
+        secs = secs || 0;
+
+        var nowSecs = Date.now() / 1000,
+            nowWhole = Math.floor(nowSecs),
+            nowFracs = nowSecs - nowWhole,
+            secsWhole = Math.floor(secs),
+            secsFracs = secs - secsWhole,
+            fracs = nowFracs + secsFracs;
+
+        if (fracs > 1) {
+            var fracsWhole = Math.floor(fracs),
+                fracsFracs = fracs - fracsWhole;
+
+            secsWhole += fracsWhole;
+            fracs = fracsFracs;
+        }
+
+        var ntpSecs = nowWhole + secsWhole + osc.SECS_70YRS,
+            ntpFracs = Math.round(osc.TWO_32 * fracs);
 
         return {
-            native: futureMS
+            raw: [ntpSecs, ntpFracs]
         };
     };
 
@@ -436,28 +453,21 @@ var osc = osc || {};
      * @return {Number} a JavaScript-compatible timestamp in milliseconds
      */
     osc.ntpToJSTime = function (secs1900, frac) {
-        var secs1970 = secs1900 - osc.SEVENTY_YEARS_SECS,
-            ms1970 = secs1970 * 1000,
-            decimals = (frac / 4294967296) * 1000,
-            msTime = ms1970 + decimals;
+        var secs1970 = secs1900 - osc.SECS_70YRS,
+            decimals = frac / osc.TWO_32,
+            msTime = (secs1970 + decimals) * 1000;
 
         return msTime;
     };
 
-    /**
-     * Converts a JavaScript timestamp into OSC's standard NTP timestamp format.
-     *
-     * @param {Number} jsTime the JavaScript timestamp
-     * @return {Array} a tuple consisting of the number of seconds since 1900 and the number of fractions of a second
-     */
-    osc.jsTimeToNTP = function (jsTime) {
-        var ms = Math.floor(jsTime),
-            secs = ms / 1000,
-            fracSec = secs - Math.floor(secs),
-            secs1900 = secs + osc.SEVENTY_YEARS_SECS,
-            ntpFracs = 4294967296 * fracSec;
+    osc.jsToNTPTime = function (jsTime) {
+        var secs = jsTime / 1000,
+            secsWhole = Math.floor(secs),
+            secsFrac = secs - secsWhole,
+            ntpSecs = secsWhole + osc.SECS_70YRS,
+            ntpFracs = Math.round(osc.TWO_32 * secsFrac);
 
-        return [secs1900, ntpFracs];
+        return [ntpSecs, ntpFracs];
     };
 
     /**

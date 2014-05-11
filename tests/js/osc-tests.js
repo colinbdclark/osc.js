@@ -445,6 +445,51 @@
             "A time tag with no raw value (only a native value) should be written correctly.");
     });
 
+    var testTimeTag = function (actual, expectedJSTime, tolerance) {
+        if (tolerance === undefined) {
+            tolerance = 1000; // NTP fractional values.
+        }
+        // Convert the JS time to NTP time.
+        var expected = osc.jsToNTPTime(expectedJSTime),
+            max = expected[1] + tolerance,
+            min = expected[1] - tolerance;
+
+        equal(actual.raw[0], expected[0], "The generated timestamp should be accurate to the second.");
+        ok(actual.raw[1] <= max, "The generated timestamp should be no greater than " + tolerance +
+            " NTP fractions of a second from expected.");
+        ok(actual.raw[1] >= min, "The generated timestamp should be no less than " + tolerance +
+            " NTP fractions of a second from expected.");
+    };
+
+    test("osc.timeTag now", function () {
+        var actual = osc.timeTag();
+        testTimeTag(actual, Date.now());
+
+        actual = osc.timeTag(0);
+        testTimeTag(actual, Date.now());
+    });
+
+    test("osc.timeTag future", function () {
+        var actual = osc.timeTag(10.5),
+            expected = Date.now() + 10500;
+        testTimeTag(actual, expected);
+
+        actual = osc.timeTag(0.1);
+        expected = Date.now() + 100;
+        testTimeTag(actual, expected);
+
+    });
+
+    test("osc.timeTag past", function () {
+        var actual = osc.timeTag(-1000),
+            expected = Date.now() - 1000000;
+        testTimeTag(actual, expected);
+
+        actual = osc.timeTag(-0.01);
+        expected = Date.now() - 10;
+    });
+
+
     /**********************************************
      * Read Type-Only Arguments (e.g. T, F, N, I) *
      **********************************************/

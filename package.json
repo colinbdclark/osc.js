@@ -1,41 +1,46 @@
 {
-  "name": "osc",
-  "main": "osc.js",
-  "version": "1.0.0",
-  "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
-  "author": "Colin Clark",
-  "homepage": "http://flockingjs.org/",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/colinbdclark/osc.js.git"
-  },
-  "bugs": "https://github.com/colinbdclark/osc.js/issues",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://opensource.org/licenses/MIT"
+    "name": "osc",
+    "main": "osc.js",
+    "version": "1.0.0",
+    "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
+    "author": "Colin Clark",
+    "homepage": "http://flockingjs.org/",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/colinbdclark/osc.js.git"
     },
-    {
-      "type": "GPL",
-      "url": "http://opensource.org/licenses/GPL-3.0"
+    "bugs": "https://github.com/colinbdclark/osc.js/issues",
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://opensource.org/licenses/MIT"
+        },
+        {
+            "type": "GPL",
+            "url": "http://opensource.org/licenses/GPL-3.0"
+        }
+    ],
+    "keywords": [
+        "Open Sound Control",
+        "OSC",
+        "sound",
+        "audio",
+        "music",
+        "Flocking"
+    ],
+    "readmeFilename": "README.md",
+    "devDependencies": {
+        "qunit": "0.6.2",
+        "grunt": "~0.4.2",
+        "grunt-contrib-uglify": "~0.3.2",
+        "grunt-contrib-clean": "~0.4.1",
+        "grunt-contrib-jshint": "~0.8.0",
+        "grunt-githooks": "~0.3.1"
+    },
+    "dependencies": {
+        "buffer-dataview": ">=0.0.2"
+    },
+    "engines": {
+        "node": "0.10.x"
     }
-  ],
-  "keywords": [
-    "Open Sound Control",
-    "OSC",
-    "sound",
-    "audio",
-    "music",
-    "Flocking"
-  ],
-  "readmeFilename": "README.md",
-  "devDependencies": {
-      "qunit": "0.6.2"
-  },
-  "dependencies": {
-      "buffer-dataview": ">=0.0.2"
-  },
-  "engines": {
-    "node": "0.10.x"
-  }
 }

@@ -16,7 +16,7 @@ testRunner.setup({
 
 testRunner.run({
     code: {
-        path: __dirname + "/../../osc.js",
+        path: __dirname + "/../../src/osc.js",
         namespace: "osc"
     },
     tests: __dirname + "/osc-tests.js"

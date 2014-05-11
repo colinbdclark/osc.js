@@ -1,7 +1,7 @@
 {
     "name": "osc.js",
     "version": "1.0.0",
-    "main": "osc.js",
+    "main": "dist/osc.min.js",
     "ignore": [
         ".jshintrc",
         "package.json",

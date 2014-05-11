@@ -1,3 +1,6 @@
+/*global require, __dirname*/
+/*jshint nomen: false*/
+
 var testRunner = require("qunit");
 
 testRunner.setup({

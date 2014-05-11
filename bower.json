@@ -1,0 +1,17 @@
+{
+    "name": "osc.js",
+    "version": "1.0.0",
+    "main": "osc.js",
+    "ignore": [
+        ".jshintrc",
+        "package.json",
+        "bower.json",
+        "Gruntfile.js",
+        "node_modules",
+        "tests"
+    ],
+    "dependencies": {},
+    "devDependencies": {
+        "qunit": "1.14.0"
+    }
+}

@@ -22,6 +22,84 @@ Status
 
 osc.js supports all OSC 1.0 and 1.1 required types. It supports all OSC 1.1 optional types except Int64s ("h"), since JavaScript numbers are limited IEEE 754 Doubles and thus don't have sufficient precision to represent all 64 bits.
 
+Using osc.js
+------------
+
+There are two primary functions in osc.js used to read and write OSC data:
+
+* ``osc.readPacket()``, which takes a DataView-friendly data buffer (i.e. an ArrayBuffer, TypedArray, DataView, or Node.js Buffer) and returns a tree of JavaScript objects representing the messages and bundles that were read
+* ``osc.writePacket()``, which takes a message or bundle object and packs it up into a Uint8Array
+
+Both functions take an optional `withMetadata` parameter, which specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets.If you need greater precision in regards to the arguments in an OSC message, set the `withMetadata` argument to true.
+
+### OSC Bundle and Message Objects
+
+osc.js represents bundles and messages as (mostly) JSON-compatible objects. Here's how they are structured:
+
+#### Messages
+OSC Message objects consist of two properties, `address`, which contains the URL-style address path and `args` which is an array of either raw argument values or type-annotated Argument objects (depending on the value of `withMetadata` when reading the message).
+
+```javascript
+{
+    address: "/an/osc/address",
+    args: [
+        {} // Raw or type-annotated OSC arguments
+    ]
+}
+```
+
+#### Bundles
+
+OSC bundle objects consist of a time tag and an array of `packets`. Packets can be a mix of OSC bundle objects and message objects.
+
+```javascript
+{
+    timeTag: {
+        // OSC Time Tag object
+    },
+    packets: [
+        {} // Nested OSC bundle and message objects>
+    ]
+}
+```
+
+#### Argument Objects with Type Metadata
+
+Type-annotated argument objects contain two properties:  `type`, which contains the OSC type tag character (e.g. `"i"`, `"f"`, `"t"`, etc.) and the raw `value`.
+
+```javascript
+{
+    type: "f", // OSC type tag string
+    value: 444.4
+}
+```
+
+#### Time Tags
+Time tag objects contain two different representations: the raw NTP time and the equivalent (though less precise) native JavaScript timestamp. NTP times consist of a pair of values in an array. The first value represents the number of seconds since January 1, 1900. The second value is a Uint32 value (i.e. between 0 and 4294967296) that represents fractions of a second.
+
+JavaScript timestamps are represented as milliseconds since January 1, 1970, which is the same unit as is returned by calls to `Date.now()`.
+
+```javascript
+{
+    raw: [
+        3608146800, // seconds since January 1, 1900.
+        2147483648  // fractions of a second
+    ],
+    native: Number // Milliseconds since January 1, 1970
+}
+```
+#### Colours
+Colours are automatically normalized to CSS 3 rgba values (i.e. the alpha channel is represented as a float from `0.0` to `1.0`).
+
+```javascript
+{
+    r: 255,
+    g: 255,
+    b: 255,
+    a: 1.0
+}
+
+
 Mapping OSC to JSON
 -------------------
 

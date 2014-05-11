@@ -111,14 +111,14 @@ Here are a few examples showing how OSC packets are mapped to JSON objects by os
         <th>Objects</th>
     </tr>
     <tr>
-        <td>`/carrier/freq` `,f` `440.4`</td>
+        <td>"/carrier/freq" ",f" 440.4</td>
         <td><pre><code>{
   address: "/carrier/freq",
   args: [440.4]
 }</pre></code></td>
     </tr>
     <tr>
-        <td>`/float/andArray` `,f[ii]` `440.4 42 47`</td>
+        <td>"/float/andArray" ",f[ii]" 440.4 42 47</td>
         <td><pre><code>{
   address: "/carrier/freq",
   args: [
@@ -127,7 +127,7 @@ Here are a few examples showing how OSC packets are mapped to JSON objects by os
 }</pre></code></td>
     </tr>
     <tr>
-        <td>`/aTimeTag` `,t` `3608146800 2147483648`</td>
+        <td>"/aTimeTag" ",t" 3608146800 2147483648</td>
         <td><pre><code>{
   address: "/scheduleAt",
   args: [
@@ -139,7 +139,7 @@ Here are a few examples showing how OSC packets are mapped to JSON objects by os
 }</code></pre>
     </tr>
     <tr>
-        <td>`/blob` `,b` `0x63 0x61 0x74 0x21`</td>
+        <td>"/blob" ",b" 0x63 0x61 0x74 0x21</td>
         <td><pre><code>
 {
   address: "/blob",
@@ -148,15 +148,24 @@ Here are a few examples showing how OSC packets are mapped to JSON objects by os
   ]
 }
     <tr>
-        <td>`/colour` `,r` `255 255 255 255`</td>
+        <td>"/colour" ",r" "255 255 255 255"</td>
         <td><pre><code>{
-  address: "colour",
+  address: "/colour",
   args: [{
       r: 255,
       g: 255,
       b: 255,
       a: 1.0
     }
+  ]
+}</pre></code</td>
+    <tr>
+        <td>"/midiMessage" ",m" 0x00 0x90 0x45 0x65</td>
+        <td><pre><code>{
+  address: "/midiMessage",
+  args: [
+    // Port ID, Status, Data 1, Data 2
+    Uint8Array([0, 144, 69, 101])
   ]
 }</pre></code</td>
 </table>

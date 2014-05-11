@@ -98,7 +98,7 @@ Colours are automatically normalized to CSS 3 rgba values (i.e. the alpha channe
     b: 255,
     a: 1.0
 }
-
+```
 
 Mapping OSC to JSON
 -------------------

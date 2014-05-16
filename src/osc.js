@@ -1,3 +1,10 @@
+/*
+ * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
+ *
+ * Copyright 2014, Colin Clark
+ * Licensed under the MIT and GPL 3 licenses.
+ */
+
 /* global require, module, Buffer */
 
 var osc = osc || {};
@@ -5,6 +12,10 @@ var osc = osc || {};
 (function () {
 
     "use strict";
+
+    // Private instance of the buffer-dataview object.
+    // Only used if we're in Node.js.
+    var BufferDataView;
 
     osc.SECS_70YRS = 2208988800;
     osc.TWO_32 = 4294967296;
@@ -21,7 +32,7 @@ var osc = osc || {};
      * @return {DataView} the DataView object
      */
     // Unsupported, non-API function.
-    osc.wrapAsDataView = function (obj) {
+    osc.dataView = function (obj) {
         if (obj instanceof DataView) {
             return obj;
         }
@@ -32,6 +43,16 @@ var osc = osc || {};
 
         if (obj instanceof ArrayBuffer) {
             return new DataView(obj);
+        }
+
+        // Node.js-specific.
+        if (typeof Buffer !== "undefined" && obj instanceof Buffer) {
+            return new BufferDataView(obj);
+        }
+
+        // Node.js-specific.
+        if (typeof BufferDataView !== "undefined" && obj instanceof BufferDataView) {
+            return obj;
         }
 
         return new DataView(new Uint8Array(obj));
@@ -624,7 +645,7 @@ var osc = osc || {};
      * @return {Object} the OSC message, formatted as a JavaScript object containing "address" and "args" properties
      */
     osc.readMessage = function (data, withMetadata, offsetState) {
-        var dv = osc.wrapAsDataView(data);
+        var dv = osc.dataView(data);
         offsetState = offsetState || {
             idx: 0
         };
@@ -750,7 +771,7 @@ var osc = osc || {};
      * @return {Object} a bundle or message object
      */
     osc.readPacket = function (data, withMetadata, offsetState, len) {
-        var dv = osc.wrapAsDataView(data);
+        var dv = osc.dataView(data);
 
         len = len === undefined ? dv.byteLength : len;
         offsetState = offsetState || {
@@ -891,29 +912,9 @@ var osc = osc || {};
     // If we're in a require-compatible environment, export ourselves.
     if (typeof module !== "undefined" && module.exports) {
 
-        // Check if we're in Node.js and override wrapAsDataView to support
-        // native Node.js Buffers using the buffer-dataview library.
+        // Check if we're in Node.js; if so, require the buffer-dataview library.
         if (typeof Buffer !== "undefined") {
-            var BufferDataView = require("buffer-dataview");
-            osc.wrapAsDataView = function (obj) {
-                if (obj instanceof DataView || obj instanceof BufferDataView) {
-                    return obj;
-                }
-
-                if (obj instanceof Buffer) {
-                    return new BufferDataView(obj);
-                }
-
-                if (obj.buffer) {
-                    return new DataView(obj.buffer);
-                }
-
-                if (obj instanceof ArrayBuffer) {
-                    return new DataView(obj);
-                }
-
-                return new DataView(new Uint8Array(obj));
-            };
+            BufferDataView = require("buffer-dataview");
         }
 
         module.exports = osc;

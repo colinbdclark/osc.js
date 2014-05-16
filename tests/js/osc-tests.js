@@ -4,8 +4,6 @@
 
     "use strict";
 
-    QUnit.module("OSC Reader");
-
     /*************
      * Utilities *
      *************/
@@ -108,6 +106,8 @@
      * Strings  *
      ************/
 
+    QUnit.module("Strings");
+
     var testReadString = function (testSpec) {
         var offsetState = testSpec.offsetState || {
             idx: 0
@@ -162,9 +162,11 @@
     stringTests(stringTestSpecs);
 
 
-    /****************
-     * Read Numbers *
-     ****************/
+    /***********
+     * Numbers *
+     ***********/
+
+    QUnit.module("Numbers");
 
     var typeTesters = {
         "int32": {
@@ -259,10 +261,6 @@
     readPrimitiveTests(readPrimitiveTestSpecs);
 
 
-    /*****************
-     * Write Numbers *
-     *****************/
-
     var testWritePrimitive = function (testSpec) {
         test(testSpec.writer + " " + testSpec.name, function () {
             var expected = testSpec.expected,
@@ -331,6 +329,8 @@
      * Blobs *
      *********/
 
+    QUnit.module("Blobs");
+
     var oscBlobOctets = [
         0, 0, 0, 3,            // Length 3
         0x63, 0x61, 0x74, 0   // raw bytes
@@ -372,6 +372,8 @@
     /*************
      * Time Tags *
      *************/
+
+    QUnit.module("Time Tags");
 
     var testReadTimeTag = function (testSpec) {
         test("Read time tag " + testSpec.name, function () {
@@ -494,6 +496,8 @@
      * Read Type-Only Arguments (e.g. T, F, N, I) *
      **********************************************/
 
+    QUnit.module("Type-Only Arguments");
+
     test("Type-only arguments", function () {
         var offsetState = {
             idx: 27
@@ -521,10 +525,12 @@
      * Read Arguments *
      ******************/
 
+    QUnit.module("readArguments()");
+
     var testArguments = function (testSpec) {
         //rawArgBuffer, expected, roundToDecimals, offsetState
         //testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals
-        test("readArguments " + testSpec.name, function () {
+        test(testSpec.name, function () {
             var offsetState = {
                 idx: 0
             };
@@ -708,9 +714,11 @@
     readArgumentsTests(argumentTestSpecs);
 
 
-    /*****************
-     * Read Messages *
-     *****************/
+    /************
+     * Messages *
+     ************/
+
+    QUnit.module("Messages");
 
     var testReadMessage = function (testSpec) {
         testSpec.offsetState = testSpec.offsetState || {
@@ -828,6 +836,8 @@
     /***********
      * Bundles *
      ***********/
+
+    QUnit.module("Bundles");
 
     var testReadBundle = function (testSpec) {
         test("readBundle " + testSpec.name, function () {

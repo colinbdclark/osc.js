@@ -169,3 +169,8 @@ Here are a few examples showing how OSC packets are mapped to JSON objects by os
   ]
 }</pre></code</td>
 </table>
+
+License
+-------
+
+osc.js was written by Colin Clark and is distributed under the MIT and GPL 3 licenses.

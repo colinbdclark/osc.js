@@ -20,14 +20,13 @@ module.exports = function(grunt) {
             dist: {
                 files: {
                     "dist/osc.min.js": ["src/osc.js"],
-                    "dist/slip.min.js": ["src/slip.js"]
                 }
             }
         },
 
         clean: {
             all: {
-                src: ["osc.min.js", "slip.min.js"]
+                src: ["osc.min.js"]
             }
         },
 

@@ -17,16 +17,9 @@ testRunner.setup({
 testRunner.run([
     {
         code: {
-            path: __dirname + "/../../src/osc.js",
+            path: __dirname + "/../src/osc.js",
             namespace: "osc"
         },
         tests: __dirname + "/osc-tests.js"
-    },
-    {
-        code: {
-            path: __dirname + "/../../src/slip.js",
-            namespace: "slip"
-        },
-        tests: __dirname + "/slip-tests.js"
     }
 ]);

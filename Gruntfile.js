@@ -20,13 +20,19 @@ module.exports = function(grunt) {
             dist: {
                 files: {
                     "dist/osc.min.js": ["src/osc.js"],
+                    "dist/osc-chromeapp-transports.min.js": [
+                        "bower_components/eventEmitter/EventEmitter.js",
+                        "bower_components/slip.js/slip.js",
+                        "src/osc-transports.js",
+                        "src/platforms/chrome-app-transports.js"
+                    ]
                 }
             }
         },
 
         clean: {
             all: {
-                src: ["osc.min.js"]
+                src: ["dist/osc.min.js", "dist/osc-chromeapp-transports.min.js"]
             }
         },
 

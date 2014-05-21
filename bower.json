@@ -10,7 +10,10 @@
         "node_modules",
         "tests"
     ],
-    "dependencies": {},
+    "dependencies": {
+        "slip.js": "git://github.com/colinbdclark/slip.js.git",
+        "eventEmitter": ">=4.2.7"
+    },
     "devDependencies": {
         "qunit": "1.14.0"
     }

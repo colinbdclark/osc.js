@@ -16,9 +16,9 @@ var osc = osc || {};
     osc.chrome = {};
 
     osc.chrome.SerialPort = function (options) {
-        this.options = options || {};
-        this.options.useSLIP = this.options.useSLIP || true;
-        
+        var o = this.options = options || {};
+        o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;
+
         this.on("open", this.listen.bind(this));
 
         if (this.options.openImmediately) {

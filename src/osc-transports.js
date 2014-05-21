@@ -16,7 +16,7 @@ var osc = osc || {};
     osc.Port = function (options) {
         this.options = options || {};
 
-        if (options.useSLIP) {
+        if (this.options.useSLIP) {
             this.bindSLIP(options.withMetadata);
         } else {
             this.on("data", this.decodeOSC.bind(this));

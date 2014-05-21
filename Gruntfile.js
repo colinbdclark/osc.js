@@ -22,7 +22,7 @@ module.exports = function(grunt) {
                     "dist/osc.min.js": ["src/osc.js"],
                     "dist/osc-chromeapp.min.js": [
                         "src/osc.js",
-                        "bower_components/slip.js/slip.js",
+                        "bower_components/slip.js/src/slip.js",
                         "bower_components/eventEmitter/EventEmitter.js",
                         "src/osc-transports.js",
                         "src/platforms/chromeapp-transports.js"

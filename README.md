@@ -13,9 +13,33 @@ What Does it Do?
 
 osc.js reads and writes OSC-formatted binary data into plain JavaScript objects. It provides adaptors for Node.js Buffer objects as well as standard ArrayBuffers.
 
-Currently, osc.js provides no built-in transport support. You can receive OSC data in whatever manner works best for your application: serial port APIs such as node-serialport or chrome.serial, socket APIs such as Node.js dgram or WebRTC data channels, WebSockets or binary XHR messages should all work. Connect osc.js up to your source of incoming/outgoing data, and you're all set.
+osc.js is transport agnostic. You can receive OSC data in whatever manner works best for your application: serial port APIs such as node-serialport or chrome.serial, socket APIs such as Node.js dgram or WebRTC data channels, WebSockets or binary XHR messages should all work. Connect osc.js up to your source of incoming/outgoing data, and you're all set. This approach is consistent with the design of Open Sound Control as a _content format_ that is independent from its means of transport.
 
-This approach is consistent with the design of Open Sound Control as a _content format_ that is independent from its means of transport.
+Nonetheless, osc.js provides a set of optional transports for use in standard browsers, Chrome Apps, and Node.js applications. These include:
+
+<table>
+    <tr>
+        <th>Transport</th>
+        <th>Supported Platforms</th>
+    </tr>
+    <tr>
+        <td>Serial port</td>
+        <td>Chrome Apps</td>
+    </tr>
+    <tr>
+        <td>Web Socket</td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td>UDP</td>
+        <td>Chrome Apps</td>
+    </tr>
+    <tr>
+        <td>TCP</td>
+        <td>&nbsp;</td>
+    </tr>
+</table>
+
 
 Status
 ------

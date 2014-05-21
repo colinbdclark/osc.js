@@ -15,34 +15,19 @@ var osc = osc || {};
 
     osc.Port = function (options) {
         var o = this.options = options || {};
-        o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;
 
-        if (this.options.useSLIP) {
-            this.bindSLIP(o.withMetadata);
-        } else {
-            this.on("data", this.decodeOSC.bind(this));
+        this.on("data", this.decodeOSC.bind(this));
+
+        if (this.options.openImmediately) {
+            this.open();
         }
     };
 
     var p = osc.Port.prototype = new EventEmitter();
 
-    p.bindSLIP = function (withMetadata) {
-        this.decoder = new slip.Decoder({
-            onMessage: this.decodeOSC.bind(this),
-            onError: function (err) {
-                this.emit("error", err);
-            }
-        });
 
-        this.on("data", this.decodeSLIPData.bind(this));
-    };
-
-    p.send = function (packet) {
+    p.encodeOSC = function (packet) {
         var encoded = osc.writePacket(packet, this.options.withMetadata);
-        if (this.useSLIP) {
-            encoded = slip.encode(encoded);
-        }
-
         return encoded;
     };
 
@@ -57,8 +42,34 @@ var osc = osc || {};
         }
     };
 
+
+
+    osc.SLIPPort = function (options) {
+        var o = this.options = options || {};
+        o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;
+
+        this.decoder = new slip.Decoder({
+            onMessage: this.decodeOSC.bind(this),
+            onError: function (err) {
+                this.emit("error", err);
+            }
+        });
+
+        this.on("data", this.decodeSLIPData.bind(this));
+
+        if (this.options.openImmediately) {
+            this.open();
+        }
+    };
+
+    p = osc.SLIPPort.prototype = new osc.Port();
+
+    p.encodeOSC = function () {
+        var encoded = osc.writePacket(packet, this.options.withMetadata);
+        return slip.encode(encoded);
+    };
+
     p.decodeSLIPData = function (data) {
         this.decoder.decode(data);
     };
-
 }());

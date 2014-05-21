@@ -25,7 +25,7 @@ module.exports = function(grunt) {
                         "bower_components/slip.js/slip.js",
                         "bower_components/eventEmitter/EventEmitter.js",
                         "src/osc-transports.js",
-                        "src/platforms/chrome-app-transports.js"
+                        "src/platforms/chromeapp-transports.js"
                     ]
                 }
             }

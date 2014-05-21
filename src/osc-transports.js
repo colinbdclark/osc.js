@@ -14,10 +14,11 @@ var osc = osc || {};
     "use strict";
 
     osc.Port = function (options) {
-        this.options = options || {};
+        var o = this.options = options || {};
+        o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;
 
         if (this.options.useSLIP) {
-            this.bindSLIP(options.withMetadata);
+            this.bindSLIP(o.withMetadata);
         } else {
             this.on("data", this.decodeOSC.bind(this));
         }
@@ -50,9 +51,9 @@ var osc = osc || {};
         this.emit("osc", packet);
 
         if (packet.address) {
-            this.emit("message");
+            this.emit("message", packet);
         } else {
-            this.emit("bundle");
+            this.emit("bundle", packet);
         }
     };
 

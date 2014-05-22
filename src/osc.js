@@ -37,12 +37,9 @@ var osc = osc || {};
             return obj;
         }
 
-        if (obj.buffer) {
-            return new DataView(obj.buffer);
-        }
-
-        if (obj instanceof ArrayBuffer) {
-            return new DataView(obj);
+        // Node.js-specific.
+        if (typeof BufferDataView !== "undefined" && obj instanceof BufferDataView) {
+            return obj;
         }
 
         // Node.js-specific.
@@ -50,9 +47,12 @@ var osc = osc || {};
             return new BufferDataView(obj);
         }
 
-        // Node.js-specific.
-        if (typeof BufferDataView !== "undefined" && obj instanceof BufferDataView) {
-            return obj;
+        if (obj.buffer) {
+            return new DataView(obj.buffer);
+        }
+
+        if (obj instanceof ArrayBuffer) {
+            return new DataView(obj);
         }
 
         return new DataView(new Uint8Array(obj));

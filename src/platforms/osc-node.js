@@ -10,11 +10,25 @@
 (function () {
     "use strict";
 
-    var osc = require("../osc.js");
+    var shallowMerge = function (target, toMerge) {
+        target = target || {};
+        if (toMerge.forEach === undefined) {
+            toMerge = [toMerge];
+        }
 
-    osc.node = {};
+        toMerge.forEach(function (obj) {
+            for (var prop in obj) {
+                target[prop] = obj[prop];
+            }
+        });
 
-    osc.node.UDPPort = function (options) {
+        return target;
+    };
+
+    var dgram = require("dgram"),
+        osc = shallowMerge(require("../osc.js"), require("../osc-transports.js"));
+
+    osc.UDPPort = function (options) {
         osc.Port.call(this, options);
 
         this.options.localAddress = this.options.localAddress || "127.0.0.1";
@@ -24,7 +38,7 @@
         this.on("open", this.listen.bind(this));
     };
 
-    p = osc.node.UDPPort.prototype = new osc.Port();
+    var p = osc.UDPPort.prototype = new osc.Port();
 
     p.open = function () {
         var that = this;
@@ -75,4 +89,4 @@
     };
 
     module.exports = osc;
-});
+}());

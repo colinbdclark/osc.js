@@ -7,24 +7,20 @@
 
 /* global require, slip */
 
-var osc = osc || {};
+var osc = osc || typeof require !== "undefined" ? require("./osc.js") : {};
+var EventEmitter = EventEmitter ||
+    typeof require !== "undefined" ? require("events").EventEmitter : undefined;
 
 (function () {
 
     "use strict";
 
-    var EventEmitter = typeof EventEmitter !== "undefined" ? EventEmitter : undefined;
-    if (typeof require !== undefined) {
-        var events = require("events");
-        EventEmitter = events.EventEmitter || EventEmitter;
-    }
-
-    osc.Port = function () {
+    osc.Port = function (options) {
+        this.options = options || {};
         this.on("data", this.decodeOSC.bind(this));
     };
 
     var p = osc.Port.prototype = new EventEmitter();
-
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
@@ -69,4 +65,9 @@ var osc = osc || {};
     p.decodeSLIPData = function (data) {
         this.decoder.decode(data);
     };
+
+    // If we're in a require-compatible environment, export ourselves.
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = osc;
+    }
 }());

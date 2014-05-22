@@ -23,9 +23,7 @@ var osc = osc || {};
         });
 
         transport.onReceiveError.addListener(function (err) {
-            if (e[idName] === that[idName]) {
-                that.emit("error", err);
-            }
+            that.emit("error", err);
         });
 
         that.emit("ready");

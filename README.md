@@ -23,20 +23,20 @@ Nonetheless, osc.js provides a set of optional transports for use in standard br
         <th>Supported Platforms</th>
     </tr>
     <tr>
+        <td>UDP</td>
+        <td>Node.js, Chrome Apps</td>
+    </tr>
+    <tr>
         <td>Serial port</td>
         <td>Chrome Apps</td>
     </tr>
     <tr>
         <td>Web Socket</td>
-        <td>&nbsp;</td>
-    </tr>
-    <tr>
-        <td>UDP</td>
-        <td>Chrome Apps</td>
+        <td>_Soon!_</td>
     </tr>
     <tr>
         <td>TCP</td>
-        <td>&nbsp;</td>
+        <td>_Planned_</td>
     </tr>
 </table>
 

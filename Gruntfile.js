@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         jshint: {
-            all: ["src/osc.js", "tests/**.*.js"],
+            all: ["src/*.js", "tests/**.*.js"],
             options: {
                 jshintrc: true
             }
@@ -25,7 +25,14 @@ module.exports = function(grunt) {
                         "bower_components/slip.js/src/slip.js",
                         "bower_components/eventEmitter/EventEmitter.js",
                         "src/osc-transports.js",
-                        "src/platforms/chromeapp-transports.js"
+                        "src/platforms/osc-chromeapp.js"
+                    ],
+                    "dist/osc-browser.min.js": [
+                        "src/osc.js",
+                        "bower_components/slip.js/src/slip.js",
+                        "bower_components/eventEmitter/EventEmitter.js",
+                        "src/osc-transports.js",
+                        "src/platforms/osc-browser.js"
                     ]
                 }
             }

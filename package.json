@@ -1,6 +1,6 @@
 {
     "name": "osc",
-    "main": "src/osc.js",
+    "main": "src/platforms/osc-node.js",
     "version": "1.0.0",
     "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
     "author": "Colin Clark",

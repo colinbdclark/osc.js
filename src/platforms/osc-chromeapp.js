@@ -59,7 +59,7 @@ var osc = osc || {};
         var encoded = this.encodeOSC(oscPacket),
             that = this;
 
-        chrome.serial.send(this.connectionId, encoded.buffer, function (bytesSent, err) {
+        chrome.serial.send(this.connectionId, encoded, function (bytesSent, err) {
             if (err) {
                 that.emit("error", err + ". Total bytes sent: " + bytesSent);
             }
@@ -82,7 +82,7 @@ var osc = osc || {};
         osc.Port.call(this, options);
         var o = this.options;
         o.localAddress = o.localAddress || "127.0.0.1";
-        o.localPort = o.localPort !== undefined ? o.localPort : 8001;
+        o.localPort = o.localPort !== undefined ? o.localPort : 57121;
 
         this.on("open", this.listen.bind(this));
     };
@@ -123,6 +123,10 @@ var osc = osc || {};
     };
 
     p.send = function (oscPacket, address, port) {
+        if (!this.socketId) {
+            return;
+        }
+
         var o = this.options,
             encoded = this.encodeOSC(oscPacket),
             that = this;
@@ -130,7 +134,7 @@ var osc = osc || {};
         address = address || o.remoteAddress;
         port = port !== undefined ? port : o.remotePort;
 
-        chrome.sockets.udp.send(this.socketId, encoded.buffer, address, port, function (info) {
+        chrome.sockets.udp.send(this.socketId, encoded, address, port, function (info) {
             if (!info) {
                 that.emit("error",
                     "There was an unknown error while trying to send a UDP message. " +

@@ -5,7 +5,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global EventEmitter */
+/* global require, slip */
 
 var osc = osc || {};
 
@@ -13,20 +13,21 @@ var osc = osc || {};
 
     "use strict";
 
-    osc.Port = function (options) {
-        var o = this.options = options || {};
+    var EventEmitter = typeof EventEmitter !== "undefined" ? EventEmitter : undefined;
+    if (typeof require !== undefined) {
+        var events = require("events");
+        EventEmitter = events.EventEmitter || EventEmitter;
+    }
 
+    osc.Port = function () {
         this.on("data", this.decodeOSC.bind(this));
-
-        if (this.options.openImmediately) {
-            this.open();
-        }
     };
 
     var p = osc.Port.prototype = new EventEmitter();
 
 
     p.encodeOSC = function (packet) {
+        packet = packet.buffer ? packet.buffer : packet;
         var encoded = osc.writePacket(packet, this.options.withMetadata);
         return encoded;
     };
@@ -55,15 +56,12 @@ var osc = osc || {};
         });
 
         this.on("data", this.decodeSLIPData.bind(this));
-
-        if (this.options.openImmediately) {
-            this.open();
-        }
     };
 
     p = osc.SLIPPort.prototype = new osc.Port();
 
-    p.encodeOSC = function () {
+    p.encodeOSC = function (packet) {
+        packet = packet.buffer ? packet.buffer : packet;
         var encoded = osc.writePacket(packet, this.options.withMetadata);
         return slip.encode(encoded);
     };

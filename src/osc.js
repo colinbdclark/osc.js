@@ -402,7 +402,7 @@ var osc = osc || {};
     osc.readTimeTag = function (dv, offsetState) {
         var secs1900 = osc.readPrimitive(dv, "getUint32", 4, offsetState),
             frac = osc.readPrimitive(dv, "getUint32", 4, offsetState),
-            native = osc.ntpToJSTime(secs1900, frac);
+            native = (secs1900 === 0 && frac === 1) ? Date.now() : osc.ntpToJSTime(secs1900, frac);
 
         return {
             raw: [secs1900, frac],

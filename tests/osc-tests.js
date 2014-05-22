@@ -375,6 +375,13 @@
 
     QUnit.module("Time Tags");
 
+    var equalWithinTolerance = function (actual, expected, tolerance, msg) {
+        var max = expected + tolerance,
+            min = expected - tolerance;
+
+        ok(actual <= max, "The value should be no greater than " + tolerance + ". " + msg);
+        ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
+    }
     var testReadTimeTag = function (testSpec) {
         test("Read time tag " + testSpec.name, function () {
             var expected = testSpec.timeTag,
@@ -384,7 +391,16 @@
                 idx: 0
             });
 
-            deepEqual(actual, expected, "The date should have be read correctly.");
+            if (expected.raw[0] === 0 && expected.raw[1] === 1) {
+                var tolerance = 100;
+                equalWithinTolerance(actual.native, expected.native,
+                    tolerance, "The native should be within " + tolerance +
+                    "ms of expected.");
+                deepEqual(actual.raw, expected.raw, "The raw time should match identically.");
+            } else {
+                deepEqual(actual, expected, "The date should have be read correctly.");
+            }
+
         });
     };
 
@@ -421,6 +437,17 @@
             timeTag: {
                 raw: [3608146800, 4294967296 / 2],
                 native: (1399158000 * 1000) + 500
+            }
+        },
+        {
+            name: "one fraction of a second (i.e. now in OSC time tag-speak)",
+            timeTagBytes: new Uint8Array([
+                0, 0, 0, 0,
+                0, 0, 0, 1
+            ]),
+            timeTag: {
+                raw: [0, 1],
+                native: Date.now()
             }
         }
     ];

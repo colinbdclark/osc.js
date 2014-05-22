@@ -22,7 +22,7 @@ var osc = osc || {};
             }
         });
 
-        transport.onRecieveError.addListener(function (err) {
+        transport.onReceiveError.addListener(function (err) {
             if (e[idName] === that[idName]) {
                 that.emit("error", err);
             }
@@ -81,12 +81,12 @@ var osc = osc || {};
 
 
     osc.chrome.UDPPort = function (options) {
+        osc.Port.call(this, options);
         var o = this.options;
         o.localAddress = o.localAddress || "127.0.0.1";
-        o.localPort = o.localPort !== undefined ? o.localPort : 0;
+        o.localPort = o.localPort !== undefined ? o.localPort : 8001;
 
-        this.on("open", this.bindSocket.bind(this));
-        osc.Port.call(this, o);
+        this.on("open", this.listen.bind(this));
     };
 
     p = osc.chrome.UDPPort.prototype = new osc.Port();
@@ -110,27 +110,36 @@ var osc = osc || {};
         var that = this,
             o = this.options;
 
-        chrome.sockets.udp.bind(this.socketId, o.localAddress, o.localPport, function (resultCode) {
+        chrome.sockets.udp.bind(this.socketId, o.localAddress, o.localPort, function (resultCode) {
             if (resultCode > 0) {
                 osc.chrome.emitNetworkError(that, resultCode);
                 return;
             }
 
-            that.emit("open", info);
-            that.listen();
+            that.emit("open", resultCode);
         });
     };
 
     p.listen = function () {
-        osc.chrome.listenToTransport(that, chrome.sockets.udp, "socketId");
+        osc.chrome.listenToTransport(this, chrome.sockets.udp, "socketId");
     };
 
-    p.send = function (port, address) {
+    p.send = function (oscPacket, address, port) {
         var o = this.options,
             encoded = this.encodeOSC(oscPacket),
             that = this;
 
-        chrome.sockets.udp.send(this.socketId, encoded, function (info) {
+        address = address || o.remoteAddress;
+        port = port !== undefined ? port : o.remotePort;
+
+        chrome.sockets.udp.send(this.socketId, encoded.buffer, address, port, function (info) {
+            if (!info) {
+                that.emit("error",
+                    "There was an unknown error while trying to send a UDP message. " +
+                    "Have you declared the appropriate udp send permissions " +
+                    "in your application's manifest file?");
+            }
+
             if (info.resultCode > 0) {
                 osc.chrome.emitNetworkError(that, info.resultCode);
             }

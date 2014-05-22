@@ -43,7 +43,6 @@ var osc = osc || {};
     };
 
 
-
     osc.SLIPPort = function (options) {
         var o = this.options = options || {};
         o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;

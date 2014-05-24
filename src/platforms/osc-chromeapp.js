@@ -13,9 +13,7 @@ var osc = osc || {};
 
     "use strict";
 
-    osc.chrome = {};
-
-    osc.chrome.listenToTransport = function (that, transport, idName) {
+    osc.listenToTransport = function (that, transport, idName) {
         transport.onReceive.addListener(function (e) {
             if (e[idName] === that[idName]) {
                 that.emit("data", e.data);
@@ -29,30 +27,34 @@ var osc = osc || {};
         that.emit("ready");
     };
 
-    osc.chrome.emitNetworkError = function (that, resultCode) {
+    osc.emitNetworkError = function (that, resultCode) {
         that.emit("error",
             "There was an error while opening the UDP socket connection. Result code: " +
             resultCode);
     };
 
-    osc.chrome.SerialPort = function (options) {
+    osc.SerialPort = function (options) {
         this.on("open", this.listen.bind(this));
         osc.SLIPPort.call(this, options);
     };
 
-    var p = osc.chrome.SerialPort.prototype = new osc.SLIPPort();
+    var p = osc.SerialPort.prototype = Object.create(osc.SLIPPort.prototype);
+    p.constructor = osc.SerialPort;
 
     p.open = function () {
-        var that = this;
+        var that = this,
+            connectionOpts = {
+                bitrate: that.options.bitrate
+            };
 
-        chrome.serial.connect(this.options.devicePath, function (info) {
+        chrome.serial.connect(this.options.devicePath, connectionOpts, function (info) {
             that.connectionId = info.connectionId;
             that.emit("open", info);
         });
     };
 
     p.listen = function () {
-        osc.chrome.listenToTransport(this, chrome.serial, "connectionId");
+        osc.listenToTransport(this, chrome.serial, "connectionId");
     };
 
     p.send = function (oscPacket) {
@@ -78,7 +80,7 @@ var osc = osc || {};
     };
 
 
-    osc.chrome.UDPPort = function (options) {
+    osc.UDPPort = function (options) {
         osc.Port.call(this, options);
         var o = this.options;
         o.localAddress = o.localAddress || "127.0.0.1";
@@ -87,7 +89,8 @@ var osc = osc || {};
         this.on("open", this.listen.bind(this));
     };
 
-    p = osc.chrome.UDPPort.prototype = new osc.Port();
+    p = osc.UDPPort.prototype = Object.create(osc.Port.prototype);
+    p.constructor = osc.UDPPort;
 
     p.open = function () {
         var o = this.options,
@@ -110,7 +113,7 @@ var osc = osc || {};
 
         chrome.sockets.udp.bind(this.socketId, o.localAddress, o.localPort, function (resultCode) {
             if (resultCode > 0) {
-                osc.chrome.emitNetworkError(that, resultCode);
+                osc.emitNetworkError(that, resultCode);
                 return;
             }
 
@@ -119,7 +122,7 @@ var osc = osc || {};
     };
 
     p.listen = function () {
-        osc.chrome.listenToTransport(this, chrome.sockets.udp, "socketId");
+        osc.listenToTransport(this, chrome.sockets.udp, "socketId");
     };
 
     p.send = function (oscPacket, address, port) {
@@ -143,7 +146,7 @@ var osc = osc || {};
             }
 
             if (info.resultCode > 0) {
-                osc.chrome.emitNetworkError(that, info.resultCode);
+                osc.emitNetworkError(that, info.resultCode);
             }
         });
     };

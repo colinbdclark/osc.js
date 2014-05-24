@@ -28,15 +28,15 @@ Nonetheless, osc.js provides a set of optional transports for use in standard br
     </tr>
     <tr>
         <td>Serial port</td>
-        <td>Chrome Apps</td>
+        <td>Node.js, Chrome Apps</td>
     </tr>
     <tr>
-        <td>Web Socket</td>
-        <td>_Soon!_</td>
+        <td>WebSocket</td>
+        <td>Soon!</td>
     </tr>
     <tr>
         <td>TCP</td>
-        <td>_Planned_</td>
+        <td>Planned</td>
     </tr>
 </table>
 

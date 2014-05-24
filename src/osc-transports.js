@@ -7,9 +7,9 @@
 
 /* global require, slip */
 
-var osc = osc || typeof require !== "undefined" ? require("./osc.js") : {};
-var EventEmitter = EventEmitter ||
-    typeof require !== "undefined" ? require("events").EventEmitter : undefined;
+var osc = osc || require("./osc.js"),
+    slip = slip || require("slip"),
+    EventEmitter = EventEmitter || require("events").EventEmitter;
 
 (function () {
 
@@ -20,15 +20,16 @@ var EventEmitter = EventEmitter ||
         this.on("data", this.decodeOSC.bind(this));
     };
 
-    var p = osc.Port.prototype = new EventEmitter();
+    osc.Port.prototype = Object.create(EventEmitter.prototype);
+    osc.Port.prototype.constructor = osc.Port;
 
-    p.encodeOSC = function (packet) {
+    osc.Port.prototype.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
         var encoded = osc.writePacket(packet, this.options.withMetadata);
         return encoded;
     };
 
-    p.decodeOSC = function (data) {
+    osc.Port.prototype.decodeOSC = function (data) {
         var packet = osc.readPacket(data, this.options.withMetadata);
         this.emit("osc", packet);
 
@@ -54,15 +55,16 @@ var EventEmitter = EventEmitter ||
         this.on("data", this.decodeSLIPData.bind(this));
     };
 
-    p = osc.SLIPPort.prototype = new osc.Port();
+    osc.SLIPPort.prototype = Object.create(osc.Port.prototype);
+    osc.SLIPPort.prototype.constructor = osc.SLIPPort;
 
-    p.encodeOSC = function (packet) {
+    osc.SLIPPort.prototype.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
         var encoded = osc.writePacket(packet, this.options.withMetadata);
         return slip.encode(encoded);
     };
 
-    p.decodeSLIPData = function (data) {
+    osc.SLIPPort.prototype.decodeSLIPData = function (data) {
         this.decoder.decode(data);
     };
 

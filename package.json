@@ -38,7 +38,10 @@
         "grunt-githooks": "~0.3.1"
     },
     "dependencies": {
-        "buffer-dataview": ">=0.0.2"
+        "buffer-dataview": ">=0.0.2",
+        "serialport": ">=1.4.0",
+        "slip": "git://github.com/colinbdclark/slip.js.git"
+
     },
     "engines": {
         "node": "0.10.x"

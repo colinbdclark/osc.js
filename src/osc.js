@@ -788,7 +788,7 @@ var osc = osc || {};
         }
 
         throw new Error("The header of an OSC packet didn't contain an OSC address or a #bundle string." +
-            "Header was: " + header);
+            " Header was: " + header);
     };
 
     /**

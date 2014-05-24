@@ -5,7 +5,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global require, slip */
+/* global require, module */
 
 var osc = osc || require("./osc.js"),
     slip = slip || require("slip"),

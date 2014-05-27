@@ -64,7 +64,8 @@ var osc = osc || require("./osc.js"),
 
     osc.SLIPPort = function (options) {
         var that = this;
-        this.options = options || {};
+        var o = this.options = options || {};
+        o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;
 
         this.decoder = new slip.Decoder({
             onMessage: this.decodeOSC.bind(this),
@@ -73,7 +74,8 @@ var osc = osc || require("./osc.js"),
             }
         });
 
-        this.on("data", this.decodeSLIPData.bind(this));
+        var decodeHandler = o.useSLIP ? this.decodeSLIPData : this.decodeOSC;
+        this.on("data", decodeHandler.bind(this));
     };
 
     p = osc.SLIPPort.prototype = Object.create(osc.Port.prototype);

@@ -32,11 +32,11 @@ In addition to the low-level encoder/decoder functions, osc.js also provides a c
     </tr>
     <tr>
         <td>Web Sockets</td>
-        <td>Browser, Node.js, Chrome Apps</td>
+        <td>Browsers, Node.js, Chrome Apps</td>
     </tr>
     <tr>
         <td>TCP</td>
-        <td>Planned</td>
+        <td>Node.js</td>
     </tr>
 </table>
 

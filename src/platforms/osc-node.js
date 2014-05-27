@@ -99,7 +99,7 @@
         });
     };
 
-    p.send = function (encoded) {
+    p.sendRaw = function (encoded) {
         if (!this.serialPort) {
             return;
         }
@@ -243,6 +243,70 @@
 
     p.close = function (code, reason) {
         this.socket.close();
+    };
+
+
+    /*******
+     * TCP *
+     *******/
+
+    osc.TCPSocketPort = function (options) {
+        osc.SLIPPort.call(this, options);
+
+        var o = this.options;
+        o.localAddress = o.localAddress || "127.0.0.1";
+        o.localPort = o.localPort !== undefined ? o.localPort : 57121;
+
+        this.on("open", this.listen.bind(this));
+        this.socket = options.socket;
+
+        if (this.socket) {
+            this.emit("open", this.socket);
+        }
+    };
+
+    p = osc.TCPSocketPort.prototype = Object.create(osc.SLIPPort.prototype);
+    p.constructor = osc.TCPSocketPort;
+
+    p.open = function (address, port) {
+        if (!this.socket) {
+            this.socket = new net.Socket();
+        }
+
+        var that = this;
+        this.socket.connect(this.options.port, this.options.address, function () {
+            that.emit("open", that.socket);
+        });
+    };
+
+    p.listen = function () {
+        var that = this;
+        this.socket.on("data", function (msg) {
+            that.emit("data", msg);
+        });
+
+        this.socket.on("error", function (err) {
+            that.emit("error", err);
+        });
+
+        this.socket.on("close", function (err) {
+            if (err) {
+                that.emit("error", err);
+            } else {
+                that.emit("close");
+            }
+        });
+    };
+
+    p.sendRaw = function (encoded) {
+        if (!this.socket) {
+            return;
+        }
+        this.socket.write(encoded);
+    };
+
+    p.close = function () {
+        this.socket.end();
     };
 
 

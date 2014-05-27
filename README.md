@@ -46,6 +46,11 @@ Status
 
 osc.js supports all OSC 1.0 and 1.1 required types. It supports all OSC 1.1 optional types except Int64s ("h"), since JavaScript numbers are limited IEEE 754 Doubles and thus don't have sufficient precision to represent all 64 bits.
 
+Examples
+--------
+
+Code examples showing how osc.js can be used in browser-based, Node.js, and Chrome App applications can be found in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+
 Using osc.js
 ------------
 

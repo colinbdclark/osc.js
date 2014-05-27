@@ -10,6 +10,20 @@
 (function () {
     "use strict";
 
+    var requireModules = function (paths) {
+        if (paths.forEach === undefined) {
+            paths = [paths];
+        }
+
+        var modules = [];
+        paths.forEach(function (path) {
+            var module = require(path);
+            modules.push(module);
+        });
+
+        return modules;
+    };
+
     var shallowMerge = function (target, toMerge) {
         target = target || {};
         if (toMerge.forEach === undefined) {
@@ -28,7 +42,10 @@
     var dgram = require("dgram"),
         serialport = require("serialport"),
         slip = require("slip"),
-        osc = shallowMerge(require("../osc.js"), require("../osc-transports.js"));
+        WebSocket = require('ws'),
+        modules = requireModules(["../osc.js", "../osc-transports.js"]),
+        osc = shallowMerge({}, modules);
+
 
     /**********
      * Serial *
@@ -82,14 +99,12 @@
         });
     };
 
-    p.send = function (oscPacket) {
+    p.send = function (encoded) {
         if (!this.serialPort) {
             return;
         }
 
-        var encoded = this.encodeOSC(oscPacket),
-            that = this;
-
+        var that = this;
         this.serialPort.write(encoded, function (err) {
             if (err) {
                 that.emit("error", err);
@@ -144,13 +159,12 @@
         });
     };
 
-    p.send = function (oscPacket, address, port) {
+    p.sendRaw = function (encoded, address, port) {
         if (!this.socket) {
             return;
         }
 
-        var encoded = this.encodeOSC(oscPacket),
-            length = encoded.byteLength !== undefined ? encoded.byteLength : encoded.length,
+        var length = encoded.byteLength !== undefined ? encoded.byteLength : encoded.length,
             that = this;
 
         address = address || this.options.remoteAddress;
@@ -168,6 +182,69 @@
             this.socket.close();
         }
     };
+
+
+    /**************
+     * Web Sockets *
+     **************/
+
+    osc.WebSocketPort = function (options) {
+        osc.Port.call(this, options);
+        this.socket = options.socket;
+        this.on("open", this.listen.bind(this));
+
+        if (this.socket) {
+            if (this.socket.readyState === 1) {
+                this.emit("open", this.socket);
+            } else {
+                this.open();
+            }
+        }
+    };
+
+    p = osc.WebSocketPort.prototype = Object.create(osc.Port.prototype);
+    p.constructor = osc.WebSocketPort;
+
+    p.open = function () {
+        if (!this.socket) {
+            this.socket = new WebSocket(this.options.url);
+        }
+
+        var that = this;
+        this.socket.on("open", function () {
+            that.emit("open", that.socket);
+        });
+    };
+
+    p.listen = function () {
+        var that = this;
+        this.socket.on("message", function (e) {
+            that.emit("data", e.data);
+        });
+
+        this.socket.on("error", function (err) {
+            that.emit("error", err);
+        });
+
+        this.socket.on("close", function (e) {
+            that.emit("close", e);
+        });
+    };
+
+    p.sendRaw = function (encoded) {
+        if (!this.socket) {
+            return;
+        }
+
+        this.socket.send(new Uint8Array(encoded), {
+            binary: true
+        });
+    };
+
+    p.close = function (code, reason) {
+        this.socket.close();
+    };
+
 
     module.exports = osc;
 }());

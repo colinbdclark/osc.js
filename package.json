@@ -40,8 +40,8 @@
     "dependencies": {
         "buffer-dataview": ">=0.0.2",
         "serialport": ">=1.4.0",
-        "slip": "git://github.com/colinbdclark/slip.js.git"
-
+        "slip": "git://github.com/colinbdclark/slip.js.git",
+        "ws": ">=0.4.31"
     },
     "engines": {
         "node": "0.10.x"

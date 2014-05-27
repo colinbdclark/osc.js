@@ -31,8 +31,8 @@ Nonetheless, osc.js provides a set of optional transports for use in standard br
         <td>Node.js, Chrome Apps</td>
     </tr>
     <tr>
-        <td>WebSocket</td>
-        <td>Soon!</td>
+        <td>Web Sockets</td>
+        <td>Browser, Node.js, Chrome Apps</td>
     </tr>
     <tr>
         <td>TCP</td>

@@ -57,9 +57,12 @@ var osc = osc || {};
         osc.listenToTransport(this, chrome.serial, "connectionId");
     };
 
-    p.send = function (oscPacket) {
-        var encoded = this.encodeOSC(oscPacket),
-            that = this;
+    p.sendRaw = function (encoded) {
+        if (!this.connectionId) {
+            return;
+        }
+
+        var that = this;
 
         chrome.serial.send(this.connectionId, encoded, function (bytesSent, err) {
             if (err) {
@@ -125,13 +128,12 @@ var osc = osc || {};
         osc.listenToTransport(this, chrome.sockets.udp, "socketId");
     };
 
-    p.send = function (oscPacket, address, port) {
+    p.sendRaw = function (encoded, address, port) {
         if (!this.socketId) {
             return;
         }
 
         var o = this.options,
-            encoded = this.encodeOSC(oscPacket),
             that = this;
 
         address = address || o.remoteAddress;

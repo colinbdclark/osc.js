@@ -15,58 +15,130 @@ var osc = osc || require("./osc.js"),
 
     "use strict";
 
+    // Unsupported, non-API function.
+    osc.firePacketEvents = function (port, packet, timeTag) {
+        if (packet.address) {
+            port.emit("message", packet, timeTag);
+        } else {
+            osc.fireBundleEvents(port, packet, timeTag);
+        }
+    };
+
+    // Unsupported, non-API function.
+    osc.fireBundleEvents = function (port, bundle, timeTag) {
+        port.emit("bundle", bundle, timeTag);
+        for (var i = 0; i < bundle.packets.length; i++) {
+            var packet = bundle.packets[i];
+            osc.firePacketEvents(port, packet, bundle.timeTag);
+        }
+    };
+
     osc.Port = function (options) {
         this.options = options || {};
         this.on("data", this.decodeOSC.bind(this));
     };
 
-    osc.Port.prototype = Object.create(EventEmitter.prototype);
-    osc.Port.prototype.constructor = osc.Port;
+    var p = osc.Port.prototype = Object.create(EventEmitter.prototype);
+    p.constructor = osc.Port;
 
-    osc.Port.prototype.encodeOSC = function (packet) {
+    p.send = function (oscPacket) {
+        var encoded = this.encodeOSC(oscPacket);
+        this.sendRaw(encoded);
+    };
+
+    p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
         var encoded = osc.writePacket(packet, this.options.withMetadata);
         return encoded;
     };
 
-    osc.Port.prototype.decodeOSC = function (data) {
+    p.decodeOSC = function (data) {
+        this.emit("raw", data);
+
         var packet = osc.readPacket(data, this.options.withMetadata);
         this.emit("osc", packet);
 
-        if (packet.address) {
-            this.emit("message", packet);
-        } else {
-            this.emit("bundle", packet);
-        }
+        osc.firePacketEvents(this, packet);
     };
 
 
     osc.SLIPPort = function (options) {
-        var o = this.options = options || {};
-        o.useSLIP = o.useSLIP === undefined ? true : o.useSLIP;
+        var that = this;
+        this.options = options || {};
 
         this.decoder = new slip.Decoder({
             onMessage: this.decodeOSC.bind(this),
             onError: function (err) {
-                this.emit("error", err);
+                that.emit("error", err);
             }
         });
 
         this.on("data", this.decodeSLIPData.bind(this));
     };
 
-    osc.SLIPPort.prototype = Object.create(osc.Port.prototype);
-    osc.SLIPPort.prototype.constructor = osc.SLIPPort;
+    p = osc.SLIPPort.prototype = Object.create(osc.Port.prototype);
+    p.constructor = osc.SLIPPort;
 
-    osc.SLIPPort.prototype.encodeOSC = function (packet) {
+    p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
         var encoded = osc.writePacket(packet, this.options.withMetadata);
         return slip.encode(encoded);
     };
 
-    osc.SLIPPort.prototype.decodeSLIPData = function (data) {
+    p.decodeSLIPData = function (data) {
         this.decoder.decode(data);
     };
+
+
+    // Unsupported, non-API function.
+    osc.relay = function (from, to, relayRaw) {
+        relayRaw = relayRaw === undefined ? true : relayRaw;
+
+        var eventName = relayRaw ? "raw" : "osc",
+            sendFnName = relayRaw ? "sendRaw" : "send",
+            listener = to[sendFnName].bind(to);
+
+        from.on(eventName, listener);
+
+        return {
+            eventName: eventName,
+            listener: listener
+        };
+    };
+
+    // Unsupported, non-API function.
+    osc.stopRelaying = function (from, relaySpec) {
+        from.removeListener(relaySpec.eventName, relaySpec.listener);
+    };
+
+    /**
+     * A PortRelay connects two osc.Ports together,
+     * relaying all OSC messages received by each port to the other.
+     */
+    osc.PortRelay = function (port1, port2, options) {
+        this.options = options || {};
+        this.port1 = port1;
+        this.port2 = port2;
+
+        this.listen();
+    };
+
+    p = osc.PortRelay.prototype;
+
+    p.listen = function () {
+        if (this.port1Spec && this.port2Spec) {
+            this.close();
+        }
+
+        this.port1Spec = osc.relay(this.port1, this.port2, this.options.relayRaw);
+        this.port2Spec = osc.relay(this.port2, this.port1, this.options.relayRaw);
+    };
+
+    p.close = function () {
+        osc.stopRelaying(this.port1, this.port1Spec);
+        osc.stopRelaying(this.port2, this.port2Spec);
+    };
+
 
     // If we're in a require-compatible environment, export ourselves.
     if (typeof module !== "undefined" && module.exports) {

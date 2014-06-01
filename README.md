@@ -8,6 +8,8 @@ Why osc.js?
 
 There are several other OSC libraries available for JavaScript. However, they all depend on Node.js-specific APIs. This means that they can't be run in a browser or on web-only platforms such as Chrome OS. osc.js uses only cross-platform APIs (`TypedArrays` and `DataView`), ensuring that it can run in any modern JavaScript environment.
 
+osc.js is fast, comprehensive, fully spec-compliant, tested, and provides a variety of optional transports for a wide variety of use cases.
+
 What Does it Do?
 ----------------
 

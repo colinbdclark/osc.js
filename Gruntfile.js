@@ -45,15 +45,28 @@ module.exports = function(grunt) {
             }
         },
 
-        githooks: {
+        qunit: {
+            all: ["tests/**/*.html"]
+        },
+
+        "node-qunit": {
             all: {
-                "pre-commit": "default",
+                code: {
+                    path: "./src/osc.js",
+                    namespace: "osc"
+                },
+                tests: [
+                    "./tests/osc-tests.js",
+                    "./tests/node-buffer-tests.js"
+                ]
             }
         },
 
         oscjs: {
             banners: {
-                short: "/*! osc.js <%= pkg.version %>, Copyright <%= grunt.template.today('yyyy') %> Colin Clark | flockingjs.org */\n\n"
+                short: "/*! osc.js <%= pkg.version %>, " +
+                    "Copyright <%= grunt.template.today('yyyy') %> Colin Clark | " +
+                    "flockingjs.org */\n\n"
             }
         }
     });
@@ -62,7 +75,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-jshint");
-    grunt.loadNpmTasks("grunt-githooks");
+    grunt.loadNpmTasks("grunt-contrib-qunit");
+    grunt.loadNpmTasks("grunt-node-qunit");
 
-    grunt.registerTask("default", ["clean", "jshint", "uglify"]);
+    grunt.registerTask("default", ["clean", "jshint", "uglify", "qunit", "node-qunit"]);
 };

@@ -35,7 +35,9 @@
         "grunt-contrib-uglify": "~0.3.2",
         "grunt-contrib-clean": "~0.4.1",
         "grunt-contrib-jshint": "~0.8.0",
-        "grunt-githooks": "~0.3.1"
+        "grunt-contrib-qunit": "~0.5.1",
+        "grunt-node-qunit": "~2.0.2"
+
     },
     "dependencies": {
         "buffer-dataview": ">=0.0.2",

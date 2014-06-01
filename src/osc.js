@@ -207,7 +207,6 @@ var osc = osc || {};
      * @param {Object} offsetState an offsetState object used to store the current offset index into dv
      * @return {Number} the number that was read
      */
-    // TODO: Unit tests.
     osc.readFloat64 = function (dv, offsetState) {
         return osc.readPrimitive(dv, "getFloat64", 8, offsetState);
     };
@@ -219,7 +218,6 @@ var osc = osc || {};
      * @param {DataView} [dv] a DataView instance to write the number into
      * @param {Number} [offset] an offset into dv
      */
-    // TODO: Unit tests.
     osc.writeFloat64 = function (val, dv, offset) {
         return osc.writePrimitive(val, dv, "setFloat64", 8, offset);
     };
@@ -231,7 +229,6 @@ var osc = osc || {};
      * @param {Object} offsetState an offsetState object used to store the current offset index into dv
      * @return {String} a string containing the read character
      */
-    // TODO: Unit tests.
     osc.readChar32 = function (dv, offsetState) {
         var charCode = osc.readPrimitive(dv, "getUint32", 4, offsetState);
         return String.fromCharCode(charCode);
@@ -245,7 +242,6 @@ var osc = osc || {};
      * @param {Number} [offset] an offset into dv
      * @return {String} a string containing the read character
      */
-    // TODO: Unit tests.
     osc.writeChar32 = function (str, dv, offset) {
         var charCode = str.charCodeAt(0);
         if (charCode === undefined || charCode < -1) {
@@ -305,7 +301,6 @@ var osc = osc || {};
      * @param {Object} offsetState an offsetState object used to store the current offset index into dv
      * @return {Uint8Array} an array containing (in order) the port ID, status, data1 and data1 bytes
      */
-    // TODO: Unit tests
     osc.readMIDIBytes = function (dv, offsetState) {
         var midi = new Uint8Array(dv.buffer, offsetState.idx, 4);
         offsetState.idx += 4;
@@ -319,7 +314,6 @@ var osc = osc || {};
      * @param {Array-like} bytes a 4-element array consisting of the port ID, status, data1 and data1 bytes
      * @return {Uint8Array} the written message
      */
-    // TODO: Unit tests
     osc.writeMIDIBytes = function (bytes) {
         bytes = osc.byteArray(bytes);
 
@@ -356,7 +350,6 @@ var osc = osc || {};
      * @param {Object} color a colour object containing r, g, b, and a properties
      * @return {Uint8Array} a byte array containing the written color
      */
-    // TODO: Unit tests
     osc.writeColor = function (color) {
         var alpha = Math.round(color.a * 255),
             arr = new Uint8Array([color.r, color.g, color.b, alpha]);

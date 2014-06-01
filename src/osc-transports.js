@@ -93,12 +93,17 @@ var osc = osc || require("./osc.js"),
 
 
     // Unsupported, non-API function.
-    osc.relay = function (from, to, relayRaw) {
-        relayRaw = relayRaw === undefined ? true : relayRaw;
+    osc.relay = function (from, to, eventName, sendFnName, transformFn, sendArgs) {
+        eventName = eventName || "message";
+        sendFnName = sendFnName || "send";
+        transformFn = transformFn || function () {};
+        sendArgs = sendArgs ? [null].concat(sendArgs) : [];
 
-        var eventName = relayRaw ? "raw" : "osc",
-            sendFnName = relayRaw ? "sendRaw" : "send",
-            listener = to[sendFnName].bind(to);
+        var listener = function (data) {
+            sendArgs[0] = data;
+            data = transformFn(data);
+            to[sendFnName].apply(to, sendArgs);
+        };
 
         from.on(eventName, listener);
 
@@ -109,31 +114,52 @@ var osc = osc || require("./osc.js"),
     };
 
     // Unsupported, non-API function.
+    osc.relayPorts = function (from, to, o) {
+        var eventName = o.raw ? "raw" : "osc",
+            sendFnName = o.raw ? "sendRaw" : "send";
+
+        return osc.relay(from, to, eventName, sendFnName, o.transform);
+    };
+
+
+    // Unsupported, non-API function.
     osc.stopRelaying = function (from, relaySpec) {
         from.removeListener(relaySpec.eventName, relaySpec.listener);
     };
 
     /**
-     * A PortRelay connects two osc.Ports together,
+     * A Relay connects two sources of OSC data together,
      * relaying all OSC messages received by each port to the other.
+     * @constructor
+     *
+     * @param {osc.Port} port1 the first port to relay
+     * @param {osc.Port} port2 the second port to relay
+     * @param {Object} options the configuration options for this relay
      */
-    osc.PortRelay = function (port1, port2, options) {
-        this.options = options || {};
+    osc.Relay = function (port1, port2, options) {
+        var o = this.options = options || {};
+        o.raw = false;
+
         this.port1 = port1;
         this.port2 = port2;
 
         this.listen();
     };
 
-    p = osc.PortRelay.prototype;
+    p = osc.Relay.prototype;
+
+    p.open = function () {
+        this.port1.open();
+        this.port2.open();
+    };
 
     p.listen = function () {
         if (this.port1Spec && this.port2Spec) {
             this.close();
         }
 
-        this.port1Spec = osc.relay(this.port1, this.port2, this.options.relayRaw);
-        this.port2Spec = osc.relay(this.port2, this.port1, this.options.relayRaw);
+        this.port1Spec = osc.relayPorts(this.port1, this.port2, this.options);
+        this.port2Spec = osc.relayPorts(this.port2, this.port1, this.options);
     };
 
     p.close = function () {

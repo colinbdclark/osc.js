@@ -381,7 +381,8 @@
 
         ok(actual <= max, "The value should be no greater than " + tolerance + ". " + msg);
         ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
-    }
+    };
+    
     var testReadTimeTag = function (testSpec) {
         test("Read time tag " + testSpec.name, function () {
             var expected = testSpec.timeTag,

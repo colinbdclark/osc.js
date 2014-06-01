@@ -37,7 +37,6 @@
         "grunt-contrib-jshint": "~0.8.0",
         "grunt-contrib-qunit": "~0.5.1",
         "grunt-node-qunit": "~2.0.2"
-
     },
     "dependencies": {
         "buffer-dataview": ">=0.0.2",

@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON("package.json"),
 
         jshint: {
-            all: ["src/*.js", "tests/**.*.js"],
+            all: ["src/*.js", "tests/**/*.js"],
             options: {
                 jshintrc: true
             }
@@ -66,7 +66,7 @@ module.exports = function(grunt) {
             banners: {
                 short: "/*! osc.js <%= pkg.version %>, " +
                     "Copyright <%= grunt.template.today('yyyy') %> Colin Clark | " +
-                    "flockingjs.org */\n\n"
+                    "github.com/colinbdclark/osc.js */\n\n"
             }
         }
     });

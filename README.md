@@ -6,16 +6,16 @@ osc.js is a library for reading and writing [Open Sound Control](http://opensoun
 Why osc.js?
 -----------
 
-There are several other OSC libraries available for JavaScript. However, they all depend on Node.js-specific APIs. This means that they can't be run in a browser or on web-only platforms such as Chrome OS. osc.js uses only cross-platform APIs (`TypedArrays` and `DataView`), ensuring that it can run in any modern JavaScript environment.
+There are several other OSC libraries available for JavaScript. However, most depend on Node.js-specific APIs. This means that they can't be run in a browser or on web-only platforms such as Chrome OS. osc.js uses only cross-platform APIs (`TypedArrays` and `DataView`), ensuring that it can run in any modern JavaScript environment.
 
-osc.js is fast, comprehensive, fully spec-compliant, tested, and provides a variety of optional transports for a wide variety of use cases.
+osc.js is fast, comprehensive, fully spec-compliant, tested, modular, and provides a wide variety of optional transports for sending and receiving OSC data.
 
 What Does it Do?
 ----------------
 
 osc.js reads and writes OSC-formatted binary data into plain JavaScript objects. It provides adaptors for Node.js Buffer objects as well as standard ArrayBuffers.
 
-osc.js is transport agnostic. You can receive OSC data in whatever manner works best for your application: serial port APIs such as node-serialport or chrome.serial, socket APIs such as Node.js dgram or WebRTC data channels, WebSockets or binary XHR messages should all work. Connect osc.js up to your source of incoming/outgoing data, and you're all set. This approach is consistent with the design of Open Sound Control as a _content format_ that is independent from its means of transport.
+The core of osc.js is transport agnostic. You can receive OSC data in whatever manner works best for your application: serial port APIs such as node-serialport or chrome.serial, socket APIs such as Node.js dgram or WebRTC data channels, WebSockets or binary XHR messages should all work. Connect osc.js up to your source of incoming/outgoing data, and you're all set. This approach is consistent with the design of Open Sound Control as a _content format_ that is independent from its means of transport.
 
 In addition to the low-level encoder/decoder functions, osc.js also provides a comprehensive set of transport objects, called <code>Port</code>s, for use in standard browsers, Chrome Apps, and Node.js applications. These include:
 
@@ -42,24 +42,186 @@ In addition to the low-level encoder/decoder functions, osc.js also provides a c
     </tr>
 </table>
 
+For stream-based protocols such as serial and TCP, osc.js will take care of SLIP framing for you.
 
 Status
 ------
 
-osc.js supports all OSC 1.0 and 1.1 required types. It supports all OSC 1.1 optional types except Int64s ("h"), since JavaScript numbers are limited IEEE 754 Doubles and thus don't have sufficient precision to represent all 64 bits.
+osc.js supports all OSC 1.0 and 1.1 required types. It supports all OSC 1.1 optional types except Int64s ("h"), since JavaScript numbers are represented as IEEE 754 Doubles and thus don't have sufficient precision to represent all 64 bits. Int64 support using Google's long library is planned in the future.
+
+How it Works
+------------
+
+osc.js consists of two distinct layers:
+
+1. The transports, which provide a simple EventEmitter-style API for sending an receiving OSC packets using a variety of transports such as UDP and Web Sockets.
+2. The underlying stateless API that provides functions for reading and writing OSC packets.
 
 Examples
 --------
 
-Code examples showing how osc.js can be used in browser-based, Node.js, and Chrome App applications can be found in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+### Web Sockets in the Browser
 
-Using osc.js
-------------
+#### Including osc.js in your HTML page:
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>osc.js Web Sockets</title>
+        <meta charset="UTF-8" />
+        <script src="bower_components/osc.js/dist/osc-browser.min.js"></script>
+    </head>
+    <body></body>
+</html>
+```
+
+#### Creating an OSC Web Socket Port object:
+```javascript
+var oscPort = new osc.WebSocketPort({
+    url: "ws://localhost:8081" // URL to your Web Socket server.
+});
+```
+
+#### Listening for incoming OSC messages:
+```javascript
+oscPort.on("message", function (oscMsg) {
+    console.log("An OSC message just arrived!", oscMsg);
+});
+```
+
+#### Sending OSC messages:
+```javascript
+oscPort.send({
+    address: "/carrier/frequency",
+    args: 440
+});
+```
+
+#### Sending OSC bundles:
+```javascript
+oscPort.send({
+    timeTag: osc.timeTag(60), // Schedules this bundle 60 seconds from now.
+    packets: [
+        {
+            address: "/carrier/frequency",
+            args: 440
+        },
+        {
+            address: "/carrier/amplitude"
+            args: 0.5
+        }
+    ]
+});
+```
+
+
+### Web Sockets in Node.js
+
+#### Creating a Web Socket server with Express
+
+```javascript
+var osc = require("osc"),
+    http = require("http"),
+    WebSocket = require("ws");
+
+// Create an Express server app
+// and serve up a directory of static files.
+var app = require("express").express(),
+    server = app.listen(8081);
+app.use("/", express.static(__dirname + "/static"));
+
+// Listen for Web Socket requests.
+var wss = new WebSocket.Server({
+    server: server
+});
+
+// Listen for Web Socket connections.
+wss.on("connection", function (socket) {
+    var socketPort = new osc.WebSocketPort({
+        socket: socket
+    });
+
+    socketPort.on("message", function (oscMsg) {
+        console.log("An OSC Message was received!", oscMsg);
+    });
+});
+```
+
+
+### UDP in Node.js
+
+```javascript
+// Create an osc.js UDP Port listening on port 57121.
+var udpPort = new osc.UDPPort({
+    localAddress: "0.0.0.0",
+    localPort: 57121
+});
+
+// Listen for incoming OSC bundles.
+udpPort.on("bundle", function (oscBundle) {
+    console.log("An OSC bundle just arrived!", oscBundle);
+});
+
+// Open the socket.
+udpPort.open();
+
+// Send an OSC message to, say, SuperCollider
+udpPort.send({
+    address: "/s_new",
+    args: ["default", 100]
+}, 127.0.0.1, 57110);
+```
+
+### Serial in a Chrome App
+
+#### Including osc.js in your Chrome App page
+```html
+<script src="../bower_components/osc.js/dist/osc-chromeapp.min.js"></script>
+```
+
+#### Defining the appropriate permissions in manifest.json
+```json
+{
+    "name": "OSC.js Chrome App Demo",
+    "version": "1",
+    "manifest_version": 2,
+    "permissions": [
+        "serial"
+    ],
+    "app": {
+        "background": {
+            "scripts": ["js/launch.js"],
+            "transient": true
+        }
+    }
+}
+```
+
+#### Connecting to the serial port and listening for OSC messages
+```javascript
+// Instantiate a new OSC Serial Port.
+var serialPort = new osc.SerialPort({
+    devicePath: "/dev/cu.usbmodem22131"
+});
+
+// Listen for the message event and map the OSC message to the synth.
+serialPort.on("message", function (oscMsg) {
+    console.log("An OSC message was received!", oscMsg);
+});
+
+// Open the port.
+serialPort.open();
+```
+
+More code examples showing how osc.js can be used in browser-based, Node.js, and Chrome App applications can be found in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+
+The osc.js Low-Level API
+------------------------
 
 There are two primary functions in osc.js used to read and write OSC data:
 
 * ``osc.readPacket()``, which takes a DataView-friendly data buffer (i.e. an ArrayBuffer, TypedArray, DataView, or Node.js Buffer) and returns a tree of JavaScript objects representing the messages and bundles that were read
-* ``osc.writePacket()``, which takes a message or bundle object and packs it up into a Uint8Array
+* ``osc.writePacket()``, which takes a message or bundle object and packs it up into a Uint8Array or Buffer object
 
 Both functions take an optional `withMetadata` parameter, which specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets.If you need greater precision in regards to the arguments in an OSC message, set the `withMetadata` argument to true.
 
@@ -204,4 +366,4 @@ Here are a few examples showing how OSC packets are mapped to JSON objects by os
 License
 -------
 
-osc.js was written by Colin Clark and is distributed under the MIT and GPL 3 licenses.
+osc.js is written by Colin Clark and distributed under the MIT and GPL 3 licenses.

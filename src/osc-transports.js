@@ -42,8 +42,11 @@ var osc = osc || require("./osc.js"),
     p.constructor = osc.Port;
 
     p.send = function (oscPacket) {
-        var encoded = this.encodeOSC(oscPacket);
-        this.sendRaw(encoded);
+        var args = Array.prototype.slice.call(arguments),
+            encoded = this.encodeOSC(oscPacket);
+        
+        args[0] = encoded;
+        this.sendRaw.apply(this, args);
     };
 
     p.encodeOSC = function (packet) {

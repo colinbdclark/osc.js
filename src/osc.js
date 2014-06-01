@@ -25,10 +25,26 @@ var osc = osc || {};
         unpackSingleArgs: true
     };
 
+    // A flag to tell us if we're in a Node.js-compatible environment with Buffers,
+    // which we will assume are faster.
+    // Unsupported, non-API property.
+    osc.isBufferEnv = typeof Buffer !== "undefined";
+
     // Unsupported, non-API function.
     osc.isArray = function (obj) {
         return obj && Object.prototype.toString.call(obj) === "[object Array]";
     };
+
+    // Unsupported, non-API function
+    osc.isTypedArrayView = function (obj) {
+        return obj.buffer && obj.buffer instanceof ArrayBuffer;
+    };
+
+    // Unsupported, non-API function
+    osc.isBuffer = function (obj) {
+        return osc.isBufferEnv && obj instanceof Buffer;
+    };
+
 
     /**
      * Wraps the specified object in a DataView.
@@ -48,7 +64,7 @@ var osc = osc || {};
         }
 
         // Node.js-specific.
-        if (typeof Buffer !== "undefined" && obj instanceof Buffer) {
+        if (osc.isBufferEnv && obj instanceof Buffer) {
             return new BufferDataView(obj);
         }
 
@@ -85,6 +101,29 @@ var osc = osc || {};
         }
 
         return new Uint8Array(buf);
+    };
+
+    // Unsupported, non-API function.
+    osc.makeByteArray = function (len) {
+        return osc.isBufferEnv ? new Buffer(len) : new Uint8Array(len);
+    };
+
+    // Unsupported, non-API function
+    osc.copyByteArray = function (source, target, offset) {
+        if (osc.isTypedArrayView(source) && osc.isTypedArrayView(target)) {
+            target.set(source, offset);
+        } else if (osc.isBuffer(source) && osc.isBuffer(target)) {
+            source.copy(target, offset);
+        } else {
+            var start = offset === undefined ? 0 : offset,
+                len = Math.min(target.length - offset, source.length);
+
+            for (var i = 0, j = start; i < len; i++, j++) {
+                target[j] = source[i];
+            }
+        }
+
+        return target;
     };
 
     /**
@@ -125,8 +164,7 @@ var osc = osc || {};
         var terminated = str + "\u0000",
             len = terminated.length,
             paddedLen = (len + 3) & ~0x03,
-            buf = new ArrayBuffer(paddedLen),
-            arr = new Uint8Array(buf);
+            arr = new Uint8Array(paddedLen);
 
         for (var i = 0; i < terminated.length; i++) {
             var charCode = terminated.charCodeAt(i);
@@ -582,13 +620,13 @@ var osc = osc || {};
 
     // Unsupported, non-API function.
     osc.joinParts = function (dataCollection) {
-        var buf = new Uint8Array(dataCollection.byteLength),
+        var buf = osc.makeByteArray(dataCollection.byteLength),
             parts = dataCollection.parts,
             offset = 0;
 
         for (var i = 0; i < parts.length; i++) {
             var part = parts[i];
-            buf.set(part, offset);
+            osc.copyByteArray(part, buf, offset);
             offset += part.length;
         }
 
@@ -744,6 +782,7 @@ var osc = osc || {};
             return;
         }
 
+        options = options || osc.defaults;
         var bundleCollection = osc.collectBundlePackets(bundle, options);
 
         return osc.joinParts(bundleCollection);
@@ -884,7 +923,7 @@ var osc = osc || {};
                     return "N";
                 } else if (arg instanceof Uint8Array ||
                     arg instanceof ArrayBuffer ||
-                    (typeof Buffer !== "undefined" && arg instanceof Buffer)) {
+                    (osc.isBufferEnv && arg instanceof Buffer)) {
                     return "b";
                 }
                 break;
@@ -918,7 +957,7 @@ var osc = osc || {};
     if (typeof module !== "undefined" && module.exports) {
 
         // Check if we're in Node.js; if so, require the buffer-dataview library.
-        if (typeof Buffer !== "undefined") {
+        if (osc.isBufferEnv) {
             BufferDataView = require("buffer-dataview");
         }
 

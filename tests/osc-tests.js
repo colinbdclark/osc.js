@@ -392,10 +392,10 @@
             });
 
             if (expected.raw[0] === 0 && expected.raw[1] === 1) {
-                var tolerance = 100;
+                var tolerance = 150;
                 equalWithinTolerance(actual.native, expected.native,
-                    tolerance, "The native should be within " + tolerance +
-                    "ms of expected.");
+                    tolerance, "The native time tag should be within " + tolerance +
+                    "ms of expected. Difference was: " + (actual.native - expected.native) + "ms.");
                 deepEqual(actual.raw, expected.raw, "The raw time should match identically.");
             } else {
                 deepEqual(actual, expected, "The date should have be read correctly.");

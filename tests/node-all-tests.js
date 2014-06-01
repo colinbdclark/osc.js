@@ -20,6 +20,6 @@ testRunner.run([
             path: __dirname + "/../src/osc.js",
             namespace: "osc"
         },
-        tests: __dirname + "/osc-tests.js"
+        tests: [__dirname + "/osc-tests.js", __dirname + "/node-buffer-tests.js"]
     }
 ]);

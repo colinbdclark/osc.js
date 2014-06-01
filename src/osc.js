@@ -20,6 +20,11 @@ var osc = osc || {};
     osc.SECS_70YRS = 2208988800;
     osc.TWO_32 = 4294967296;
 
+    osc.defaults = {
+        metadata: false,
+        unpackSingleArgs: true
+    };
+
     // Unsupported, non-API function.
     osc.isArray = function (obj) {
         return obj && Object.prototype.toString.call(obj) === "[object Array]";
@@ -489,10 +494,10 @@ var osc = osc || {};
      *
      * @param {DataView} dv a DataView instance to read from
      * @param {Object} offsetState the offsetState object that stores the current offset into dv
-     * @param {Boolean} [withMetadata] if true, the arguments will be returned with OSC type metadata included
+     * @param {Oobject} [options] read options
      * @return {Array} an array of the OSC arguments that were read
      */
-    osc.readArguments = function (dv, withMetadata, offsetState) {
+    osc.readArguments = function (dv, options, offsetState) {
         var typeTagString = osc.readString(dv, offsetState);
         if (typeTagString.indexOf(",") !== 0) {
             // Despite what the OSC 1.0 spec says,
@@ -507,13 +512,13 @@ var osc = osc || {};
         var argTypes = typeTagString.substring(1).split(""),
             args = [];
 
-        osc.readArgumentsIntoArray(args, argTypes, typeTagString, dv, withMetadata, offsetState);
+        osc.readArgumentsIntoArray(args, argTypes, typeTagString, dv, options, offsetState);
 
         return args;
     };
 
     // Unsupported, non-API function.
-    osc.readArgument = function (argType, typeTagString, dv, withMetadata, offsetState) {
+    osc.readArgument = function (argType, typeTagString, dv, options, offsetState) {
         var typeSpec = osc.argumentTypes[argType];
         if (!typeSpec) {
             throw new Error("'" + argType + "' is not a valid OSC type tag. Type tag string was: " + typeTagString);
@@ -522,7 +527,7 @@ var osc = osc || {};
         var argReader = typeSpec.reader,
             arg = osc[argReader](dv, offsetState);
 
-        if (withMetadata) {
+        if (options.metadata) {
             arg = {
                 type: argType,
                 value: arg
@@ -533,7 +538,7 @@ var osc = osc || {};
     };
 
     // Unsupported, non-API function.
-    osc.readArgumentsIntoArray = function (arr, argTypes, typeTagString, dv, withMetadata, offsetState) {
+    osc.readArgumentsIntoArray = function (arr, argTypes, typeTagString, dv, options, offsetState) {
         var i = 0;
 
         while (i < argTypes.length) {
@@ -550,10 +555,10 @@ var osc = osc || {};
                 }
 
                 var typesInArray = fromArrayOpen.slice(0, endArrayIdx);
-                arg = osc.readArgumentsIntoArray([], typesInArray, typeTagString, dv, withMetadata, offsetState);
+                arg = osc.readArgumentsIntoArray([], typesInArray, typeTagString, dv, options, offsetState);
                 i += endArrayIdx + 2;
             } else {
-                arg = osc.readArgument(argType, typeTagString, dv, withMetadata, offsetState);
+                arg = osc.readArgument(argType, typeTagString, dv, options, offsetState);
                 i++;
             }
 
@@ -567,11 +572,11 @@ var osc = osc || {};
      * Writes the specified arguments.
      *
      * @param {Array} args an array of arguments
-     * @param {Boolean} withMetadata if false, the argument types will be inferred automatically
+     * @param {Object} options options for writing
      * @return {Uint8Array} a buffer containing the OSC-formatted argument type tag and values
      */
-    osc.writeArguments = function (args, withMetadata) {
-        var argCollection = osc.collectArguments(args, withMetadata);
+    osc.writeArguments = function (args, options) {
+        var argCollection = osc.collectArguments(args, options);
         return osc.joinParts(argCollection);
     };
 
@@ -597,13 +602,17 @@ var osc = osc || {};
     };
 
     // Unsupported, non-API function.
-    osc.collectArguments = function (args, withMetadata, dataCollection) {
+    osc.collectArguments = function (args, options, dataCollection) {
+        if (!osc.isArray(args)) {
+            args = [args];
+        }
+
         dataCollection = dataCollection || {
             byteLength: 0,
             parts: []
         };
 
-        if (!withMetadata) {
+        if (!options.metadata) {
             args = osc.annotateArguments(args);
         }
 
@@ -633,55 +642,58 @@ var osc = osc || {};
      * Reads an OSC message.
      *
      * @param {Array-like} data an array of bytes to read from
-     * @param {Boolean} [withMetadata] a flag specifying if the message arguments should include OSC type metadata; defaults to false
+     * @param {Object} [options] read optoins
      * @param {Object} [offsetState] an offsetState object that stores the current offset into dv
      * @return {Object} the OSC message, formatted as a JavaScript object containing "address" and "args" properties
      */
-    osc.readMessage = function (data, withMetadata, offsetState) {
+    osc.readMessage = function (data, options, offsetState) {
+        options = options || osc.defaults;
+
         var dv = osc.dataView(data);
         offsetState = offsetState || {
             idx: 0
         };
 
         var address = osc.readString(dv, offsetState);
-        return osc.readMessageContents(address, dv, withMetadata, offsetState);
+        return osc.readMessageContents(address, dv, options, offsetState);
     };
 
     // Unsupported, non-API function.
-    osc.readMessageContents = function (address, dv, withMetadata, offsetState) {
+    osc.readMessageContents = function (address, dv, options, offsetState) {
         if (address.indexOf("/") !== 0) {
             throw new Error("A malformed OSC address was found while reading " +
                 "an OSC message. String was: " + address);
         }
 
-        var args = osc.readArguments(dv, withMetadata, offsetState);
+        var args = osc.readArguments(dv, options, offsetState);
 
         return {
             address: address,
-            args: args
+            args: args.length === 1 && options.unpackSingleArgs ? args[0] : args
         };
     };
 
     // Unsupported, non-API function.
-    osc.collectMessageParts = function (msg, withMetadata, dataCollection) {
+    osc.collectMessageParts = function (msg, options, dataCollection) {
         dataCollection = dataCollection || {
             byteLength: 0,
             parts: []
         };
 
         osc.addDataPart(osc.writeString(msg.address), dataCollection);
-        return osc.collectArguments(msg.args, withMetadata, dataCollection);
+        return osc.collectArguments(msg.args, options, dataCollection);
     };
 
     /**
      * Writes an OSC message.
      *
      * @param {Object} msg a message object containing "address" and "args" properties
-     * @param {Boolean} [withMetadata] a flag specifying if type metadata is included or if it should be inferred; defaults to false
+     * @param {Object} [options] write options
      * @return {Uint8Array} an array of bytes containing the OSC message
      */
-    osc.writeMessage = function (msg, withMetadata) {
-        var msgCollection = osc.collectMessageParts(msg, withMetadata);
+    osc.writeMessage = function (msg, options) {
+        options = options || osc.defaults;
+        var msgCollection = osc.collectMessageParts(msg, options);
         return osc.joinParts(msgCollection);
     };
 
@@ -689,16 +701,16 @@ var osc = osc || {};
      * Reads an OSC bundle.
      *
      * @param {DataView} dv the DataView instance to read from
-     * @param {Boolean} [withMetadata] a flag specifying if messages should include OSC type metadata; defaults to false
+     * @param {Object} [options] read optoins
      * @param {Object} [offsetState] an offsetState object that stores the current offset into dv
      * @return {Object} the bundle or message object that was read
      */
-    osc.readBundle = function (dv, withMetadata, offsetState) {
-        return osc.readPacket(dv, withMetadata, offsetState);
+    osc.readBundle = function (dv, options, offsetState) {
+        return osc.readPacket(dv, options, offsetState);
     };
 
     // Unsupported, non-API function.
-    osc.collectBundlePackets = function (bundle, withMetadata, dataCollection) {
+    osc.collectBundlePackets = function (bundle, options, dataCollection) {
         dataCollection = dataCollection || {
             byteLength: 0,
             parts: []
@@ -710,7 +722,7 @@ var osc = osc || {};
         for (var i = 0; i < bundle.packets.length; i++) {
             var packet = bundle.packets[i],
                 collector = packet.address ? osc.collectMessageParts : osc.collectBundlePackets,
-                packetCollection = collector(packet, withMetadata);
+                packetCollection = collector(packet, options);
 
             dataCollection.byteLength += packetCollection.byteLength;
             osc.addDataPart(osc.writeInt32(packetCollection.byteLength), dataCollection);
@@ -724,28 +736,28 @@ var osc = osc || {};
      * Writes an OSC bundle.
      *
      * @param {Object} a bundle object containing "timeTag" and "packets" properties
-     * @param {Boolean} [withMetadata] a flag specifying if type metadata is included or if it should be inferred; defaults to false
+     * @param {object} [options] write options
      * @return {Uint8Array} an array of bytes containing the message
      */
-    osc.writeBundle = function (bundle, withMetadata) {
+    osc.writeBundle = function (bundle, options) {
         if (!bundle.timeTag || !bundle.packets) {
             return;
         }
 
-        var bundleCollection = osc.collectBundlePackets(bundle, withMetadata);
+        var bundleCollection = osc.collectBundlePackets(bundle, options);
 
         return osc.joinParts(bundleCollection);
     };
 
     // Unsupported, non-API function.
-    osc.readBundleContents = function (dv, withMetadata, offsetState, len) {
+    osc.readBundleContents = function (dv, options, offsetState, len) {
         var timeTag = osc.readTimeTag(dv, offsetState),
             packets = [];
 
         while (offsetState.idx < len) {
             var packetSize = osc.readInt32(dv, offsetState),
                 packetLen = offsetState.idx + packetSize,
-                packet = osc.readPacket(dv, withMetadata, offsetState, packetLen);
+                packet = osc.readPacket(dv, options, offsetState, packetLen);
 
             packets.push(packet);
         }
@@ -760,10 +772,10 @@ var osc = osc || {};
      * Reads an OSC packet, which may consist of either a bundle or a message.
      *
      * @param {Array-like} data an array of bytes to read from
-     * @param {Boolean} [withMetadata] a flag specifying if messages should include OSC type metadata; defaults to false
+     * @param {Object} [options] read options
      * @return {Object} a bundle or message object
      */
-    osc.readPacket = function (data, withMetadata, offsetState, len) {
+    osc.readPacket = function (data, options, offsetState, len) {
         var dv = osc.dataView(data);
 
         len = len === undefined ? dv.byteLength : len;
@@ -775,9 +787,9 @@ var osc = osc || {};
             firstChar = header[0];
 
         if (firstChar === "#") {
-            return osc.readBundleContents(dv, withMetadata, offsetState, len);
+            return osc.readBundleContents(dv, options, offsetState, len);
         } else if (firstChar === "/") {
-            return osc.readMessageContents(header, dv, withMetadata, offsetState);
+            return osc.readMessageContents(header, dv, options, offsetState);
         }
 
         throw new Error("The header of an OSC packet didn't contain an OSC address or a #bundle string." +
@@ -788,12 +800,12 @@ var osc = osc || {};
      * Writes an OSC packet, which may consist of either of a bundle or a message.
      *
      * @param {Object} a bundle or message object
-     * @param {Boolean} [withMetadata] a flag specifying if type metadata is included or if it should be inferred; defaults to false
+     * @param {Object} [options] write options
      * @return {Uint8Array} an array of bytes containing the message
      */
-    osc.writePacket = function (packet, withMetadata) {
+    osc.writePacket = function (packet, options) {
         var writer = packet.address ? osc.writeMessage : osc.writeBundle;
-        return writer(packet, withMetadata);
+        return writer(packet, options);
     };
 
     // Unsupported, non-API.

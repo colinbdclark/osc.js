@@ -48,14 +48,14 @@ var osc = osc || require("./osc.js"),
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options.withMetadata);
+        var encoded = osc.writePacket(packet, this.options);
         return encoded;
     };
 
     p.decodeOSC = function (data) {
         this.emit("raw", data);
 
-        var packet = osc.readPacket(data, this.options.withMetadata);
+        var packet = osc.readPacket(data, this.options);
         this.emit("osc", packet);
 
         osc.firePacketEvents(this, packet);
@@ -83,7 +83,7 @@ var osc = osc || require("./osc.js"),
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options.withMetadata);
+        var encoded = osc.writePacket(packet, this.options);
         return slip.encode(encoded);
     };
 

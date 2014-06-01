@@ -755,7 +755,7 @@
         test("readMessage " + testSpec.name, function () {
             var expected = testSpec.message,
                 dv = new DataView(testSpec.oscMessageBuffer.buffer),
-                actual = osc.readMessage(dv, testSpec.withMetadata, testSpec.offsetState),
+                actual = osc.readMessage(dv, testSpec.options, testSpec.offsetState),
                 msg = "The returned message object should match the raw message data.";
 
             if (testSpec.roundToDecimals !== undefined) {
@@ -769,7 +769,7 @@
     var testWriteMessage = function (testSpec) {
         test("writeMessage " + testSpec.name, function () {
             var expected = testSpec.oscMessageBuffer,
-                actual = osc.writeMessage(testSpec.message, testSpec.withMetadata);
+                actual = osc.writeMessage(testSpec.message, testSpec.options);
 
             arrayEqual(actual, expected, "The message should have been written correctly.");
         });
@@ -793,7 +793,7 @@
 
             message: {
                 address: "/oscillator/4/frequency",
-                args: [440]
+                args: 440
             }
         },
         {
@@ -845,7 +845,9 @@
 
             roundToDecimals: 3,
 
-            withMetadata: true
+            options: {
+                metadata: true
+            }
         }
     ];
 
@@ -874,7 +876,7 @@
                     idx: 0
                 };
 
-            var actual = osc.readBundle(dv, testSpec.withMetadata, offsetState);
+            var actual = osc.readBundle(dv, testSpec.options, offsetState);
             roundedDeepEqual(actual, expected,
                 "The bundle should have been read correctly.");
             equal(offsetState.idx, dv.byteLength,
@@ -885,7 +887,7 @@
     var testWriteBundle = function (testSpec) {
         test("writeBundle " + testSpec.name, function () {
             var expected = testSpec.bytes,
-                actual = osc.writeBundle(testSpec.bundle, testSpec.withMetadata);
+                actual = osc.writeBundle(testSpec.bundle, testSpec.options);
 
             arrayEqual(actual, expected,
                 "The bundle should have been written correctly.");
@@ -1013,7 +1015,9 @@
                 ]
             },
 
-            withMetadata: true
+            options: {
+                metadata: true
+            }
         }
     ];
 

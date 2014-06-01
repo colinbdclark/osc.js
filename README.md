@@ -114,10 +114,7 @@ oscPort.send({
 });
 ```
 
-
 ### Web Sockets in Node.js
-
-#### Creating a Web Socket server with Express
 
 ```javascript
 var osc = require("osc"),
@@ -146,7 +143,6 @@ wss.on("connection", function (socket) {
     });
 });
 ```
-
 
 ### UDP in Node.js
 

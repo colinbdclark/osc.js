@@ -139,7 +139,11 @@ var osc = osc || {};
         address = address || o.remoteAddress;
         port = port !== undefined ? port : o.remotePort;
 
-        chrome.sockets.udp.send(this.socketId, encoded, address, port, function (info) {
+        var buffer = new ArrayBuffer(encoded.length);
+        var bufferView = new Uint8Array(buffer);
+        bufferView.set(encoded);
+
+        chrome.sockets.udp.send(this.socketId, buffer, address, port, function (info) {
             if (!info) {
                 that.emit("error",
                     "There was an unknown error while trying to send a UDP message. " +

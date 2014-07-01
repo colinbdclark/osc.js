@@ -64,7 +64,7 @@ var osc = osc || {};
 
         var that = this;
 
-        chrome.serial.send(this.connectionId, encoded, function (bytesSent, err) {
+        chrome.serial.send(this.connectionId, encoded.buffer, function (bytesSent, err) {
             if (err) {
                 that.emit("error", err + ". Total bytes sent: " + bytesSent);
             }

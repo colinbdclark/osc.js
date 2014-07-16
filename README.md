@@ -165,7 +165,7 @@ udpPort.open();
 udpPort.send({
     address: "/s_new",
     args: ["default", 100]
-}, 127.0.0.1, 57110);
+}, "127.0.0.1", 57110);
 ```
 
 ### Serial in a Chrome App

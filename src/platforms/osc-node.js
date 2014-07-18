@@ -97,6 +97,8 @@
                 that.emit("close");
             }
         });
+
+        that.emit("ready");
     };
 
     p.sendRaw = function (encoded) {
@@ -157,6 +159,8 @@
         this.socket.on("error", function (error) {
             that.emit("error", error);
         });
+
+        that.emit("ready");
     };
 
     p.sendRaw = function (encoded, address, port) {
@@ -229,6 +233,8 @@
         this.socket.on("close", function (e) {
             that.emit("close", e);
         });
+
+        that.emit("ready");
     };
 
     p.sendRaw = function (encoded) {
@@ -296,6 +302,8 @@
                 that.emit("close");
             }
         });
+
+        that.emit("ready");
     };
 
     p.sendRaw = function (encoded) {

@@ -44,6 +44,8 @@ var osc = osc;
         this.socket.onclose = function (e) {
             that.emit("close", e);
         };
+
+        that.emit("ready");
     };
 
     p.sendRaw = function (encoded) {

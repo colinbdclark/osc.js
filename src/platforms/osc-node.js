@@ -222,8 +222,8 @@
 
     p.listen = function () {
         var that = this;
-        this.socket.on("message", function (e) {
-            that.emit("data", e.data);
+        this.socket.on("message", function (data) {
+            that.emit("data", data);
         });
 
         this.socket.on("error", function (err) {

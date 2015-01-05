@@ -242,7 +242,7 @@
             return;
         }
 
-        this.socket.send(new Uint8Array(encoded), {
+        this.socket.send(encoded, {
             binary: true
         });
     };

@@ -242,13 +242,14 @@
             return;
         }
 
-        var that = this,
-            encodedArray = new Uint8Array(encoded);
+        var that = this;
 
-        this.socket.send(encodedArray, {
+        this.socket.send(encoded, {
             binary: true
         }, function (err) {
-            that.emit("error", err);
+            if (err) {
+                that.emit("error", err);
+            }
         });
     };
 

@@ -142,9 +142,18 @@
     p.open = function () {
         var that = this;
         this.socket = dgram.createSocket("udp4");
-        this.socket.bind(this.options.localPort, this.options.localAddress, function () {
-            that.emit("open", this.socket);
-        });
+
+        function onBound() {
+            that.emit("open", that.socket);
+        }
+
+        if (this.options.multicast) {
+            this.socket.setBroadcast(this.options.multicast);
+            this.socket.setMulticastTTL(this.options.multicastTTL);
+            this.socket.bind(this.options.localPort, onBound);
+        } else {
+            this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
+        }
     };
 
     p.listen = function () {

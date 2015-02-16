@@ -60,13 +60,31 @@ osc.js consists of two distinct layers:
 Examples
 --------
 
-### Sample Applications
-
-Example osc.js applications for the browser, Node.js, and Chrome OS are available in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+In-depth example osc.js applications for the browser, Node.js, and Chrome OS are available in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
 
 ### Web Sockets in the Browser
 
-#### Including osc.js in your HTML page:
+The <code>osc.WebSocketPort</code> object supports sending and receiving
+OSC messages over Web Sockets.
+
+#### Options
+
+<table>
+    <tr>
+        <th>Property</th>
+        <th>Description</th>
+        <th>Default Value</th>
+    </tr>
+    <tr>
+        <td>url</td>
+        <td>The Web Socket URL to connect to (_required for clients_)</td>
+        <td>none</td>
+    </tr>
+</table>
+
+#### Sample Code
+
+##### Including osc.js in your HTML page:
 ```html
 <!DOCTYPE html>
 <html>
@@ -79,21 +97,21 @@ Example osc.js applications for the browser, Node.js, and Chrome OS are availabl
 </html>
 ```
 
-#### Creating an OSC Web Socket Port object:
+##### Creating an OSC Web Socket Port object:
 ```javascript
 var oscPort = new osc.WebSocketPort({
     url: "ws://localhost:8081" // URL to your Web Socket server.
 });
 ```
 
-#### Listening for incoming OSC messages:
+##### Listening for incoming OSC messages:
 ```javascript
 oscPort.on("message", function (oscMsg) {
     console.log("An OSC message just arrived!", oscMsg);
 });
 ```
 
-#### Sending OSC messages:
+##### Sending OSC messages:
 ```javascript
 oscPort.send({
     address: "/carrier/frequency",
@@ -101,7 +119,7 @@ oscPort.send({
 });
 ```
 
-#### Sending OSC bundles:
+##### Sending OSC bundles:
 ```javascript
 oscPort.send({
     timeTag: osc.timeTag(60), // Schedules this bundle 60 seconds from now.
@@ -119,6 +137,31 @@ oscPort.send({
 ```
 
 ### Web Sockets in Node.js
+
+The <code>osc.WebSocketPort</code> object supports sending and receiving
+OSC messages over Web Sockets.
+
+#### Options
+
+<table>
+    <tr>
+        <th>Property</th>
+        <th>Description</th>
+        <th>Default Value</th>
+    </tr>
+    <tr>
+        <td>url</td>
+        <td>The Web Socket URL to connect to (_required for clients_)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>socket</td>
+        <td>A Web Socket instance to bind to (_required for servers_)</td>
+        <td>none</td>
+    </tr>
+</table>
+
+#### Sample Code
 
 ```javascript
 var osc = require("osc"),
@@ -149,6 +192,51 @@ wss.on("connection", function (socket) {
 ```
 
 ### UDP in Node.js
+
+The <code>osc.UDPPort</code> object supports the sending and receiving of
+OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
+
+#### Options
+
+<table>
+    <tr>
+        <th>Property</th>
+        <th>Description</th>
+        <th>Default Value</th>
+    </tr>
+    <tr>
+        <td>localPort</td>
+        <td>The port to listen on (_required for UDP servers_)</td>
+        <td>57121</td>
+    </tr>
+    <tr>
+         <td>localAddress</td>
+         <td>The local address to bind to; will be ignored in the case of multicast UDP (_required for UDP servers_)</td>
+         <td>"127.0.0.1"</td>
+    </tr>
+    <tr>
+        <td>remotePort</td>
+        <td>The port to send messages on (_optional_)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>remoteAddress</td>
+        <td>The address to send messages to (_optional_)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>multicast</td>
+        <td>A flag determining whether to use multicast mode</td>
+        <td>false</td>
+    </tr>
+    <tr>
+        <td>multicastTTL</td>
+        <td>The time to live (number of hops) fora multicast connection</td>
+        <td>none</td>
+    </tr>
+</table>
+
+#### Sample Code
 
 ```javascript
 // Create an osc.js UDP Port listening on port 57121.

@@ -13,25 +13,35 @@ var testMessage = {
 * UDP Tests *
 *************/
 
-asyncTest("Send a message via a UDP socket", function () {
+function createUDPServer(onMessage) {
     var ip = "127.0.0.1",
     port = 57121;
 
     var oscUDP = new osc.UDPPort({
         localAddress: ip,
-        localPort: port
+        localPort: port,
+        remoteAddress: ip,
+        remotePort: port
     });
+
+    if (onMessage) {
+        oscUDP.on("message", onMessage);
+    }
 
     oscUDP.open();
 
-    oscUDP.on("message", function (msg) {
+    return oscUDP;
+}
+
+asyncTest("Send a message via a UDP socket", function () {
+    var oscUDP = createUDPServer(function (msg) {
         deepEqual(msg, testMessage,
             "The message should have been sent to the web socket.");
         start();
     });
 
     oscUDP.on("ready", function () {
-        oscUDP.send(testMessage, ip, port);
+        oscUDP.send(testMessage);
     });
 });
 
@@ -42,7 +52,7 @@ asyncTest("Send a message via a UDP socket", function () {
 
 var ws = require("ws");
 
-function createWSServer (onConnection) {
+function createWSServer(onConnection) {
     // Setup the Web Socket server.
     var wss = new ws.Server({
         port: 8081
@@ -64,29 +74,71 @@ function createWSServer (onConnection) {
     return wss;
 }
 
-function createWSClient (onMessage) {
+function createWSClient(onMessage) {
     // Create a Web Socket client and connect it to the server.
     var wsc = new osc.WebSocketPort({
         url: "ws://localhost:8081"
     });
 
     wsc.on("message", onMessage);
-
+    wsc.open();
     return wsc;
 }
 
-asyncTest("Send an OSC message via a Web Socket", function () {
-    createWSServer(function (oscServerPort) {
-        oscServerPort.send(testMessage);
+function checkMessageReceived(oscMessage, wss, wsc, assertMessage) {
+    deepEqual(oscMessage, testMessage, assertMessage);
+
+    wss.close();
+    wsc.close();
+
+    start();
+}
+
+asyncTest("Send OSC messages both directions via a Web Socket", function () {
+    var wss = createWSServer(function (oscServerPort) {
+        oscServerPort.on("message", function (oscMessage) {
+            deepEqual(oscMessage, testMessage,
+                "The message should have been sent to the web socket server.");
+            oscServerPort.send(testMessage);
+        });
     });
 
-    var client = createWSClient(function (msg) {
-        deepEqual(msg, testMessage,
-            "The message should have been sent to the web socket.");
-        start();
+    var wsc = createWSClient(function (msg) {
+        checkMessageReceived(msg, wss, wsc,
+            "The message should have been sent to the web socket client.");
     });
 
-    client.open();
+    wsc.on("ready", function () {
+        wsc.send(testMessage);
+    });
+});
+
+function testRelay(isRaw) {
+    var udpPort = createUDPServer(),
+    relay;
+
+    udpPort.on("ready", function () {
+        var wss = createWSServer(function (wsServerPort) {
+            relay = new osc.Relay(udpPort, wsServerPort, {
+                raw: isRaw
+            });
+
+            udpPort.send(testMessage);
+        });
+
+        var wsc = createWSClient(function (msg) {
+            checkMessageReceived(msg, wss, wsc,
+                "The message should have been proxied from UDP to the web socket.");
+        });
+    });
+}
+
+asyncTest("Parsed message relaying between UDP and Web Sockets", function () {
+    testRelay(false);
+});
+
+asyncTest("Raw relaying between UDP and Web Sockets", function () {
+    testRelay(true);
 });
 
 // TODO: TCP socket tests.

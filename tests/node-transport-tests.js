@@ -1,6 +1,7 @@
 /*global console, require, QUnit, osc, asyncTest, deepEqual, start*/
+/*jshint node:true*/
 
-"use strict"; // jshint ignore:line
+"use strict";
 
 QUnit.module("Node.js transport tests");
 
@@ -141,4 +142,49 @@ asyncTest("Raw relaying between UDP and Web Sockets", function () {
     testRelay(true);
 });
 
-// TODO: TCP socket tests.
+
+/*************
+ * TCP Tests *
+ *************/
+
+var net = require("net");
+
+asyncTest("Send an OSC message via TCP", function () {
+    var port = 57122;
+
+    var tcpServer = net.createServer(function (socket) {
+        var tcpServerPort = new osc.TCPSocketPort({
+            socket: socket
+        });
+
+        tcpServerPort.on("error", function (err) {
+            console.error(err);
+        });
+
+        tcpServerPort.on("message", function (msg) {
+            deepEqual(msg, testMessage,
+                "The message should have been sent to the TCP server.");
+            tcpServer.close();
+
+            start();
+        });
+    });
+
+    var tcpClientPort = new osc.TCPSocketPort({
+        address: "127.0.0.1",
+        port: port
+    });
+
+    tcpClientPort.on("ready", function () {
+        tcpClientPort.send(testMessage);
+    });
+
+    tcpClientPort.on("error", function (err) {
+        console.error(err);
+    });
+
+    tcpServer.listen(port, function () {
+        tcpClientPort.open();
+    });
+
+});

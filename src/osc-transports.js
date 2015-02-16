@@ -44,7 +44,7 @@ var osc = osc || require("./osc.js"),
     p.send = function (oscPacket) {
         var args = Array.prototype.slice.call(arguments),
             encoded = this.encodeOSC(oscPacket);
-        
+
         args[0] = encoded;
         this.sendRaw.apply(this, args);
     };

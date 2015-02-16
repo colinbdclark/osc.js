@@ -5,7 +5,8 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/*global require, module*/
+/*global require, module, Buffer*/
+/*jshint node:true*/
 
 (function () {
     "use strict";
@@ -281,18 +282,20 @@
     p.constructor = osc.TCPSocketPort;
 
     p.open = function (address, port) {
-        if (!this.socket) {
-            this.socket = new net.Socket();
-        }
-
         var o = this.options;
         address = address || o.address;
         port = port !== undefined ? port : o.port;
 
-        var that = this;
-        this.socket.connect(port, address, function () {
-            that.emit("open", that.socket);
-        });
+        if (!this.socket) {
+            this.socket = net.connect({
+                port: port,
+                host: address
+            });
+        } else {
+            this.socket.connect(port, address);
+        }
+
+        this.emit("open", this.socket);
     };
 
     p.listen = function () {
@@ -313,14 +316,23 @@
             }
         });
 
-        that.emit("ready");
+        this.socket.on("connect", function () {
+            that.emit("ready");
+        });
     };
 
     p.sendRaw = function (encoded) {
         if (!this.socket) {
             return;
         }
-        this.socket.write(encoded);
+
+        encoded = new Buffer(encoded);
+
+        try {
+            this.socket.write(encoded);
+        } catch (err) {
+            this.emit("error", err);
+        }
     };
 
     p.close = function () {

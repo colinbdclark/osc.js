@@ -52,12 +52,13 @@ module.exports = function(grunt) {
         "node-qunit": {
             all: {
                 code: {
-                    path: "./src/osc.js",
+                    path: "./src/platforms/osc-node.js",
                     namespace: "osc"
                 },
                 tests: [
                     "./tests/osc-tests.js",
-                    "./tests/node-buffer-tests.js"
+                    "./tests/node-buffer-tests.js",
+                    "./tests/node-transport-tests.js"
                 ]
             }
         },

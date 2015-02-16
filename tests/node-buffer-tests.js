@@ -1,4 +1,5 @@
 /*global QUnit, osc, Buffer, test, deepEqual, ok*/
+/*jshint node:true*/
 
 (function () {
     "use strict";

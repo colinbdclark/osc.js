@@ -1,5 +1,5 @@
 /*global require, __dirname*/
-/*jshint nomen: false*/
+/*jshint nomen: false, node: true*/
 
 var testRunner = require("qunit");
 

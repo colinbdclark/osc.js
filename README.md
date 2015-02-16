@@ -60,6 +60,10 @@ osc.js consists of two distinct layers:
 Examples
 --------
 
+### Sample Applications
+
+Example osc.js applications for the browser, Node.js, and Chrome OS are available in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+
 ### Web Sockets in the Browser
 
 #### Including osc.js in your HTML page:

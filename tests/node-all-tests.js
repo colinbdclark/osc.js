@@ -17,9 +17,13 @@ testRunner.setup({
 testRunner.run([
     {
         code: {
-            path: __dirname + "/../src/osc.js",
+            path: __dirname + "/../src/platforms/osc-node.js",
             namespace: "osc"
         },
-        tests: [__dirname + "/osc-tests.js", __dirname + "/node-buffer-tests.js"]
+        tests: [
+            __dirname + "/osc-tests.js",
+            __dirname + "/node-buffer-tests.js",
+            __dirname + "/node-transport-tests.js"
+        ]
     }
 ]);

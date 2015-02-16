@@ -41,8 +41,8 @@
 
     var dgram = require("dgram"),
         serialport = require("serialport"),
-        slip = require("slip"),
-        WebSocket = require('ws'),
+        net = require("net"),
+        WebSocket = require("ws"),
         modules = requireModules(["../osc.js", "../osc-transports.js"]),
         osc = shallowMerge({}, modules);
 
@@ -174,7 +174,7 @@
         address = address || this.options.remoteAddress;
         port = port !== undefined ? port : this.options.remotePort;
 
-        this.socket.send(encoded, 0, length, port, address, function (err, bytes) {
+        this.socket.send(encoded, 0, length, port, address, function (err) {
             if (err) {
                 that.emit("error", err);
             }
@@ -242,13 +242,18 @@
             return;
         }
 
-        this.socket.send(new Uint8Array(encoded), {
+        var that = this,
+            encodedArray = new Uint8Array(encoded);
+
+        this.socket.send(encodedArray, {
             binary: true
+        }, function (err) {
+            that.emit("error", err);
         });
     };
 
     p.close = function (code, reason) {
-        this.socket.close();
+        this.socket.close(code, reason);
     };
 
 
@@ -279,8 +284,12 @@
             this.socket = new net.Socket();
         }
 
+        var o = this.options;
+        address = address || o.address;
+        port = port !== undefined ? port : o.port;
+
         var that = this;
-        this.socket.connect(this.options.port, this.options.address, function () {
+        this.socket.connect(port, address, function () {
             that.emit("open", that.socket);
         });
     };

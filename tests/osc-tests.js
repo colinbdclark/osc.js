@@ -382,7 +382,7 @@
         ok(actual <= max, "The value should be no greater than " + tolerance + ". " + msg);
         ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
     };
-    
+
     var testReadTimeTag = function (testSpec) {
         test("Read time tag " + testSpec.name, function () {
             var expected = testSpec.timeTag,
@@ -861,6 +861,24 @@
     };
 
     testMessages(messageTestSpecs);
+
+    test("gh-17", function () {
+        var msg = {
+            address: "/sl/1/down",
+            args: [
+                {
+                    type: "f", // OSC type tag string
+                    value: 444.4
+                }
+            ]
+        };
+
+        var encoded = osc.writeMessage(msg);
+        var decoded = osc.readMessage(encoded, {
+            metadata: true
+        });
+        roundedDeepEqual(decoded, msg, "The message should have been encoded and decoded correctly.");
+    });
 
 
     /***********

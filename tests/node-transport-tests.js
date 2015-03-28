@@ -14,16 +14,12 @@ var testMessage = {
 * UDP Tests *
 *************/
 
-function createUDPServer(onMessage) {
-    var ip = "127.0.0.1",
-    port = 57121;
+function createUDPServer(onMessage, o) {
+    o = o || {};
+    o.localAddress = o.remoteAddress = "127.0.0.1";
+    o.localPort = o.remotePort = 57121;
 
-    var oscUDP = new osc.UDPPort({
-        localAddress: ip,
-        localPort: port,
-        remoteAddress: ip,
-        remotePort: port
-    });
+    var oscUDP = new osc.UDPPort(o);
 
     if (onMessage) {
         oscUDP.on("message", onMessage);
@@ -43,6 +39,39 @@ asyncTest("Send a message via a UDP socket", function () {
 
     oscUDP.on("ready", function () {
         oscUDP.send(testMessage);
+    });
+});
+
+asyncTest("Read from a UDP socket with metadata: true", function () {
+    var expected = {
+        address: "/sl/1/down",
+        args: [
+            {
+                type: "f", // OSC type tag string
+                value: 444.4
+            }
+        ]
+    };
+
+    var udpListener = function (msg) {
+        equal(msg.address, expected.address);
+        ok(Object.prototype.toString.call(msg.args) === "[object Array]",
+            "The message arguments should be in an array.");
+        equal(msg.args.length, 1, "There should only be one argument.");
+        equal(msg.args[0].type, expected.args[0].type,
+            "Type metadata should have been included.");
+        equal(typeof msg.args[0].value, "number",
+            "The argument type should be a number.");
+
+        start();
+    };
+
+    var oscUDP = createUDPServer(udpListener, {
+        metadata: true
+    });
+
+    oscUDP.on("ready", function () {
+        oscUDP.send(expected);
     });
 });
 

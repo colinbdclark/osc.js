@@ -355,6 +355,9 @@ Type-annotated argument objects contain two properties:  `type`, which contains 
 }
 ```
 
+If you are using type-annotated arguments, you should also set the <code>metadata</code> option to <code>true</code> when you instantiate your <code>OSCPort</code> instance (or in the <code>options</code> argument to <code>osc.writeMessage</code> if you're using the low-level API).
+
+
 #### Time Tags
 Time tag objects contain two different representations: the raw NTP time and the equivalent (though less precise) native JavaScript timestamp. NTP times consist of a pair of values in an array. The first value represents the number of seconds since January 1, 1900. The second value is a Uint32 value (i.e. between 0 and 4294967296) that represents fractions of a second.
 

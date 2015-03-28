@@ -97,7 +97,8 @@ var osc = osc || {};
         var buf = obj.buffer ? obj.buffer : obj;
 
         if (typeof obj.length === "undefined" || typeof obj === "string") {
-            throw new Error("Can't wrap a non-array-like object as Uint8Array. Object was: " + obj);
+            throw new Error("Can't wrap a non-array-like object as Uint8Array. Object was: " +
+                JSON.stringify(obj, null, 2));
         }
 
         return new Uint8Array(buf);
@@ -929,7 +930,7 @@ var osc = osc || {};
                 break;
         }
 
-        throw new Error("Can't infer OSC argument type for value: " + arg);
+        throw new Error("Can't infer OSC argument type for value: " + JSON.stringify(arg, null, 2));
     };
 
     // Unsupported, non-API function.
@@ -941,12 +942,20 @@ var osc = osc || {};
         var annotated = [];
         for (var i = 0; i < args.length; i++) {
             var arg = args[i],
-                oscType = osc.inferTypeForArgument(arg);
+                msgArg;
 
-            annotated.push({
-                type: oscType,
-                value: arg
-            });
+            if (typeof (arg) === "object" && arg.type && arg.value !== undefined) {
+                // We've got an explicitly typed argument.
+                msgArg = arg;
+            } else {
+                var oscType = osc.inferTypeForArgument(arg);
+                msgArg = {
+                    type: oscType,
+                    value: arg
+                };
+            }
+
+            annotated.push(msgArg);
         }
 
         return annotated;

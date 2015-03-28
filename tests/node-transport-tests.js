@@ -1,4 +1,4 @@
-/*global console, require, QUnit, osc, asyncTest, deepEqual, start*/
+/*global console, require, QUnit, osc, asyncTest, ok, equal, deepEqual, start*/
 /*jshint node:true*/
 
 "use strict";

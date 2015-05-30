@@ -238,10 +238,13 @@ var osc = osc || {};
      * @return {Number} the number that was read
      */
     osc.readInt64 = function (dv, offsetState) {
-        return new Long(
-            osc.readPrimitive(dv, "getInt32", 4, offsetState),
-            osc.readPrimitive(dv, "getInt32", 4, offsetState)
-        );
+        var hi = osc.readPrimitive(dv, "getInt32", 4, offsetState),
+            lo = osc.readPrimitive(dv, "getInt32", 4, offsetState);
+        if (Long) {
+            return new Long(hi, lo);
+        } else {
+            return { high: hi, low: lo, unsigned: false }
+        }
     };
 
     /**

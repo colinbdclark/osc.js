@@ -17,6 +17,14 @@ var osc = osc || {};
     // Only used if we're in Node.js.
     var BufferDataView;
 
+    // Check if Long is available globally.
+    var Long;
+    try {
+      Long = dcodeIO.Long;
+    } catch (e) {
+      Long = undefined;
+    }
+
     osc.SECS_70YRS = 2208988800;
     osc.TWO_32 = 4294967296;
 
@@ -220,6 +228,34 @@ var osc = osc || {};
      */
     osc.writeInt32 = function (val, dv, offset) {
         return osc.writePrimitive(val, dv, "setInt32", 4, offset);
+    };
+
+    /**
+     * Reads an OSC int64 ("h") value.
+     *
+     * @param {DataView} dv a DataView containing the raw bytes
+     * @param {Object} offsetState an offsetState object used to store the current offset index into dv
+     * @return {Number} the number that was read
+     */
+    osc.readInt64 = function (dv, offsetState) {
+        return new Long(
+            osc.readPrimitive(dv, "getInt32", 4, offsetState),
+            osc.readPrimitive(dv, "getInt32", 4, offsetState)
+        );
+    };
+
+    /**
+     * Writes an OSC int64 ("h") value.
+     *
+     * @param {Number} val the number to write
+     * @param {DataView} [dv] a DataView instance to write the number into
+     * @param {Number} [offset] an offset into dv
+     */
+    osc.writeInt64 = function (val, dv, offset) {
+        var arr = new Uint8Array(8);
+        arr.set(osc.writePrimitive(val.high, dv, "setInt32", 4, offset), 0);
+        arr.set(osc.writePrimitive(val.low,  dv, "setInt32", 4, offset), 4);
+        return arr;
     };
 
     /**
@@ -854,6 +890,10 @@ var osc = osc || {};
             reader: "readInt32",
             writer: "writeInt32"
         },
+        h: {
+            reader: "readInt64",
+            writer: "writeInt64"
+        },
         f: {
             reader: "readFloat32",
             writer: "writeFloat32"
@@ -926,6 +966,8 @@ var osc = osc || {};
                     arg instanceof ArrayBuffer ||
                     (osc.isBufferEnv && arg instanceof Buffer)) {
                     return "b";
+                } else if (arg instanceof Long) {
+                    return "h";
                 }
                 break;
         }
@@ -968,6 +1010,11 @@ var osc = osc || {};
         // Check if we're in Node.js; if so, require the buffer-dataview library.
         if (osc.isBufferEnv) {
             BufferDataView = require("buffer-dataview");
+        }
+
+        // If dcodeIO.Long was not available globally, require it.
+        if (!Long) {
+            Long = require("long");
         }
 
         module.exports = osc;

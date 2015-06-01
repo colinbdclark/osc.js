@@ -256,8 +256,8 @@ var osc = osc || {};
      */
     osc.writeInt64 = function (val, dv, offset) {
         var arr = new Uint8Array(8);
-        arr.set(osc.writePrimitive(val.high, dv, "setInt32", 4, offset), 0);
-        arr.set(osc.writePrimitive(val.low,  dv, "setInt32", 4, offset), 4);
+        arr.set(osc.writePrimitive(val.high, dv, "setInt32", 4, offset),   0);
+        arr.set(osc.writePrimitive(val.low,  dv, "setInt32", 4, offset+4), 4);
         return arr;
     };
 

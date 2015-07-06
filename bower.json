@@ -12,7 +12,7 @@
     ],
     "dependencies": {
         "slip.js": ">=1.0.1",
-        "eventEmitter": ">=4.2.7"
+        "eventEmitter": "4.2.11"
     },
     "devDependencies": {
         "qunit": "1.14.0"

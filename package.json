@@ -10,16 +10,7 @@
         "url": "git://github.com/colinbdclark/osc.js.git"
     },
     "bugs": "https://github.com/colinbdclark/osc.js/issues",
-    "licenses": [
-        {
-            "type": "MIT",
-            "url": "http://opensource.org/licenses/MIT"
-        },
-        {
-            "type": "GPL",
-            "url": "http://opensource.org/licenses/GPL-3.0"
-        }
-    ],
+    "license": "(MIT OR GPL-2.0)",
     "keywords": [
         "Open Sound Control",
         "OSC",

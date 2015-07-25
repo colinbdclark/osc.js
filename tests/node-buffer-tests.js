@@ -1,44 +1,48 @@
-/*global QUnit, osc, Buffer, test, deepEqual, ok*/
+/*global Buffer, require*/
 /*jshint node:true*/
 
-(function () {
-    "use strict";
+"use strict";
 
-    QUnit.module("Node.js buffer tests");
+var fluid = require("infusion"),
+    jqUnit = fluid.require("jqUnit"),
+    osc = require("../src/platforms/osc-node.js");
 
-    // "/oscillator/4/frequency" | ",f" | 440
-    var oscMessageBuffer = new Buffer([
-        0x2f, 0x6f, 0x73, 0x63,
-        0x69, 0x6c, 0x6c, 0x61,
-        0x74, 0x6f, 0x72, 0x2f,
-        0x34, 0x2f, 0x66, 0x72,
-        0x65, 0x71, 0x75, 0x65,
-        0x6e, 0x63, 0x79, 0,
-        0x2c, 0x66, 0, 0,
-        0x43, 0xdc, 0, 0
-    ]);
+var QUnit = fluid.registerNamespace("QUnit");
 
-    var decodedMessage = {
-        address: "/oscillator/4/frequency",
-        args: 440
-    };
+jqUnit.module("Node.js buffer tests");
 
-    test("Read from a Node.js buffer", function () {
-        var actual = osc.readMessage(oscMessageBuffer);
-        deepEqual(actual, decodedMessage, "A message specified as a Node.js buffer should be read correctly.");
+// "/oscillator/4/frequency" | ",f" | 440
+var oscMessageBuffer = new Buffer([
+    0x2f, 0x6f, 0x73, 0x63,
+    0x69, 0x6c, 0x6c, 0x61,
+    0x74, 0x6f, 0x72, 0x2f,
+    0x34, 0x2f, 0x66, 0x72,
+    0x65, 0x71, 0x75, 0x65,
+    0x6e, 0x63, 0x79, 0,
+    0x2c, 0x66, 0, 0,
+    0x43, 0xdc, 0, 0
+]);
+
+var decodedMessage = {
+    address: "/oscillator/4/frequency",
+    args: 440
+};
+
+jqUnit.test("Read from a Node.js buffer", function () {
+    var actual = osc.readMessage(oscMessageBuffer);
+    QUnit.deepEqual(actual, decodedMessage, "A message specified as a Node.js buffer should be read correctly.");
+});
+
+jqUnit.test("Write to a Node.js buffer", function () {
+    var actual = osc.writePacket({
+        timeTag: osc.timeTag(0),
+        packets: [
+            {
+                address: "/oscillator/4/frequency",
+                args: 440
+            }
+        ]
     });
 
-    test("Write to a Node.js buffer", function () {
-        var actual = osc.writePacket({
-            timeTag: osc.timeTag(0),
-            packets: [
-                {
-                    address: "/oscillator/4/frequency",
-                    args: 440
-                }
-            ]
-        });
-
-        ok(actual instanceof Buffer, "Writing a packet should produce a Node.js Buffer object.");
-    });
-}());
+    QUnit.ok(actual instanceof Buffer, "Writing a packet should produce a Node.js Buffer object.");
+});

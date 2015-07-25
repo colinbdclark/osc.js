@@ -1,8 +1,13 @@
-/*global QUnit, equal, deepEqual, osc, test, ok*/
+/*global require*/
+
+var fluid = fluid || require("infusion"),
+    jqUnit = jqUnit || fluid.require("jqUnit"),
+    osc = osc || require("../src/platforms/osc-node.js");
 
 (function () {
-
     "use strict";
+
+    var QUnit = fluid.registerNamespace("QUnit");
 
     /*************
      * Utilities *
@@ -33,7 +38,7 @@
     };
 
     var arrayEqual = function (actual, expected, msg) {
-        equal(actual.length, expected.length, "The array should be the expected length.");
+        QUnit.equal(actual.length, expected.length, "The array should be the expected length.");
         for (var i = 0; i < actual.length; i++) {
             var actualVal = actual[i],
                 expectedVal = expected[i];
@@ -41,7 +46,7 @@
             if (typeof actualVal === "object" && typeof actualVal.length === "number") {
                 arrayEqual(actualVal, expectedVal, msg);
             } else {
-                deepEqual(actualVal, expectedVal, msg);
+                QUnit.deepEqual(actualVal, expectedVal, msg);
             }
         }
     };
@@ -54,7 +59,7 @@
         var actualRounded = roundTo(actual, numDecimals),
             expectedRounded = roundTo(expected, numDecimals);
 
-        equal(actualRounded, expectedRounded, msg + "\nUnrounded value was: " + expected);
+        QUnit.equal(actualRounded, expectedRounded, msg + "\nUnrounded value was: " + expected);
     };
 
     var roundArrayValues = function (arr, numDecimals) {
@@ -97,7 +102,7 @@
         var roundedActual = roundAllValues(actual, numDecimals),
             roundedExpected = roundAllValues(expected, numDecimals);
 
-        deepEqual(roundedActual, roundedExpected, msg = "\nUnrounded actual object was: " +
+        QUnit.deepEqual(roundedActual, roundedExpected, msg = "\nUnrounded actual object was: " +
             JSON.stringify(roundedActual));
     };
 
@@ -106,20 +111,20 @@
      * Strings  *
      ************/
 
-    QUnit.module("Strings");
+    jqUnit.module("Strings");
 
     var testReadString = function (testSpec) {
         var offsetState = testSpec.offsetState || {
             idx: 0
         };
 
-        test("readString " + testSpec.name, function () {
+        jqUnit.test("readString " + testSpec.name, function () {
             var expected = testSpec.rawString,
                 dv = stringToDataView(testSpec.paddedString),
                 actual = osc.readString(dv, offsetState);
 
-            equal(actual, expected, "The string should have been read correctly.");
-            equal(offsetState.idx, testSpec.paddedString.length,
+            QUnit.equal(actual, expected, "The string should have been read correctly.");
+            QUnit.equal(offsetState.idx, testSpec.paddedString.length,
                 "The offset state should correctly reflect the null padding of the OSC string.");
         });
 
@@ -127,14 +132,14 @@
 
 
     var testWriteString = function (testSpec) {
-        test("writeString " + testSpec.name, function () {
+        jqUnit.test("writeString " + testSpec.name, function () {
             var expectedDV = stringToDataView(testSpec.paddedString),
                 expected = new Uint8Array(expectedDV.buffer),
                 actualBuf = osc.writeString(testSpec.rawString),
                 actual = new Uint8Array(actualBuf);
 
             arrayEqual(actual, expected, "The string should have been written correctly.");
-            ok(actualBuf instanceof Uint8Array, "The returned value should be a Uint8Array.");
+            QUnit.ok(actualBuf instanceof Uint8Array, "The returned value should be a Uint8Array.");
         });
     };
 
@@ -166,7 +171,7 @@
      * Numbers *
      ***********/
 
-    QUnit.module("Numbers");
+    jqUnit.module("Numbers");
 
     var typeTesters = {
         "int32": {
@@ -192,7 +197,7 @@
             actual = testMap.reader(dv, offsetState);
 
         equalRoundedTo(actual, expected, 5, "The correct value should have been read.");
-        equal(offsetState.idx, expectedOffsetIdx, "The offset state should have been updated appropriately.");
+        QUnit.equal(offsetState.idx, expectedOffsetIdx, "The offset state should have been updated appropriately.");
     };
 
     var makeReadPrimitiveTester = function (type, testSpec) {
@@ -209,7 +214,7 @@
 
             for (var i = 0; i < specsForType.length; i++) {
                 var spec = specsForType[i];
-                test(spec.name, makeReadPrimitiveTester(type, spec));
+                jqUnit.test(spec.name, makeReadPrimitiveTester(type, spec));
             }
         }
     };
@@ -262,7 +267,7 @@
 
 
     var testWritePrimitive = function (testSpec) {
-        test(testSpec.writer + " " + testSpec.name, function () {
+        jqUnit.test(testSpec.writer + " " + testSpec.name, function () {
             var expected = testSpec.expected,
                 outBuf = new ArrayBuffer(expected.buffer.byteLength),
                 dv = new DataView(outBuf),
@@ -329,7 +334,7 @@
      * Blobs *
      *********/
 
-    QUnit.module("Blobs");
+    jqUnit.module("Blobs");
 
     var oscBlobOctets = [
         0, 0, 0, 3,            // Length 3
@@ -343,7 +348,7 @@
         0x63, 0x61, 0x74
     ]);
 
-    test("readBlob", function () {
+    jqUnit.test("readBlob", function () {
         var dv = new DataView(oscExtraBlob.buffer);
         var expected = rawData;
 
@@ -354,18 +359,18 @@
         var actual = osc.readBlob(dv, offsetState);
 
         arrayEqual(actual, expected, "The blob should be returned as-is.");
-        ok(actual instanceof Uint8Array, "The blob should be returned as a Uint8Array.");
-        equal(offsetState.idx, 8, "The offset state should have been updated correctly.");
+        QUnit.ok(actual instanceof Uint8Array, "The blob should be returned as a Uint8Array.");
+        QUnit.equal(offsetState.idx, 8, "The offset state should have been updated correctly.");
     });
 
 
-    test("writeBlob", function () {
+    jqUnit.test("writeBlob", function () {
         var expected = oscBlob,
             actual = osc.writeBlob(rawData);
 
         arrayEqual(new Uint8Array(actual), expected,
             "The data should have been packed into a correctly-formatted OSC blob.");
-        ok(actual instanceof Uint8Array, "The written blob should be a Uint8Array");
+        QUnit.ok(actual instanceof Uint8Array, "The written blob should be a Uint8Array");
     });
 
 
@@ -373,18 +378,18 @@
      * Time Tags *
      *************/
 
-    QUnit.module("Time Tags");
+    jqUnit.module("Time Tags");
 
     var equalWithinTolerance = function (actual, expected, tolerance, msg) {
         var max = expected + tolerance,
             min = expected - tolerance;
 
-        ok(actual <= max, "The value should be no greater than " + tolerance + ". " + msg);
-        ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
+        QUnit.ok(actual <= max, "The value should be no greater than " + tolerance + ". " + msg);
+        QUnit.ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
     };
 
     var testReadTimeTag = function (testSpec) {
-        test("Read time tag " + testSpec.name, function () {
+        jqUnit.test("Read time tag " + testSpec.name, function () {
             var expected = testSpec.timeTag,
                 dv = new DataView(testSpec.timeTagBytes.buffer);
 
@@ -397,16 +402,16 @@
                 equalWithinTolerance(actual.native, expected.native,
                     tolerance, "The native time tag should be within " + tolerance +
                     "ms of expected. Difference was: " + (actual.native - expected.native) + "ms.");
-                deepEqual(actual.raw, expected.raw, "The raw time should match identically.");
+                QUnit.deepEqual(actual.raw, expected.raw, "The raw time should match identically.");
             } else {
-                deepEqual(actual, expected, "The date should have be read correctly.");
+                QUnit.deepEqual(actual, expected, "The date should have be read correctly.");
             }
 
         });
     };
 
     var testWriteTimeTag = function (testSpec) {
-        test("Write time tag " + testSpec.name, function () {
+        jqUnit.test("Write time tag " + testSpec.name, function () {
             var expected = testSpec.timeTagBytes,
                 actual = osc.writeTimeTag(testSpec.timeTag);
 
@@ -463,7 +468,7 @@
 
     timeTagTests(timeTagTestSpecs);
 
-    test("Write native-only time tag.", function () {
+    jqUnit.test("Write native-only time tag.", function () {
         var testSpec = timeTagTestSpecs[1],
             expected = testSpec.timeTagBytes,
             timeTag = {
@@ -484,14 +489,14 @@
             max = expected[1] + tolerance,
             min = expected[1] - tolerance;
 
-        equal(actual.raw[0], expected[0], "The generated timestamp should be accurate to the second.");
-        ok(actual.raw[1] <= max, "The generated timestamp should be no greater than " + tolerance +
+        QUnit.equal(actual.raw[0], expected[0], "The generated timestamp should be accurate to the second.");
+        QUnit.ok(actual.raw[1] <= max, "The generated timestamp should be no greater than " + tolerance +
             " NTP fractions of a second from expected.");
-        ok(actual.raw[1] >= min, "The generated timestamp should be no less than " + tolerance +
+        QUnit.ok(actual.raw[1] >= min, "The generated timestamp should be no less than " + tolerance +
             " NTP fractions of a second from expected.");
     };
 
-    test("osc.timeTag now", function () {
+    jqUnit.test("osc.timeTag now", function () {
         var actual = osc.timeTag();
         testTimeTag(actual, Date.now());
 
@@ -499,7 +504,7 @@
         testTimeTag(actual, Date.now());
     });
 
-    test("osc.timeTag future", function () {
+    jqUnit.test("osc.timeTag future", function () {
         var actual = osc.timeTag(10.5),
             expected = Date.now() + 10500;
         testTimeTag(actual, expected);
@@ -510,7 +515,7 @@
 
     });
 
-    test("osc.timeTag past", function () {
+    jqUnit.test("osc.timeTag past", function () {
         var actual = osc.timeTag(-1000),
             expected = Date.now() - 1000000;
         testTimeTag(actual, expected);
@@ -524,28 +529,28 @@
      * Read Type-Only Arguments (e.g. T, F, N, I) *
      **********************************************/
 
-    QUnit.module("Type-Only Arguments");
+    jqUnit.module("Type-Only Arguments");
 
-    test("Type-only arguments", function () {
+    jqUnit.test("Type-only arguments", function () {
         var offsetState = {
             idx: 27
         };
 
         var bool = osc.readTrue();
-        equal(bool, true, "readTrue() should return a true value");
-        equal(offsetState.idx, 27, "The offset state should not have been changed.");
+        QUnit.equal(bool, true, "readTrue() should return a true value");
+        QUnit.equal(offsetState.idx, 27, "The offset state should not have been changed.");
 
         bool = osc.readFalse();
-        equal(bool, false, "readFalse() should return false value");
-        equal(offsetState.idx, 27, "The offset state should not have been changed.");
+        QUnit.equal(bool, false, "readFalse() should return false value");
+        QUnit.equal(offsetState.idx, 27, "The offset state should not have been changed.");
 
         var nully = osc.readNull();
-        equal(nully, null, "readNull() should return null.");
-        equal(offsetState.idx, 27, "The offset state should not have been changed.");
+        QUnit.equal(nully, null, "readNull() should return null.");
+        QUnit.equal(offsetState.idx, 27, "The offset state should not have been changed.");
 
         var imp = osc.readImpulse();
-        equal(imp, 1.0, "readImpulse() should return 1.0.");
-        equal(offsetState.idx, 27, "The offset state should not have been changed.");
+        QUnit.equal(imp, 1.0, "readImpulse() should return 1.0.");
+        QUnit.equal(offsetState.idx, 27, "The offset state should not have been changed.");
     });
 
 
@@ -553,12 +558,12 @@
      * Read Arguments *
      ******************/
 
-    QUnit.module("readArguments()");
+    jqUnit.module("readArguments()");
 
     var testArguments = function (testSpec) {
         //rawArgBuffer, expected, roundToDecimals, offsetState
         //testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals
-        test(testSpec.name, function () {
+        jqUnit.test(testSpec.name, function () {
             var offsetState = {
                 idx: 0
             };
@@ -746,14 +751,14 @@
      * Messages *
      ************/
 
-    QUnit.module("Messages");
+    jqUnit.module("Messages");
 
     var testReadMessage = function (testSpec) {
         testSpec.offsetState = testSpec.offsetState || {
             idx: 0
         };
 
-        test("readMessage " + testSpec.name, function () {
+        jqUnit.test("readMessage " + testSpec.name, function () {
             var expected = testSpec.message,
                 dv = new DataView(testSpec.oscMessageBuffer.buffer),
                 actual = osc.readMessage(dv, testSpec.options, testSpec.offsetState),
@@ -762,13 +767,13 @@
             if (testSpec.roundToDecimals !== undefined) {
                 roundedDeepEqual(actual, expected, testSpec.roundToDecimals, msg);
             } else {
-                deepEqual(actual, expected, msg);
+                QUnit.deepEqual(actual, expected, msg);
             }
         });
     };
 
     var testWriteMessage = function (testSpec) {
-        test("writeMessage " + testSpec.name, function () {
+        jqUnit.test("writeMessage " + testSpec.name, function () {
             var expected = testSpec.oscMessageBuffer,
                 actual = osc.writeMessage(testSpec.message, testSpec.options);
 
@@ -862,7 +867,7 @@
 
     testMessages(messageTestSpecs);
 
-    test("gh-17", function () {
+    jqUnit.test("gh-17", function () {
         var msg = {
             address: "/sl/1/down",
             args: [
@@ -885,10 +890,10 @@
      * Bundles *
      ***********/
 
-    QUnit.module("Bundles");
+    jqUnit.module("Bundles");
 
     var testReadBundle = function (testSpec) {
-        test("readBundle " + testSpec.name, function () {
+        jqUnit.test("readBundle " + testSpec.name, function () {
             var expected = testSpec.bundle,
                 dv = new DataView(testSpec.bytes.buffer),
                 offsetState = {
@@ -898,13 +903,13 @@
             var actual = osc.readBundle(dv, testSpec.options, offsetState);
             roundedDeepEqual(actual, expected,
                 "The bundle should have been read correctly.");
-            equal(offsetState.idx, dv.byteLength,
+            QUnit.equal(offsetState.idx, dv.byteLength,
                 "The offset state should have been adjusted correctly.");
         });
     };
 
     var testWriteBundle = function (testSpec) {
-        test("writeBundle " + testSpec.name, function () {
+        jqUnit.test("writeBundle " + testSpec.name, function () {
             var expected = testSpec.bytes,
                 actual = osc.writeBundle(testSpec.bundle, testSpec.options);
 

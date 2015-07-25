@@ -1,9 +1,15 @@
-/*global console, require, QUnit, osc, asyncTest, ok, equal, deepEqual, start*/
+/*global require*/
 /*jshint node:true*/
 
 "use strict";
 
-QUnit.module("Node.js transport tests");
+var fluid = require("infusion"),
+    jqUnit = fluid.require("jqUnit"),
+    osc = require("../src/platforms/osc-node.js");
+
+var QUnit = fluid.registerNamespace("QUnit");
+
+jqUnit.module("Node.js transport tests");
 
 var testMessage = {
     address: "/test/freq",
@@ -22,7 +28,9 @@ function createUDPServer(onMessage, o) {
     var oscUDP = new osc.UDPPort(o);
 
     if (onMessage) {
-        oscUDP.on("message", onMessage);
+        oscUDP.on("message", function (msg) {
+            onMessage(msg, oscUDP);
+        });
     }
 
     oscUDP.open();
@@ -30,11 +38,12 @@ function createUDPServer(onMessage, o) {
     return oscUDP;
 }
 
-asyncTest("Send a message via a UDP socket", function () {
+jqUnit.asyncTest("Send a message via a UDP socket", function () {
     var oscUDP = createUDPServer(function (msg) {
-        deepEqual(msg, testMessage,
+        QUnit.deepEqual(msg, testMessage,
             "The message should have been sent to the web socket.");
-        start();
+        oscUDP.close();
+        jqUnit.start();
     });
 
     oscUDP.on("ready", function () {
@@ -42,7 +51,7 @@ asyncTest("Send a message via a UDP socket", function () {
     });
 });
 
-asyncTest("Read from a UDP socket with metadata: true", function () {
+jqUnit.asyncTest("Read from a UDP socket with metadata: true", function () {
     var expected = {
         address: "/sl/1/down",
         args: [
@@ -53,17 +62,18 @@ asyncTest("Read from a UDP socket with metadata: true", function () {
         ]
     };
 
-    var udpListener = function (msg) {
-        equal(msg.address, expected.address);
-        ok(Object.prototype.toString.call(msg.args) === "[object Array]",
+    var udpListener = function (msg, udpPort) {
+        QUnit.equal(msg.address, expected.address);
+        QUnit.ok(Object.prototype.toString.call(msg.args) === "[object Array]",
             "The message arguments should be in an array.");
-        equal(msg.args.length, 1, "There should only be one argument.");
-        equal(msg.args[0].type, expected.args[0].type,
+        QUnit.equal(msg.args.length, 1, "There should only be one argument.");
+        QUnit.equal(msg.args[0].type, expected.args[0].type,
             "Type metadata should have been included.");
-        equal(typeof msg.args[0].value, "number",
+        QUnit.equal(typeof msg.args[0].value, "number",
             "The argument type should be a number.");
 
-        start();
+        udpPort.close();
+        jqUnit.start();
     };
 
     var oscUDP = createUDPServer(udpListener, {
@@ -116,18 +126,18 @@ function createWSClient(onMessage) {
 }
 
 function checkMessageReceived(oscMessage, wss, wsc, assertMessage) {
-    deepEqual(oscMessage, testMessage, assertMessage);
+    QUnit.deepEqual(oscMessage, testMessage, assertMessage);
 
     wss.close();
     wsc.close();
 
-    start();
+    jqUnit.start();
 }
 
-asyncTest("Send OSC messages both directions via a Web Socket", function () {
+jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function () {
     var wss = createWSServer(function (oscServerPort) {
         oscServerPort.on("message", function (oscMessage) {
-            deepEqual(oscMessage, testMessage,
+            QUnit.deepEqual(oscMessage, testMessage,
                 "The message should have been sent to the web socket server.");
             oscServerPort.send(testMessage);
         });
@@ -145,7 +155,7 @@ asyncTest("Send OSC messages both directions via a Web Socket", function () {
 
 function testRelay(isRaw) {
     var udpPort = createUDPServer(),
-    relay;
+        relay;
 
     udpPort.on("ready", function () {
         var wss = createWSServer(function (wsServerPort) {
@@ -159,15 +169,16 @@ function testRelay(isRaw) {
         var wsc = createWSClient(function (msg) {
             checkMessageReceived(msg, wss, wsc,
                 "The message should have been proxied from UDP to the web socket.");
+            udpPort.close();
         });
     });
 }
 
-asyncTest("Parsed message relaying between UDP and Web Sockets", function () {
+jqUnit.asyncTest("Parsed message relaying between UDP and Web Sockets", function () {
     testRelay(false);
 });
 
-asyncTest("Raw relaying between UDP and Web Sockets", function () {
+jqUnit.asyncTest("Raw relaying between UDP and Web Sockets", function () {
     testRelay(true);
 });
 
@@ -178,7 +189,7 @@ asyncTest("Raw relaying between UDP and Web Sockets", function () {
 
 var net = require("net");
 
-asyncTest("Send an OSC message via TCP", function () {
+jqUnit.asyncTest("Send an OSC message via TCP", function () {
     var port = 57122;
 
     var tcpServer = net.createServer(function (socket) {
@@ -191,11 +202,11 @@ asyncTest("Send an OSC message via TCP", function () {
         });
 
         tcpServerPort.on("message", function (msg) {
-            deepEqual(msg, testMessage,
+            QUnit.deepEqual(msg, testMessage,
                 "The message should have been sent to the TCP server.");
             tcpServer.close();
 
-            start();
+            jqUnit.start();
         });
     });
 

@@ -24,6 +24,8 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
+        "infusion": "git://github.com/fluid-project/infusion.git",
+        "jqUnit": "git://github.com/fluid-project/node-jqUnit.git",
         "grunt": "~0.4.2",
         "grunt-contrib-concat": "~0.3.0",
         "grunt-contrib-uglify": "~0.3.2",

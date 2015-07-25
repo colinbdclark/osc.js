@@ -15,7 +15,6 @@
         "eventEmitter": "4.2.11"
     },
     "devDependencies": {
-        "qunit": "1.14.0",
         "requirejs": ">=2.1.14"
     }
 }

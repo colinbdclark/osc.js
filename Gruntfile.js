@@ -3,6 +3,34 @@
 
 module.exports = function(grunt) {
 
+    var files = {
+        moduleDeps: [
+            "bower_components/slip.js/src/slip.js",
+            "bower_components/eventEmitter/EventEmitter.js"
+        ],
+
+        osc: [
+            "src/osc.js"
+        ],
+
+        oscWeb: [
+            "src/osc-transports.js",
+            "src/platforms/osc-browser.js"
+        ],
+
+        oscChrome: [
+            "src/platforms/osc-chromeapp.js"
+        ],
+
+        moduleHeader: [
+            "build-support/js/module-header.js"
+        ],
+
+        moduleFooter: [
+            "build-support/js/module-footer.js"
+        ]
+    };
+
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
 
@@ -13,53 +41,56 @@ module.exports = function(grunt) {
             }
         },
 
-        uglify: {
+        concat: {
             options: {
+                separator: ";",
                 banner: "<%= oscjs.banners.short %>"
             },
-            dist: {
-                files: {
-                    "dist/osc.min.js": ["src/osc.js"],
-                    "dist/osc-chromeapp.min.js": [
-                        "src/osc.js",
-                        "bower_components/slip.js/src/slip.js",
-                        "bower_components/eventEmitter/EventEmitter.js",
-                        "src/osc-transports.js",
-                        "src/platforms/osc-browser.js",
-                        "src/platforms/osc-chromeapp.js"
-                    ],
-                    "dist/osc-browser.min.js": [
-                        "src/osc.js",
-                        "bower_components/slip.js/src/slip.js",
-                        "bower_components/eventEmitter/EventEmitter.js",
-                        "src/osc-transports.js",
-                        "src/platforms/osc-browser.js"
-                    ]
+
+            base: {
+                src: [].concat(files.osc),
+                dest: "dist/<%= pkg.name %>.js"
+            },
+
+            browser: {
+                src: [].concat(files.osc, files.moduleDeps, files.oscWeb),
+                dest: "dist/<%= pkg.name %>-browser.js"
+            },
+
+            chromeapp: {
+                src: [].concat(files.osc, files.moduleDeps, files.oscWeb, files.oscChrome),
+                dest: "dist/<%= pkg.name %>-chromeapp.js"
+            },
+
+            module: {
+                src: [].concat(files.moduleHeader, files.osc, files.oscWeb, files.moduleFooter),
+                dest: "dist/<%= pkg.name %>-module.js"
+            }
+        },
+
+        uglify: {
+            options: {
+                banner: "<%= oscjs.banners.short %>",
+                beautify: {
+                    ascii_only: true
                 }
+            },
+            all: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: "dist/",
+                        src: ["*.js"],
+                        dest: "dist/",
+                        ext: ".min.js",
+                    }
+                ]
             }
         },
 
         clean: {
             all: {
-                src: ["dist/osc.min.js", "dist/osc-chromeapp.min.js"]
-            }
-        },
-
-        qunit: {
-            all: ["tests/**/*.html"]
-        },
-
-        "node-qunit": {
-            all: {
-                code: {
-                    path: "./src/platforms/osc-node.js",
-                    namespace: "osc"
-                },
-                tests: [
-                    "./tests/osc-tests.js",
-                    "./tests/node-buffer-tests.js",
-                    "./tests/node-transport-tests.js"
-                ]
+                src: ["dist/"]
             }
         },
 
@@ -73,11 +104,10 @@ module.exports = function(grunt) {
     });
 
     // Load relevant Grunt plugins.
+    grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-jshint");
-    grunt.loadNpmTasks("grunt-contrib-qunit");
-    grunt.loadNpmTasks("grunt-node-qunit");
 
-    grunt.registerTask("default", ["clean", "jshint", "uglify", "qunit", "node-qunit"]);
+    grunt.registerTask("default", ["clean", "jshint", "concat", "uglify"]);
 };

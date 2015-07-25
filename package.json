@@ -24,13 +24,11 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "qunit": "0.7.5",
         "grunt": "~0.4.2",
+        "grunt-contrib-concat": "~0.3.0",
         "grunt-contrib-uglify": "~0.3.2",
         "grunt-contrib-clean": "~0.4.1",
-        "grunt-contrib-jshint": "~0.8.0",
-        "grunt-contrib-qunit": "~0.5.1",
-        "grunt-node-qunit": "~2.0.2"
+        "grunt-contrib-jshint": "~0.8.0"
     },
     "dependencies": {
         "buffer-dataview": "0.0.2",

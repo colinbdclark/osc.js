@@ -130,8 +130,6 @@ function checkMessageReceived(oscMessage, wss, wsc, assertMessage) {
 
     wss.close();
     wsc.close();
-
-    jqUnit.start();
 }
 
 jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function () {
@@ -146,6 +144,7 @@ jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function 
     var wsc = createWSClient(function (msg) {
         checkMessageReceived(msg, wss, wsc,
             "The message should have been sent to the web socket client.");
+        jqUnit.start();
     });
 
     wsc.on("ready", function () {
@@ -170,6 +169,7 @@ function testRelay(isRaw) {
             checkMessageReceived(msg, wss, wsc,
                 "The message should have been proxied from UDP to the web socket.");
             udpPort.close();
+            jqUnit.start();
         });
     });
 }
@@ -180,6 +180,31 @@ jqUnit.asyncTest("Parsed message relaying between UDP and Web Sockets", function
 
 jqUnit.asyncTest("Raw relaying between UDP and Web Sockets", function () {
     testRelay(true);
+});
+
+jqUnit.asyncTest("Relay closes when first port closes", function () {
+    var firstPort = new osc.UDPPort({
+        localPort: 57121
+    });
+
+    var secondPort = new osc.UDPPort({
+        localPort: 57122
+    });
+
+    var relay = new osc.Relay(firstPort, secondPort);
+    relay.on("close", function () {
+        QUnit.ok(true, "The relay emitted its close event as a result of the first port closing.");
+        jqUnit.start();
+    });
+
+    firstPort.on("ready", function () {
+        secondPort.on("ready", function () {
+            firstPort.close();
+        });
+    });
+
+    firstPort.open();
+    secondPort.open();
 });
 
 

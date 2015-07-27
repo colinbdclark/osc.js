@@ -170,6 +170,10 @@
             that.emit("error", error);
         });
 
+        this.socket.on("close", function () {
+            that.emit("close");
+        });
+
         that.emit("ready");
     };
 

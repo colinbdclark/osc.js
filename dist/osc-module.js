@@ -1158,6 +1158,10 @@ var osc = osc || require("./osc.js"),
 
         this.port1Spec = osc.relayPorts(this.port1, this.port2, this.options);
         this.port2Spec = osc.relayPorts(this.port2, this.port1, this.options);
+
+        // Close the relay if either of its ports are closed.
+        this.port1.on("close", this.close.bind(this));
+        this.port2.on("close", this.close.bind(this));
     };
 
     p.close = function () {

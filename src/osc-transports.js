@@ -124,11 +124,11 @@ var osc = osc || require("./osc.js"),
         return osc.relay(from, to, eventName, sendFnName, o.transform);
     };
 
-
     // Unsupported, non-API function.
     osc.stopRelaying = function (from, relaySpec) {
         from.removeListener(relaySpec.eventName, relaySpec.listener);
     };
+
 
     /**
      * A Relay connects two sources of OSC data together,
@@ -149,7 +149,8 @@ var osc = osc || require("./osc.js"),
         this.listen();
     };
 
-    p = osc.Relay.prototype;
+    p = osc.Relay.prototype = Object.create(EventEmitter.prototype);
+    p.constructor = osc.Relay;
 
     p.open = function () {
         this.port1.open();
@@ -163,11 +164,20 @@ var osc = osc || require("./osc.js"),
 
         this.port1Spec = osc.relayPorts(this.port1, this.port2, this.options);
         this.port2Spec = osc.relayPorts(this.port2, this.port1, this.options);
+
+        // Bind port close listeners to ensure that the relay
+        // will stop forwarding messages if one of its ports close.
+        // Users are still responsible for closing the underlying ports
+        // if necessary.
+        var closeListener = this.close.bind(this);
+        this.port1.on("close", closeListener);
+        this.port2.on("close", closeListener);
     };
 
     p.close = function () {
         osc.stopRelaying(this.port1, this.port1Spec);
         osc.stopRelaying(this.port2, this.port2Spec);
+        this.emit("close", this.port1, this.port2);
     };
 
 

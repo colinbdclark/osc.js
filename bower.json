@@ -11,7 +11,7 @@
         "tests"
     ],
     "dependencies": {
-        "slip.js": ">=1.0.1",
+        "slip.js": "1.0.2",
         "eventEmitter": "4.2.11"
     },
     "devDependencies": {

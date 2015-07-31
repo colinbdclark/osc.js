@@ -136,6 +136,25 @@ oscPort.send({
 });
 ```
 
+##### Using osc.js with Require.js
+```javascript
+// Define your module paths, including osc.js' dependencies.
+// Note: these paths must resolve to wherever you have placed
+// osc.js, slip.js, and eventEmitter in your project.
+require.config({
+    paths: {
+        slip: "../bower_components/slip.js/dist/slip.min",
+        EventEmitter: "../bower_components/eventEmitter/EventEmitter.min",
+        osc: "../bower_components/osc.js/osc-module.min"
+    }
+});
+
+// Load it asynchronously.
+require(["osc"], function (osc) {
+    // Do something with osc.js when it has fully loaded.
+});
+```
+
 ### Web Sockets in Node.js
 
 The <code>osc.WebSocketPort</code> object supports sending and receiving

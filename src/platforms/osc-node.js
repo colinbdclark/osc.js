@@ -129,10 +129,6 @@
     osc.UDPPort = function (options) {
         osc.Port.call(this, options);
 
-        this.options.localAddress = this.options.localAddress || "127.0.0.1";
-        this.options.localPort = this.options.localPort !== undefined ?
-            this.options.localPort : 57121;
-
         this.on("open", this.listen.bind(this));
     };
 
@@ -144,16 +140,19 @@
         this.socket = dgram.createSocket("udp4");
 
         function onBound() {
+            if ( that.options.multicast ) {
+              that.socket.setBroadcast(that.options.multicast);
+              that.socket.setMulticastTTL(that.options.multicastTTL);
+            }
+
+            if ( that.options.broadcast ) {
+              that.socket.setBroadcast(that.options.broadcast);
+            }
+
             that.emit("open", that.socket);
         }
 
-        if (this.options.multicast) {
-            this.socket.setBroadcast(this.options.multicast);
-            this.socket.setMulticastTTL(this.options.multicastTTL);
-            this.socket.bind(this.options.localPort, onBound);
-        } else {
-            this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
-        }
+        this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
     };
 
     p.listen = function () {

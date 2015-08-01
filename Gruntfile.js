@@ -5,6 +5,7 @@ module.exports = function(grunt) {
 
     var files = {
         moduleDeps: [
+            "bower_components/long/dist/Long.js",
             "bower_components/slip.js/src/slip.js",
             "bower_components/eventEmitter/EventEmitter.js"
         ],

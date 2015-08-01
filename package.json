@@ -34,7 +34,7 @@
     },
     "dependencies": {
         "buffer-dataview": "0.0.2",
-        "long": "^2.2.3",
+        "long": "2.2.5",
         "serialport": "1.7.4",
         "slip": "1.0.2",
         "ws": "0.7.2"

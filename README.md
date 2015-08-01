@@ -47,7 +47,7 @@ For stream-based protocols such as serial and TCP, osc.js will take care of SLIP
 Status
 ------
 
-osc.js supports all OSC 1.0 and 1.1 required types. It supports all OSC 1.1 optional types except Int64s ("h"), since JavaScript numbers are represented as IEEE 754 Doubles and thus don't have sufficient precision to represent all 64 bits. Int64 support using Google's long library is planned in the future.
+osc.js supports all OSC 1.0 and 1.1 required and optional types.
 
 How it Works
 ------------
@@ -145,6 +145,7 @@ require.config({
     paths: {
         slip: "../bower_components/slip.js/dist/slip.min",
         EventEmitter: "../bower_components/eventEmitter/EventEmitter.min",
+        long: "../bower_components/long/dist/Long.min",
         osc: "../bower_components/osc.js/osc-module.min"
     }
 });
@@ -403,10 +404,10 @@ Colours are automatically normalized to CSS 3 rgba values (i.e. the alpha channe
 }
 ```
 
-Mapping OSC to JSON
--------------------
+Mapping OSC to JS
+------------------
 
-Here are a few examples showing how OSC packets are mapped to JSON objects by osc.js.
+Here are a few examples showing how OSC packets are mapped to plain JavaScript objects by osc.js.
 
 <table>
     <tr>

@@ -7,6 +7,7 @@
         paths: {
             slip: "../bower_components/slip.js/dist/slip.min",
             EventEmitter: "../bower_components/eventEmitter/EventEmitter.min",
+            long: "../bower_components/long/dist/Long.min",
             osc: "../dist/osc-module.min"
         }
     });

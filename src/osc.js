@@ -5,25 +5,13 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global require, module, Buffer */
+/* global require, module, Buffer, dcodeIO */
 
 var osc = osc || {};
 
 (function () {
 
     "use strict";
-
-    // Private instance of the buffer-dataview object.
-    // Only used if we're in Node.js.
-    var BufferDataView;
-
-    // Check if Long is available globally.
-    var Long;
-    try {
-      Long = dcodeIO.Long;
-    } catch (e) {
-      Long = undefined;
-    }
 
     osc.SECS_70YRS = 2208988800;
     osc.TWO_32 = 4294967296;
@@ -37,6 +25,12 @@ var osc = osc || {};
     // which we will assume are faster.
     // Unsupported, non-API property.
     osc.isBufferEnv = typeof Buffer !== "undefined";
+
+    // Unsupported, non-API property.
+    osc.isCommonJS = typeof module !== "undefined" && module.exports;
+
+    // Unsupported, non-API property.
+    osc.isNode = osc.isCommonJS && typeof window === "undefined";
 
     // Unsupported, non-API function.
     osc.isArray = function (obj) {
@@ -52,6 +46,13 @@ var osc = osc || {};
     osc.isBuffer = function (obj) {
         return osc.isBufferEnv && obj instanceof Buffer;
     };
+
+    // Private instance of the buffer-dataview object.
+    // Only used if we're in Node.js.
+    var BufferDataView = osc.isNode ? require("buffer-dataview") : undefined;
+
+    // Private instance of the optional Long dependency.
+    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long : Long;
 
 
     /**
@@ -239,11 +240,16 @@ var osc = osc || {};
      */
     osc.readInt64 = function (dv, offsetState) {
         var hi = osc.readPrimitive(dv, "getInt32", 4, offsetState),
-            lo = osc.readPrimitive(dv, "getInt32", 4, offsetState);
+            low = osc.readPrimitive(dv, "getInt32", 4, offsetState);
+
         if (Long) {
-            return new Long(hi, lo);
+            return new Long(hi, low);
         } else {
-            return { high: hi, low: lo, unsigned: false }
+            return {
+                high: hi,
+                low: low,
+                unsigned: false
+            };
         }
     };
 
@@ -257,7 +263,7 @@ var osc = osc || {};
     osc.writeInt64 = function (val, dv, offset) {
         var arr = new Uint8Array(8);
         arr.set(osc.writePrimitive(val.high, dv, "setInt32", 4, offset),   0);
-        arr.set(osc.writePrimitive(val.low,  dv, "setInt32", 4, offset+4), 4);
+        arr.set(osc.writePrimitive(val.low,  dv, "setInt32", 4, offset + 4), 4);
         return arr;
     };
 
@@ -969,7 +975,7 @@ var osc = osc || {};
                     arg instanceof ArrayBuffer ||
                     (osc.isBufferEnv && arg instanceof Buffer)) {
                     return "b";
-                } else if (arg instanceof Long) {
+                } else if (arg.high instanceof Number && arg.low instanceof Number) {
                     return "h";
                 }
                 break;
@@ -1006,21 +1012,7 @@ var osc = osc || {};
         return annotated;
     };
 
-
-    // If we're in a require-compatible environment, export ourselves.
-    if (typeof module !== "undefined" && module.exports) {
-
-        // Check if we're in Node.js; if so, require the buffer-dataview library.
-        if (osc.isBufferEnv) {
-            BufferDataView = require("buffer-dataview");
-        }
-
-        // If dcodeIO.Long was not available globally, require it.
-        if (!Long) {
-            Long = require("long");
-        }
-
+    if (osc.isCommonJS) {
         module.exports = osc;
     }
-
 }());

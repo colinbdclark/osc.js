@@ -71,7 +71,9 @@ var osc = osc || {};
     var BufferDataView = osc.isNode ? require("buffer-dataview") : undefined;
 
     // Private instance of the optional Long dependency.
-    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long : Long;
+    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long :
+        typeof Long !== "undefined" ? Long :
+        osc.isNode ? require("long") : undefined;
 
 
     /**

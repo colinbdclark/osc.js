@@ -1,4 +1,4 @@
-/*global require*/
+/*global require, dcodeIO*/
 
 var fluid = fluid || require("infusion"),
     jqUnit = jqUnit || fluid.require("jqUnit"),
@@ -8,6 +8,7 @@ var fluid = fluid || require("infusion"),
     "use strict";
 
     var QUnit = fluid.registerNamespace("QUnit");
+    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long : require("long");
 
     /*************
      * Utilities *
@@ -74,13 +75,6 @@ var fluid = fluid || require("infusion"),
         return togo;
     };
 
-    var arrayEqualRounded = function (actual, expected, numDecimals, msg) {
-        var actualRounded = roundArrayValues(actual, numDecimals),
-            expectedRounded = roundArrayValues(expected, numDecimals);
-
-        arrayEqual(actualRounded, expectedRounded, msg + "\nActual unrounded array: " + actual);
-    };
-
     var roundAllValues = function (obj, numDecimals) {
         var togo = {};
 
@@ -98,12 +92,40 @@ var fluid = fluid || require("infusion"),
         return togo;
     };
 
-    var roundedDeepEqual = function (actual, expected, numDecimals, msg) {
+    var deepEqualRounded = function (actual, expected, numDecimals, msg) {
         var roundedActual = roundAllValues(actual, numDecimals),
             roundedExpected = roundAllValues(expected, numDecimals);
 
         QUnit.deepEqual(roundedActual, roundedExpected, msg = "\nUnrounded actual object was: " +
             JSON.stringify(roundedActual));
+    };
+
+    var isNonNumberPrimitive = function (val) {
+        var type = typeof val;
+
+        return val === null || type === "number" || type === "string" ||
+            type === "undefined";
+    };
+
+    var messageArgumentsEqual = function (actual, expected, numDecimals, msg) {
+        QUnit.equal(actual.length, expected.length, "The arguments should be the expected length.");
+
+        for (var i = 0; i < actual.length; i++) {
+            var actualArg = actual[i];
+            var expectedArg = expected[i];
+
+            var msgTogo = "Argument #" + i + ": " + msg;
+
+            if (typeof actualArg === "number") {
+                equalRoundedTo(actualArg, expectedArg, numDecimals, msgTogo);
+            } else if (isNonNumberPrimitive(actualArg)) {
+                QUnit.equal(actualArg, expectedArg, msgTogo);
+            } else if (typeof actualArg === "object" && typeof actualArg.length === "number") {
+                arrayEqual(actualArg, expectedArg, msgTogo);
+            } else {
+                QUnit.deepEqual(actualArg, expectedArg, msgTogo);
+            }
+        }
     };
 
 
@@ -398,7 +420,7 @@ var fluid = fluid || require("infusion"),
             });
 
             if (expected.raw[0] === 0 && expected.raw[1] === 1) {
-                var tolerance = 150;
+                var tolerance = 250;
                 equalWithinTolerance(actual.native, expected.native,
                     tolerance, "The native time tag should be within " + tolerance +
                     "ms of expected. Difference was: " + (actual.native - expected.native) + "ms.");
@@ -572,12 +594,8 @@ var fluid = fluid || require("infusion"),
                 dv = new DataView(testSpec.rawArgBuffer.buffer),
                 actual = osc.readArguments(dv, false, offsetState);
 
-            if (testSpec.roundToDecimals !== undefined) {
-                arrayEqualRounded(actual, expected, testSpec.roundToDecimals, offsetState);
-            } else {
-                arrayEqual(actual, expected,
-                    "The returned arguments should have the correct values in the correct order.");
-            }
+            messageArgumentsEqual(actual, expected, testSpec.roundToDecimals,
+                "The returned arguments should have the correct values in the correct order.");
         });
     };
 
@@ -668,12 +686,14 @@ var fluid = fluid || require("infusion"),
             name: "every type of arg",
             rawArgBuffer: new Uint8Array([
                 // ",ifsSbtTFNI[ii]dcrm"
-                //44 105 102 115 83 98 116 84 70 78 73 91 105 105 93 100 99 114 109
+                //44 105 102 115 83 98 116 84 70 78 73 91 105 105 93 100 99 114 109 104
                 44, 105, 102, 115,
                 83, 98, 116, 84,
                 70, 78, 73, 91,
                 105, 105, 93, 100,
-                99, 114, 109, 0,
+                99, 114, 109, 104,
+                0, 0, 0, 0,
+
                 // i: 1
                 0, 0, 0, 1,
                 //f: 1.234
@@ -700,10 +720,12 @@ var fluid = fluid || require("infusion"),
                 // {r: 128, g: 64, b: 192, a: 1.0},
                 128, 64, 192, 255,
                 // m: [1, 144, 69, 101] // port id 1 , note on chan 1, C3, velocity 101]
-                1, 144, 69, 101
-
+                1, 144, 69, 101,
+                // h: {low: 0xFFFFFFFF, high: 0x7FFFFFFF}
+                255, 255, 255, 255,
+                127, 255, 255, 255,
             ]),
-            // ",ifsSbtTFNI[ii]dcrm"
+            // ",ifsSbtTFNI[ii]dcrmh"
 
             expected: [
                 1,
@@ -731,7 +753,8 @@ var fluid = fluid || require("infusion"),
                     b: 192,
                     a: 1.0
                 },
-                new Uint8Array([1, 144, 69, 101])
+                new Uint8Array([1, 144, 69, 101]),
+                new Long(0xFFFFFFFF, 0x7FFFFFFF)
             ],
             roundToDecimals: 3
         }
@@ -765,7 +788,7 @@ var fluid = fluid || require("infusion"),
                 msg = "The returned message object should match the raw message data.";
 
             if (testSpec.roundToDecimals !== undefined) {
-                roundedDeepEqual(actual, expected, testSpec.roundToDecimals, msg);
+                deepEqualRounded(actual, expected, testSpec.roundToDecimals, msg);
             } else {
                 QUnit.deepEqual(actual, expected, msg);
             }
@@ -882,7 +905,7 @@ var fluid = fluid || require("infusion"),
         var decoded = osc.readMessage(encoded, {
             metadata: true
         });
-        roundedDeepEqual(decoded, msg, "The message should have been encoded and decoded correctly.");
+        deepEqualRounded(decoded, msg, "The message should have been encoded and decoded correctly.");
     });
 
 
@@ -901,7 +924,7 @@ var fluid = fluid || require("infusion"),
                 };
 
             var actual = osc.readBundle(dv, testSpec.options, offsetState);
-            roundedDeepEqual(actual, expected,
+            deepEqualRounded(actual, expected,
                 "The bundle should have been read correctly.");
             QUnit.equal(offsetState.idx, dv.byteLength,
                 "The offset state should have been adjusted correctly.");

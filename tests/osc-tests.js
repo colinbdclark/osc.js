@@ -122,6 +122,9 @@ var fluid = fluid || require("infusion"),
                 QUnit.equal(actualArg, expectedArg, msgTogo);
             } else if (typeof actualArg === "object" && typeof actualArg.length === "number") {
                 arrayEqual(actualArg, expectedArg, msgTogo);
+            } else if (expectedArg instanceof Long) {
+                QUnit.deepEqual(actualArg, expectedArg, msgTogo + " actual: " +
+                    actualArg.toString() + " expected: " + expectedArg.toString());
             } else {
                 QUnit.deepEqual(actualArg, expectedArg, msgTogo);
             }
@@ -576,21 +579,17 @@ var fluid = fluid || require("infusion"),
     });
 
 
-    /******************
-     * Read Arguments *
-     ******************/
+    /****************************
+     * Read and Write Arguments *
+     ****************************/
 
-    jqUnit.module("readArguments()");
-
-    var testArguments = function (testSpec) {
-        //rawArgBuffer, expected, roundToDecimals, offsetState
-        //testSpec.rawArgBuffer, testSpec.expected, testSpec.roundToDecimals
-        jqUnit.test(testSpec.name, function () {
+    var testReadArguments = function (testSpec) {
+        jqUnit.test("Read " + testSpec.name, function () {
             var offsetState = {
                 idx: 0
             };
 
-            var expected = testSpec.expected,
+            var expected = testSpec.args,
                 dv = new DataView(testSpec.rawArgBuffer.buffer),
                 actual = osc.readArguments(dv, false, offsetState);
 
@@ -599,22 +598,56 @@ var fluid = fluid || require("infusion"),
         });
     };
 
+    var createTypedArguments = function (args, typeTags) {
+        return fluid.transform(args, function (arg, i) {
+            return osc.isArray(arg) ? createTypedArguments(arg, typeTags[i]) :
+                {
+                    type: typeTags[i],
+                    value: arg
+                };
+        });
+    };
+
+    var testWriteArguments = function (testSpec) {
+        jqUnit.test("Write " + testSpec.name, function () {
+            var argsToWrite = createTypedArguments(testSpec.args, testSpec.typeTags);
+
+            var actual = osc.writeArguments(argsToWrite, {
+                metadata: true
+            });
+
+            var expected = testSpec.rawArgBuffer;
+
+            QUnit.deepEqual(osc.byteArray(actual), expected,
+                "The arguments should have been correctly written.");
+        });
+    };
+
     var argumentTestSpecs = [
         {
             name: "single argument",
+
+            typeTags: ["f"],
+
             rawArgBuffer: new Uint8Array([
                 // ",f"
                 0x2c, 0x66, 0, 0,
+
                 // 440
                 0x43, 0xdc, 0, 0
             ]),
-            expected: [440]
+
+            args: [440]
         },
         {
             name: "blob and float",
+
+            typeTags: ["b", "f"],
+
             rawArgBuffer: new Uint8Array([
                 // ",bf"
                 0x2c, 0x62, 0x66, 0,
+
                 // 3
                 0, 0, 0, 3,
                 // blob
@@ -622,16 +655,21 @@ var fluid = fluid || require("infusion"),
                 // 440
                 0x43, 0xdc, 0, 0
             ]),
-            expected: [new Uint8Array([
+
+            args: [new Uint8Array([
                 0x63, 0x61, 0x74,
             ]), 440]
         },
         {
             name: "multiple arguments of the same type",
+
+            typeTags: ["i", "i", "s", "f", "f"],
+
             rawArgBuffer: new Uint8Array([
                 //",iisff"
                 0x2c, 0x69, 0x69, 0x73,
                 0x66, 0x66, 0, 0,
+
                 // 1000
                 0, 0, 0x3, 0xe8,
                 // -1
@@ -644,29 +682,41 @@ var fluid = fluid || require("infusion"),
                 // 5.678
                 0x40, 0xb5, 0xb2, 0x2d
             ]),
-            expected: [1000, -1, "hello", 1.234, 5.678],
+
+            args: [1000, -1, "hello", 1.234, 5.678],
+
             roundToDecimals: 3
         },
         {
             name: "colours",
+
+            typeTags: ["r", "r"],
+
             rawArgBuffer: new Uint8Array([
                 // ,rr
                 44, 114, 114, 0,
+
                 // White color
                 255, 255, 255, 0,
                 // Green color rba(255, 255, 255, 0.3)
-                0, 255, 0, 77,
-                // Some junk
-                255, 128, 64, 12
+                0, 255, 0, 77
             ]),
-            expected: [{r: 255, g: 255, b: 255, a: 0}, {r: 0, g: 255, b: 0, a: 77 / 255}]
+
+            args: [
+                {r: 255, g: 255, b: 255, a: 0},
+                {r: 0, g: 255, b: 0, a: 77 / 255}
+            ]
         },
         {
             name: "arrays",
+
+            typeTags: ["s", ["r", "r"], "i"],
+
             rawArgBuffer: new Uint8Array([
                 // ,s[rr]i
                 44, 115, 91, 114,
                 114, 93, 105, 0,
+
                 // "cat",
                 99, 97, 116, 0,
                 // White color
@@ -676,16 +726,26 @@ var fluid = fluid || require("infusion"),
                 // #42
                 0, 0, 0, 42
             ]),
-            expected: [
+
+            args: [
                 "cat",
-                [{r: 255, g: 255, b: 255, a: 0}, {r: 0, g: 255, b: 0, a: 77 / 255}],
+                [
+                    {r: 255, g: 255, b: 255, a: 0},
+                    {r: 0, g: 255, b: 0, a: 77 / 255}
+                ],
                 42
             ]
         },
         {
             name: "every type of arg",
+
+            typeTags: [
+                "i", "f", "s", "S", "b", "t", "T", "F", "N", "I",
+                ["i", "i"], "d", "c", "r", "m", "h"
+            ],
+
             rawArgBuffer: new Uint8Array([
-                // ",ifsSbtTFNI[ii]dcrm"
+                // ",ifsSbtTFNI[ii]dcrmh"
                 //44 105 102 115 83 98 116 84 70 78 73 91 105 105 93 100 99 114 109 104
                 44, 105, 102, 115,
                 83, 98, 116, 84,
@@ -721,13 +781,12 @@ var fluid = fluid || require("infusion"),
                 128, 64, 192, 255,
                 // m: [1, 144, 69, 101] // port id 1 , note on chan 1, C3, velocity 101]
                 1, 144, 69, 101,
-                // h: {low: 0xFFFFFFFF, high: 0x7FFFFFFF}
-                255, 255, 255, 255,
+                // h: {high: 0x7FFFFFFF, low: 0xFFFFFFFF} 9223372036854775807
                 127, 255, 255, 255,
+                255, 255, 255, 255
             ]),
-            // ",ifsSbtTFNI[ii]dcrmh"
 
-            expected: [
+            args: [
                 1,
                 1.234,
                 "cat",
@@ -754,20 +813,24 @@ var fluid = fluid || require("infusion"),
                     a: 1.0
                 },
                 new Uint8Array([1, 144, 69, 101]),
-                new Long(0xFFFFFFFF, 0x7FFFFFFF)
+                new Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
             ],
             roundToDecimals: 3
         }
     ];
 
-    var readArgumentsTests = function (testSpecs) {
+    var testArguments = function (testSpecs, tester) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            testArguments(testSpec);
+            tester(testSpec);
         }
     };
 
-    readArgumentsTests(argumentTestSpecs);
+    jqUnit.module("readArguments()");
+    testArguments(argumentTestSpecs, testReadArguments);
+
+    jqUnit.module("writeArguments()");
+    testArguments(argumentTestSpecs, testWriteArguments);
 
 
     /************

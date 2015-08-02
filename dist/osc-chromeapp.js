@@ -243,14 +243,14 @@ var osc = osc || {};
      * @return {Number} the number that was read
      */
     osc.readInt64 = function (dv, offsetState) {
-        var hi = osc.readPrimitive(dv, "getInt32", 4, offsetState),
+        var high = osc.readPrimitive(dv, "getInt32", 4, offsetState),
             low = osc.readPrimitive(dv, "getInt32", 4, offsetState);
 
         if (Long) {
-            return new Long(hi, low);
+            return new Long(low, high);
         } else {
             return {
-                high: hi,
+                high: high,
                 low: low,
                 unsigned: false
             };
@@ -266,7 +266,7 @@ var osc = osc || {};
      */
     osc.writeInt64 = function (val, dv, offset) {
         var arr = new Uint8Array(8);
-        arr.set(osc.writePrimitive(val.high, dv, "setInt32", 4, offset),   0);
+        arr.set(osc.writePrimitive(val.high, dv, "setInt32", 4, offset), 0);
         arr.set(osc.writePrimitive(val.low,  dv, "setInt32", 4, offset + 4), 4);
         return arr;
     };
@@ -689,6 +689,35 @@ var osc = osc || {};
         dataCollection.byteLength += dataPart.length;
     };
 
+    osc.writeArrayArguments = function (args, dataCollection) {
+        var typeTag = "[";
+
+        for (var i = 0; i < args.length; i++) {
+            var arg = args[i];
+            typeTag += osc.writeArgument(arg, dataCollection);
+        }
+
+        typeTag += "]";
+
+        return typeTag;
+    };
+
+    osc.writeArgument = function (arg, dataCollection) {
+        if (osc.isArray(arg)) {
+            return osc.writeArrayArguments(arg, dataCollection);
+        }
+
+        var type = arg.type,
+            writer = osc.argumentTypes[type].writer;
+
+        if (writer) {
+            var data = osc[writer](arg.value);
+            osc.addDataPart(data, dataCollection);
+        }
+
+        return arg.type;
+    };
+
     // Unsupported, non-API function.
     osc.collectArguments = function (args, options, dataCollection) {
         if (!osc.isArray(args)) {
@@ -708,15 +737,8 @@ var osc = osc || {};
             currPartIdx = dataCollection.parts.length;
 
         for (var i = 0; i < args.length; i++) {
-            var arg = args[i],
-                type = arg.type,
-                writer = osc.argumentTypes[type].writer;
-
-            typeTagString += arg.type;
-            if (writer) {
-                var data = osc[writer](arg.value);
-                osc.addDataPart(data, dataCollection);
-            }
+            var arg = args[i];
+            typeTagString += osc.writeArgument(arg, dataCollection);
         }
 
         var typeData = osc.writeString(typeTagString);

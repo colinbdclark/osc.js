@@ -478,3 +478,28 @@ License
 -------
 
 osc.js is written by Colin Clark and distributed under the MIT and GPL 3 licenses.
+
+Contributing to osc.js
+----------------------
+
+Contributions and pull requests to osc.js are hugely appreciated. Wherever possible, all fixes and new features should be accompanied by unit tests to help verify that they work and avoid regressions. When new features are introduced, a pull request to the [osc.js-examples repository](https://github.com/colinbdclark/osc.js-examples) with an example of how to use it is also appreciated.
+
+Code should follow the style conventions of the project (such as they are), which can be automatically validated using JSHint by running <code>grunt jshint</code>.
+
+Currently, the project is maintained by one person; sometimes it will take a bit of time to respond, review, and merge contributions. Help with bug triage, code reviews, testing, and examples is also welcome.
+
+## How to Build and Test Your Contributions
+
+osc.js depends on npm, bower, and Grunt. Make sure you have these installed, and then run the following commands to fetch all necessary dependencies:
+
+    npm install
+    bower install
+
+To lint and generate builds from new source code:
+
+    grunt
+
+Running unit tests:
+
+1. To run the Node.js unit tests, run <code>node tests/node-all-tests.js</code>
+2. In the browser, open <code>tests/all-tests.html</code>

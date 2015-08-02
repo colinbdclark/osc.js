@@ -1,5 +1,5 @@
 {
-    "white": false,
+    "white": true,
     "newcap": true,
     "regexp": true,
     "browser": true,

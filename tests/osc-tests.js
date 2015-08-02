@@ -438,7 +438,7 @@ var fluid = fluid || require("infusion"),
             timeTagBytes: new Uint8Array([
                 // [3608146800, 2147483648]
                 215, 15, 243, 112,
-                128, 0, 0 , 0
+                128, 0, 0, 0
             ]),
             timeTag: {
                 raw: [3608146800, 4294967296 / 2],
@@ -588,7 +588,7 @@ var fluid = fluid || require("infusion"),
                 // ",f"
                 0x2c, 0x66, 0, 0,
                 // 440
-                0x43, 0xdc, 0 , 0
+                0x43, 0xdc, 0, 0
             ]),
             expected: [440]
         },
@@ -602,7 +602,7 @@ var fluid = fluid || require("infusion"),
                 // blob
                 0x63, 0x61, 0x74, 0,
                 // 440
-                0x43, 0xdc, 0 , 0
+                0x43, 0xdc, 0, 0
             ]),
             expected: [new Uint8Array([
                 0x63, 0x61, 0x74,

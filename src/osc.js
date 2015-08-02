@@ -634,7 +634,7 @@ var osc = osc || {};
                     endArrayIdx = fromArrayOpen.indexOf("]");
 
                 if (endArrayIdx < 0) {
-                    throw new Error("Invalid argument type tag: an open array type tag ('[') was found "+
+                    throw new Error("Invalid argument type tag: an open array type tag ('[') was found " +
                         "without a matching close array tag ('[]'). Type tag was: " + typeTagString);
                 }
 

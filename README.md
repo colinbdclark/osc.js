@@ -77,7 +77,7 @@ OSC messages over Web Sockets.
     </tr>
     <tr>
         <td>url</td>
-        <td>The Web Socket URL to connect to (_required for clients_)</td>
+        <td>The Web Socket URL to connect to (required for clients)</td>
         <td>none</td>
     </tr>
 </table>
@@ -171,12 +171,12 @@ OSC messages over Web Sockets.
     </tr>
     <tr>
         <td>url</td>
-        <td>The Web Socket URL to connect to (_required for clients_)</td>
+        <td>The Web Socket URL to connect to (required for clients)</td>
         <td>none</td>
     </tr>
     <tr>
         <td>socket</td>
-        <td>A Web Socket instance to bind to (_required for servers_)</td>
+        <td>A Web Socket instance to bind to (required for servers)</td>
         <td>none</td>
     </tr>
 </table>
@@ -226,22 +226,22 @@ OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
     </tr>
     <tr>
         <td>localPort</td>
-        <td>The port to listen on (_required for UDP servers_)</td>
+        <td>The port to listen on (required for UDP servers)</td>
         <td>57121</td>
     </tr>
     <tr>
          <td>localAddress</td>
-         <td>The local address to bind to; will be ignored in the case of multicast UDP (_required for UDP servers_)</td>
+         <td>The local address to bind to; will be ignored in the case of multicast UDP (required for UDP servers)</td>
          <td>"127.0.0.1"</td>
     </tr>
     <tr>
         <td>remotePort</td>
-        <td>The port to send messages on (_optional_)</td>
+        <td>The remote port to send messages to (optional)</td>
         <td>none</td>
     </tr>
     <tr>
         <td>remoteAddress</td>
-        <td>The address to send messages to (_optional_)</td>
+        <td>The remote address to send messages to (optional)</td>
         <td>none</td>
     </tr>
     <tr>

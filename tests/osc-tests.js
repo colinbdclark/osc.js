@@ -1,3 +1,12 @@
+/*
+ * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
+ *
+ * Core osc.js Tests
+ *
+ * Copyright 2014-2015, Colin Clark
+ * Licensed under the MIT and GPL 3 licenses.
+ */
+
 /*global require, dcodeIO*/
 
 var fluid = fluid || require("infusion"),

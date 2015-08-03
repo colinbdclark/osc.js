@@ -477,7 +477,7 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
 License
 -------
 
-osc.js is written by Colin Clark and distributed under the MIT and GPL 3 licenses.
+osc.js is maintained by Colin Clark and distributed under the MIT and GPL 3 licenses.
 
 Contributing to osc.js
 ----------------------
@@ -503,3 +503,10 @@ Running unit tests:
 
 1. To run the Node.js unit tests, run <code>node tests/node-all-tests.js</code>
 2. In the browser, open <code>tests/all-tests.html</code>
+
+Contributors
+------------
+
+ * @colinbdclark wrote the core.
+ * @jacoscaz and @xseignard fixed bugs.
+ * @egasmus added support for 64-bit integers.

@@ -133,6 +133,10 @@
         this.options.localPort = this.options.localPort !== undefined ?
             this.options.localPort : 57121;
 
+        this.options.remoteAddress = this.options.remoteAddress || "127.0.0.1";
+        this.options.remotePort = this.options.remotePort !== undefined ?
+            this.options.remotePort : 57121;
+
         this.on("open", this.listen.bind(this));
     };
 

@@ -129,6 +129,10 @@
     osc.UDPPort = function (options) {
         osc.Port.call(this, options);
 
+        this.options.localAddress = this.options.localAddress || "127.0.0.1";
+        this.options.localPort = this.options.localPort !== undefined ?
+            this.options.localPort : 57121;
+
         this.on("open", this.listen.bind(this));
     };
 

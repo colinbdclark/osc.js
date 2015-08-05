@@ -493,6 +493,7 @@ Currently, the project is maintained by one person; sometimes it will take a bit
 osc.js depends on npm, bower, and Grunt. Make sure you have these installed, and then run the following commands to fetch all necessary dependencies:
 
     npm install
+    grunt dedupe-infusion
     bower install
 
 To lint and generate builds from new source code:

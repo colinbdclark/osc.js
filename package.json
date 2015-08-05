@@ -39,8 +39,5 @@
         "serialport": "1.7.4",
         "slip": "1.0.2",
         "ws": "0.7.2"
-    },
-    "scripts": {
-        "postinstall": "grunt dedupe-infusion"
     }
 }

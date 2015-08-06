@@ -58,26 +58,33 @@ jqUnit.asyncTest("Send a message via a UDP socket", function () {
     });
 });
 
-jqUnit.asyncTest("Send a multicast message via a UDP socket", function() {
+jqUnit.asyncTest("Send a multicast message via a UDP socket", function () {
     var oscUDP = createUDPServer(function (msg) {
         QUnit.deepEqual(msg, testMessage,
             "The message should have been sent to the web socket.");
         oscUDP.close();
         jqUnit.start();
-    }, { multicast: true, multicastTTL: 2 } );
+    }, {
+        multicast: true,
+        multicastTTL: 2
+    });
 
     oscUDP.on("ready", function () {
         oscUDP.send(testMessage);
     });
 });
 
-jqUnit.asyncTest("Send a broadcast message via a UDP socket", function() {
+jqUnit.asyncTest("Send a broadcast message via a UDP socket", function () {
     var oscUDP = createUDPServer(function (msg) {
         QUnit.deepEqual(msg, testMessage,
             "The message should have been sent to the web socket.");
         oscUDP.close();
         jqUnit.start();
-    }, { broadcast: true, localAddress: '0.0.0.0', remoteAddress: "255.255.255.255" } );
+    }, {
+        broadcast: true,
+        localAddress: "0.0.0.0",
+        remoteAddress: "255.255.255.255"
+    });
 
     oscUDP.on("ready", function () {
         oscUDP.send(testMessage);

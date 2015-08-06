@@ -31,8 +31,6 @@ var testMessage = {
 
 function createUDPServer(onMessage, o) {
     o = o || {};
-    o.localAddress = o.remoteAddress = "127.0.0.1";
-    o.localPort = o.remotePort = 57121;
 
     var oscUDP = new osc.UDPPort(o);
 
@@ -54,6 +52,32 @@ jqUnit.asyncTest("Send a message via a UDP socket", function () {
         oscUDP.close();
         jqUnit.start();
     });
+
+    oscUDP.on("ready", function () {
+        oscUDP.send(testMessage);
+    });
+});
+
+jqUnit.asyncTest("Send a multicast message via a UDP socket", function() {
+    var oscUDP = createUDPServer(function (msg) {
+        QUnit.deepEqual(msg, testMessage,
+            "The message should have been sent to the web socket.");
+        oscUDP.close();
+        jqUnit.start();
+    }, { multicast: true, multicastTTL: 2 } );
+
+    oscUDP.on("ready", function () {
+        oscUDP.send(testMessage);
+    });
+});
+
+jqUnit.asyncTest("Send a broadcast message via a UDP socket", function() {
+    var oscUDP = createUDPServer(function (msg) {
+        QUnit.deepEqual(msg, testMessage,
+            "The message should have been sent to the web socket.");
+        oscUDP.close();
+        jqUnit.start();
+    }, { broadcast: true, localAddress: '0.0.0.0', remoteAddress: "255.255.255.255" } );
 
     oscUDP.on("ready", function () {
         oscUDP.send(testMessage);

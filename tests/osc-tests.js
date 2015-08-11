@@ -522,6 +522,13 @@ var fluid = fluid || require("infusion"),
 
         actual = osc.timeTag(-0.01);
         expected = Date.now() - 10;
+        testTimeTag(actual, expected);
+    });
+
+    jqUnit.test("osc.timeTag relative to provided time", function () {
+        var actual = osc.timeTag(0, Date.parse("2015-01-01"))
+          , expected = Date.parse("2015-01-01");
+        testTimeTag(actual, expected);
     });
 
 

@@ -474,12 +474,14 @@ var osc = osc || {};
      * relative to now by the specified number of seconds.
      *
      * @param {Number} secs the number of seconds relative to now (i.e. + for the future, - for the past)
+     * @param {Number} now the number of milliseconds since epoch to use as the current time. Defaults to Date.now()
      * @return {Object} the time tag
      */
-    osc.timeTag = function (secs) {
+    osc.timeTag = function (secs, now) {
         secs = secs || 0;
+        now = now || Date.now();
 
-        var nowSecs = Date.now() / 1000,
+        var nowSecs = now / 1000,
             nowWhole = Math.floor(nowSecs),
             nowFracs = nowSecs - nowWhole,
             secsWhole = Math.floor(secs),

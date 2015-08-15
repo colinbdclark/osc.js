@@ -387,8 +387,8 @@ OSC messages over a <code>chrome.sockets.udp</code> socket. It also supports bro
         <td>none</td>
     </tr>
     <tr>
-        <td>socket</td>
-        <td>A raw dgram.Socket to use instead of osc.js creating one for you; if supplied, it is your job to configure and bind it appropriately</td>
+        <td>socketId</td>
+        <td>The id of an existing socket to use instead of osc.js creating one for you; if supplied, it is your job to configure and bind it appropriately</td>
         <td>none</td>
     </tr>
 </table>

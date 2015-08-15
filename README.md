@@ -582,3 +582,4 @@ Contributors
  * @colinbdclark wrote the core.
  * @jacoscaz and @xseignard fixed bugs.
  * @egasmus added support for 64-bit integers.
+ * @heisters contributed fixes for broadcast and multicast UDP on Node.js.

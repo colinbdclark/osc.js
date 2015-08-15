@@ -58,6 +58,11 @@
         this.on("open", this.listen.bind(this));
         osc.SLIPPort.call(this, options);
         this.options.bitrate = this.options.bitrate || 9600;
+
+        this.serialPort = options.serialPort;
+        if (this.serialPort) {
+            this.emit("open", this.serialPort);
+        }
     };
 
     var p = osc.SerialPort.prototype = Object.create(osc.SLIPPort.prototype);
@@ -135,7 +140,16 @@
         this.options.localPort = this.options.localPort !== undefined ?
             this.options.localPort : 57121;
 
+        this.options.remoteAddress = this.options.remoteAddress || "127.0.0.1";
+        this.options.remotePort = this.options.remotePort !== undefined ?
+            this.options.remotePort : 57121;
+
         this.on("open", this.listen.bind(this));
+
+        this.socket = options.socket;
+        if (this.socket) {
+            this.emit("open", this.socket);
+        }
     };
 
     p = osc.UDPPort.prototype = Object.create(osc.Port.prototype);
@@ -143,19 +157,24 @@
 
     p.open = function () {
         var that = this;
+
+        if (this.socket) {
+            return;
+        }
+
         this.socket = dgram.createSocket("udp4");
 
         function onBound() {
+            osc.UDPPort.setupMulticast(that);
+
+            if (that.options.broadcast) {
+                that.socket.setBroadcast(that.options.broadcast);
+            }
+
             that.emit("open", that.socket);
         }
 
-        if (this.options.multicast) {
-            this.socket.setBroadcast(this.options.multicast);
-            this.socket.setMulticastTTL(this.options.multicastTTL);
-            this.socket.bind(this.options.localPort, onBound);
-        } else {
-            this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
-        }
+        this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
     };
 
     p.listen = function () {
@@ -181,7 +200,8 @@
 
     p.sendRaw = function (encoded, address, port) {
         if (!this.socket) {
-            return;
+            this.emit("error", new Error(
+                "Can't send an OSC packet on a closed socket. Call open() on this osc.Port first."));
         }
 
         var length = encoded.byteLength !== undefined ? encoded.byteLength : encoded.length,
@@ -200,6 +220,26 @@
     p.close = function () {
         if (this.socket) {
             this.socket.close();
+        }
+    };
+
+    osc.UDPPort.setupMulticast = function (that) {
+        if (that.options.multicastTTL !== undefined) {
+            that.socket.setMulticastTTL(that.options.multicastTTL);
+        }
+
+        if (that.options.multicastMembership) {
+            if (typeof that.options.multicastMembership === "string") {
+                that.options.multicastMembership = [that.options.multicastMembership];
+            }
+
+            that.options.multicastMembership.forEach(function (addr) {
+                if (typeof addr === "string") {
+                  that.socket.addMembership(addr);
+                } else {
+                  that.socket.addMembership(addr.address, addr.interface);
+                }
+            });
         }
     };
 

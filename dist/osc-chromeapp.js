@@ -2867,13 +2867,25 @@ var osc = osc;
     osc.WebSocketPort = function (options) {
         osc.Port.call(this, options);
         this.on("open", this.listen.bind(this));
+
+        this.socket = options.socket;
+        if (this.socket) {
+            if (this.socket.readyState === 1) {
+                this.emit("open", this.socket);
+            } else {
+                this.open();
+            }
+        }
     };
 
     var p = osc.WebSocketPort.prototype = Object.create(osc.Port.prototype);
     p.constructor = osc.WebSocketPort;
 
     p.open = function () {
-        this.socket = new WebSocket(this.options.url);
+        if (!this.socket) {
+            this.socket = new WebSocket(this.options.url);
+        }
+
         this.socket.binaryType = "arraybuffer";
 
         var that = this;
@@ -2951,6 +2963,11 @@ var osc = osc || {};
     osc.SerialPort = function (options) {
         this.on("open", this.listen.bind(this));
         osc.SLIPPort.call(this, options);
+
+        this.connectionId = this.options.connectionId;
+        if (this.connectionId) {
+            this.emit("open", this.connectionId);
+        }
     };
 
     var p = osc.SerialPort.prototype = Object.create(osc.SLIPPort.prototype);
@@ -3005,12 +3022,21 @@ var osc = osc || {};
         o.localPort = o.localPort !== undefined ? o.localPort : 57121;
 
         this.on("open", this.listen.bind(this));
+
+        this.socketId = o.socketId;
+        if (this.socketId) {
+            this.emit("open", 0);
+        }
     };
 
     p = osc.UDPPort.prototype = Object.create(osc.Port.prototype);
     p.constructor = osc.UDPPort;
 
     p.open = function () {
+        if (this.socketId) {
+            return;
+        }
+
         var o = this.options,
             props = {
                 persistent: o.persistent,
@@ -3029,6 +3055,26 @@ var osc = osc || {};
         var that = this,
             o = this.options;
 
+        if (o.broadcast !== undefined) {
+            chrome.sockets.udp.setBroadcast(this.socketId, o.broadcast, function (resultCode) {
+                if (resultCode < 0) {
+                    that.emit("error",
+                        new Error("An error occurred while setting the socket's broadcast flag. Result code: " +
+                            resultCode));
+                }
+            });
+        }
+
+        if (o.multicastTTL !== undefined) {
+            chrome.sockets.udp.setMulticastTimeToLive(this.socketId, o.multicastTTL, function (resultCode) {
+                if (resultCode < 0) {
+                    that.emit("error",
+                        new Error("An error occurred while setting the socket's multicast time to live flag. " +
+                            "Result code: " + resultCode));
+                }
+            });
+        }
+
         chrome.sockets.udp.bind(this.socketId, o.localAddress, o.localPort, function (resultCode) {
             if (resultCode > 0) {
                 osc.emitNetworkError(that, resultCode);
@@ -3040,7 +3086,25 @@ var osc = osc || {};
     };
 
     p.listen = function () {
+        var o = this.options;
+
         osc.listenToTransport(this, chrome.sockets.udp, "socketId");
+
+        if (o.multicastMembership) {
+            if (typeof o.multicastMembership === "string") {
+              o.multicastMembership = [o.multicastMembership];
+            }
+
+            o.multicastMembership.forEach(function (addr) {
+                chrome.sockets.udp.joinGroup(this.socketId, addr, function (resultCode) {
+                    if (resultCode < 0) {
+                        this.emit("error", new Error(
+                            "There was an error while trying to join the multicast group " +
+                            addr + ". Result code: " + resultCode));
+                    }
+                });
+            });
+        }
     };
 
     p.sendRaw = function (encoded, address, port) {

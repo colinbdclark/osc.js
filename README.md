@@ -80,9 +80,16 @@ OSC messages over Web Sockets.
         <td>The Web Socket URL to connect to (required for clients)</td>
         <td>none</td>
     </tr>
+    <tr>
+        <td>socket</td>
+        <td>A Web Socket instance to bind to (optional); if supplied, it is your job to configure and open it appropriately</td>
+        <td>none</td>
+    </tr>
 </table>
 
 #### Sample Code
+
+_More code examples showing how osc.js can be used in browser-based, Node.js, and Chrome App applications can be found in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples)._
 
 ##### Including osc.js in your HTML page:
 ```html
@@ -176,7 +183,7 @@ OSC messages over Web Sockets.
     </tr>
     <tr>
         <td>socket</td>
-        <td>A Web Socket instance to bind to (required for servers)</td>
+        <td>A Web Socket instance to bind to (required for servers, optional for clients); if supplied, it is your job to configure and open it appropriately</td>
         <td>none</td>
     </tr>
 </table>
@@ -214,7 +221,7 @@ wss.on("connection", function (socket) {
 ### UDP in Node.js
 
 The <code>osc.UDPPort</code> object supports the sending and receiving of
-OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
+OSC messages over Node.js's UDP sockets. It also supports broadcast and multicast UDP.
 
 #### Options
 
@@ -226,12 +233,12 @@ OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
     </tr>
     <tr>
         <td>localPort</td>
-        <td>The port to listen on (required for UDP servers)</td>
+        <td>The port to listen on</td>
         <td>57121</td>
     </tr>
     <tr>
          <td>localAddress</td>
-         <td>The local address to bind to; will be ignored in the case of multicast UDP (required for UDP servers)</td>
+         <td>The local address to bind to</td>
          <td>"127.0.0.1"</td>
     </tr>
     <tr>
@@ -245,13 +252,23 @@ OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
         <td>none</td>
     </tr>
     <tr>
-        <td>multicast</td>
-        <td>A flag determining whether to use multicast mode</td>
+        <td>broadcast</td>
+        <td>A flag specifying if messages should be sent via UDP broadcast</td>
         <td>false</td>
     </tr>
     <tr>
         <td>multicastTTL</td>
-        <td>The time to live (number of hops) fora multicast connection</td>
+        <td>The time to live (number of hops) for a multicast connection (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>multicastMembership</td>
+        <td>An array of multicast addresses to join when listening for multicast messages (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>socket</td>
+        <td>A raw dgram.Socket to use instead of osc.js creating one for you; if supplied, it is your job to configure and bind it appropriately</td>
         <td>none</td>
     </tr>
 </table>
@@ -321,7 +338,61 @@ serialPort.on("message", function (oscMsg) {
 serialPort.open();
 ```
 
-More code examples showing how osc.js can be used in browser-based, Node.js, and Chrome App applications can be found in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+### UDP in a Chrome App
+
+The <code>osc.UDPPort</code> object supports the sending and receiving of
+OSC messages over a <code>chrome.sockets.udp</code> socket. It also supports broadcast and multicast UDP.
+
+#### Options
+
+<table>
+    <tr>
+        <th>Property</th>
+        <th>Description</th>
+        <th>Default Value</th>
+    </tr>
+    <tr>
+        <td>localPort</td>
+        <td>The port to listen on</td>
+        <td>57121</td>
+    </tr>
+    <tr>
+         <td>localAddress</td>
+         <td>The local address to bind to</td>
+         <td>"127.0.0.1"</td>
+    </tr>
+    <tr>
+        <td>remotePort</td>
+        <td>The remote port to send messages to (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>remoteAddress</td>
+        <td>The remote address to send messages to (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>broadcast</td>
+        <td>A flag specifying if messages should be sent via UDP broadcast</td>
+        <td>false</td>
+    </tr>
+    <tr>
+        <td>multicastTTL</td>
+        <td>The time to live (number of hops) for a multicast connection (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>multicastMembership</td>
+        <td>An array of multicast addresses to join when listening for multicast messages (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>socketId</td>
+        <td>The id of an existing socket to use instead of osc.js creating one for you; if supplied, it is your job to configure and bind it appropriately</td>
+        <td>none</td>
+    </tr>
+</table>
+
 
 The osc.js Low-Level API
 ------------------------

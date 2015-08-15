@@ -98,7 +98,7 @@ var osc = osc || {};
 
         this.on("open", this.listen.bind(this));
 
-        this.socketID = o.socketID;
+        this.socketId = o.socketId;
         if (this.socketId) {
             this.emit("open", 0);
         }
@@ -130,6 +130,26 @@ var osc = osc || {};
         var that = this,
             o = this.options;
 
+        if (o.broadcast !== undefined) {
+            chrome.sockets.udp.setBroadcast(this.socketId, o.broadcast, function (resultCode) {
+                if (resultCode < 0) {
+                    that.emit("error",
+                        new Error("An error occurred while setting the socket's broadcast flag. Result code: " +
+                            resultCode));
+                }
+            });
+        }
+
+        if (o.multicastTTL !== undefined) {
+            chrome.sockets.udp.setMulticastTimeToLive(this.socketId, o.multicastTTL, function (resultCode) {
+                if (resultCode < 0) {
+                    that.emit("error",
+                        new Error("An error occurred while setting the socket's multicast time to live flag. " +
+                            "Result code: " + resultCode));
+                }
+            });
+        }
+
         chrome.sockets.udp.bind(this.socketId, o.localAddress, o.localPort, function (resultCode) {
             if (resultCode > 0) {
                 osc.emitNetworkError(that, resultCode);
@@ -141,7 +161,25 @@ var osc = osc || {};
     };
 
     p.listen = function () {
+        var o = this.options;
+
         osc.listenToTransport(this, chrome.sockets.udp, "socketId");
+
+        if (o.multicastMembership) {
+            if (typeof o.multicastMembership === "string") {
+              o.multicastMembership = [o.multicastMembership];
+            }
+
+            o.multicastMembership.forEach(function (addr) {
+                chrome.sockets.udp.joinGroup(this.socketId, addr, function (resultCode) {
+                    if (resultCode < 0) {
+                        this.emit("error", new Error(
+                            "There was an error while trying to join the multicast group " +
+                            addr + ". Result code: " + resultCode));
+                    }
+                });
+            });
+        }
     };
 
     p.sendRaw = function (encoded, address, port) {

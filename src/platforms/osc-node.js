@@ -230,15 +230,15 @@
 
         if (that.options.multicastMembership) {
             if (typeof that.options.multicastMembership === "string") {
-              that.options.multicastMembership = [that.options.multicastMembership];
+                that.options.multicastMembership = [that.options.multicastMembership];
             }
 
             that.options.multicastMembership.forEach(function (addr) {
-              if (typeof addr === "string") {
+                if (typeof addr === "string") {
                   that.socket.addMembership(addr);
-              } else {
+                } else {
                   that.socket.addMembership(addr.address, addr.interface);
-              }
+                }
             });
         }
     };

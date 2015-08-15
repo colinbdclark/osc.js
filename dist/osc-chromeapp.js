@@ -1,4 +1,4 @@
-/*! osc.js 1.2.1, Copyright 2015 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 1.3.0, Copyright 2015 Colin Clark | github.com/colinbdclark/osc.js */
 
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js

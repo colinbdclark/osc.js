@@ -20,7 +20,7 @@ var QUnit = fluid.registerNamespace("QUnit");
 
 jqUnit.module("Node.js transport tests");
 
-var testMessage = {
+var testOSCMessage = {
     address: "/test/freq",
     args: [440]
 };
@@ -29,7 +29,7 @@ var testMessage = {
 * UDP Tests *
 *************/
 
-function createUDPServer(onMessage, o) {
+function createUDPReceiver(onMessage, o) {
     o = o || {};
 
     var oscUDP = new osc.UDPPort(o);
@@ -45,50 +45,84 @@ function createUDPServer(onMessage, o) {
     return oscUDP;
 }
 
-jqUnit.asyncTest("Send a message via a UDP socket", function () {
-    var oscUDP = createUDPServer(function (msg) {
-        QUnit.deepEqual(msg, testMessage,
-            "The message should have been sent to the web socket.");
-        oscUDP.close();
-        jqUnit.start();
-    });
+function testReadUDP(msg, receiverOptions, senderOptions) {
+    if (!receiverOptions) {
+        receiverOptions = {
+            localAddress: "127.0.0.1",
+            localPort: 57121
+        };
+    }
 
-    oscUDP.on("ready", function () {
-        oscUDP.send(testMessage);
+    if (!senderOptions) {
+        senderOptions = {
+            localAddress: "127.0.0.1",
+            localPort: 57122,
+            remoteAddress: "127.0.0.1",
+            remotePort: 57121
+        };
+    }
+
+    var receiverPort,
+        senderPort;
+
+    var receiveFn = function (receivedOSCMessage) {
+        QUnit.deepEqual(receivedOSCMessage, testOSCMessage, msg);
+        receiverPort.close();
+        senderPort.close();
+        jqUnit.start();
+    };
+
+    receiverPort = createUDPReceiver(receiveFn, receiverOptions);
+    senderPort = new osc.UDPPort(senderOptions);
+    senderPort.open();
+
+    // TODO: When Ports support Promises, make sure that this
+    // only executes after both Ports are ready.
+    receiverPort.on("ready", function () {
+        senderPort.send(testOSCMessage);
     });
+}
+
+jqUnit.asyncTest("Send a message via a UDP socket", function () {
+    testReadUDP("The message should have been sent and received successfully.");
 });
 
 jqUnit.asyncTest("Send a multicast message via a UDP socket", function () {
-    var oscUDP = createUDPServer(function (msg) {
-        QUnit.deepEqual(msg, testMessage,
-            "The message should have been sent to the web socket.");
-        oscUDP.close();
-        jqUnit.start();
-    }, {
-        multicast: true,
-        multicastTTL: 2
-    });
+    var receiverOptions = {
+        localAddress: "0.0.0.0",
+        localPort: 57121,
+        multicastMembership: ["239.255.255.250"]
+    };
 
-    oscUDP.on("ready", function () {
-        oscUDP.send(testMessage);
-    });
+    var senderOptions = {
+        multicastTTL: 2,
+        localAddress: "0.0.0.0",
+        localPort: 57122,
+        remoteAddress: "239.255.255.250",
+        remotePort: 57121
+    };
+
+    testReadUDP("The message should have been sent and received successfully when multicast is enabled.",
+        receiverOptions, senderOptions);
 });
 
 jqUnit.asyncTest("Send a broadcast message via a UDP socket", function () {
-    var oscUDP = createUDPServer(function (msg) {
-        QUnit.deepEqual(msg, testMessage,
-            "The message should have been sent to the web socket.");
-        oscUDP.close();
-        jqUnit.start();
-    }, {
+    var receiverOptions = {
         broadcast: true,
         localAddress: "0.0.0.0",
-        remoteAddress: "255.255.255.255"
-    });
+        localPort: 57121
+    };
 
-    oscUDP.on("ready", function () {
-        oscUDP.send(testMessage);
-    });
+    var senderOptions = {
+        broadcast: true,
+        localAddress: "0.0.0.0",
+        localPort: 57122,
+        remoteAddress: "255.255.255.255",
+        remotePort: 57121
+    };
+
+    testReadUDP("The message should have been sent and received successfully when multicast is enabled.",
+        receiverOptions, senderOptions);
 });
 
 jqUnit.asyncTest("Read from a UDP socket with metadata: true", function () {
@@ -116,7 +150,7 @@ jqUnit.asyncTest("Read from a UDP socket with metadata: true", function () {
         jqUnit.start();
     };
 
-    var oscUDP = createUDPServer(udpListener, {
+    var oscUDP = createUDPReceiver(udpListener, {
         metadata: true
     });
 
@@ -166,7 +200,7 @@ function createWSClient(onMessage) {
 }
 
 function checkMessageReceived(oscMessage, wss, wsc, assertMessage) {
-    QUnit.deepEqual(oscMessage, testMessage, assertMessage);
+    QUnit.deepEqual(oscMessage, testOSCMessage, assertMessage);
 
     wss.close();
     wsc.close();
@@ -175,9 +209,9 @@ function checkMessageReceived(oscMessage, wss, wsc, assertMessage) {
 jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function () {
     var wss = createWSServer(function (oscServerPort) {
         oscServerPort.on("message", function (oscMessage) {
-            QUnit.deepEqual(oscMessage, testMessage,
+            QUnit.deepEqual(oscMessage, testOSCMessage,
                 "The message should have been sent to the web socket server.");
-            oscServerPort.send(testMessage);
+            oscServerPort.send(testOSCMessage);
         });
     });
 
@@ -188,12 +222,12 @@ jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function 
     });
 
     wsc.on("ready", function () {
-        wsc.send(testMessage);
+        wsc.send(testOSCMessage);
     });
 });
 
 function testRelay(isRaw) {
-    var udpPort = createUDPServer(),
+    var udpPort = createUDPReceiver(),
         relay;
 
     udpPort.on("ready", function () {
@@ -202,7 +236,7 @@ function testRelay(isRaw) {
                 raw: isRaw
             });
 
-            udpPort.send(testMessage);
+            udpPort.send(testOSCMessage);
         });
 
         var wsc = createWSClient(function (msg) {
@@ -267,7 +301,7 @@ jqUnit.asyncTest("Send an OSC message via TCP", function () {
         });
 
         tcpServerPort.on("message", function (msg) {
-            QUnit.deepEqual(msg, testMessage,
+            QUnit.deepEqual(msg, testOSCMessage,
                 "The message should have been sent to the TCP server.");
             tcpServer.close();
 
@@ -281,7 +315,7 @@ jqUnit.asyncTest("Send an OSC message via TCP", function () {
     });
 
     tcpClientPort.on("ready", function () {
-        tcpClientPort.send(testMessage);
+        tcpClientPort.send(testOSCMessage);
     });
 
     tcpClientPort.on("error", function (err) {

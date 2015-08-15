@@ -214,7 +214,7 @@ wss.on("connection", function (socket) {
 ### UDP in Node.js
 
 The <code>osc.UDPPort</code> object supports the sending and receiving of
-OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
+OSC messages over Node.js's UDP sockets. It also supports broadcast and multicast UDP.
 
 #### Options
 
@@ -226,12 +226,12 @@ OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
     </tr>
     <tr>
         <td>localPort</td>
-        <td>The port to listen on (required for UDP servers)</td>
+        <td>The port to listen on</td>
         <td>57121</td>
     </tr>
     <tr>
          <td>localAddress</td>
-         <td>The local address to bind to; will be ignored in the case of multicast UDP (required for UDP servers)</td>
+         <td>The local address to bind to</td>
          <td>"127.0.0.1"</td>
     </tr>
     <tr>
@@ -245,13 +245,18 @@ OSC messages over Node.js's UDP sockets. It also supports multicast UDP.
         <td>none</td>
     </tr>
     <tr>
-        <td>multicast</td>
-        <td>A flag determining whether to use multicast mode</td>
+        <td>broadcast</td>
+        <td>A flag specifying if messages should be sent via UDP broadcast</td>
         <td>false</td>
     </tr>
     <tr>
         <td>multicastTTL</td>
-        <td>The time to live (number of hops) fora multicast connection</td>
+        <td>The time to live (number of hops) for a multicast connection (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>multicastMembership</td>
+        <td>An array of multicast addresses to join when listening for multicast messages (optional)</td>
         <td>none</td>
     </tr>
 </table>

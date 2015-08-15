@@ -150,13 +150,10 @@
         this.socket = dgram.createSocket("udp4");
 
         function onBound() {
-            if ( that.options.multicast ) {
-              that.socket.setBroadcast(that.options.multicast);
-              that.socket.setMulticastTTL(that.options.multicastTTL);
-            }
+            osc.UDPPort.setupMulticast(that);
 
-            if ( that.options.broadcast ) {
-              that.socket.setBroadcast(that.options.broadcast);
+            if (that.options.broadcast) {
+                that.socket.setBroadcast(that.options.broadcast);
             }
 
             that.emit("open", that.socket);
@@ -188,7 +185,8 @@
 
     p.sendRaw = function (encoded, address, port) {
         if (!this.socket) {
-            return;
+            this.emit("error", new Error(
+                "Can't send an OSC packet on a closed socket. Call open() on this osc.Port first."));
         }
 
         var length = encoded.byteLength !== undefined ? encoded.byteLength : encoded.length,
@@ -207,6 +205,26 @@
     p.close = function () {
         if (this.socket) {
             this.socket.close();
+        }
+    };
+
+    osc.UDPPort.setupMulticast = function (that) {
+        if (that.options.multicastTTL !== undefined) {
+            that.socket.setMulticastTTL(that.options.multicastTTL);
+        }
+
+        if (that.options.multicastMembership) {
+            if (typeof that.options.multicastMembership === "string") {
+              that.options.multicastMembership = [that.options.multicastMembership];
+            }
+
+            that.options.multicastMembership.forEach(function (addr) {
+              if (typeof addr === "string") {
+                  that.socket.addMembership(addr);
+              } else {
+                  that.socket.addMembership(addr.address, addr.interface);
+              }
+            });
         }
     };
 

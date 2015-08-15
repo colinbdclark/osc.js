@@ -58,6 +58,11 @@
         this.on("open", this.listen.bind(this));
         osc.SLIPPort.call(this, options);
         this.options.bitrate = this.options.bitrate || 9600;
+
+        this.serialPort = options.serialPort;
+        if (this.serialPort) {
+            this.emit("open", this.serialPort);
+        }
     };
 
     var p = osc.SerialPort.prototype = Object.create(osc.SLIPPort.prototype);
@@ -140,6 +145,11 @@
             this.options.remotePort : 57121;
 
         this.on("open", this.listen.bind(this));
+
+        this.socket = options.socket;
+        if (this.socket) {
+            this.emit("open", this.socket);
+        }
     };
 
     p = osc.UDPPort.prototype = Object.create(osc.Port.prototype);
@@ -147,6 +157,11 @@
 
     p.open = function () {
         var that = this;
+
+        if (this.socket) {
+            return;
+        }
+
         this.socket = dgram.createSocket("udp4");
 
         function onBound() {

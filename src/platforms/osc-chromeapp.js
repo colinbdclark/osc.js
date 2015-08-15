@@ -38,6 +38,11 @@ var osc = osc || {};
     osc.SerialPort = function (options) {
         this.on("open", this.listen.bind(this));
         osc.SLIPPort.call(this, options);
+
+        this.connectionId = this.options.connectionId;
+        if (this.connectionId) {
+            this.emit("open", this.connectionId);
+        }
     };
 
     var p = osc.SerialPort.prototype = Object.create(osc.SLIPPort.prototype);
@@ -92,12 +97,21 @@ var osc = osc || {};
         o.localPort = o.localPort !== undefined ? o.localPort : 57121;
 
         this.on("open", this.listen.bind(this));
+
+        this.socketID = o.socketID;
+        if (this.socketId) {
+            this.emit("open", 0);
+        }
     };
 
     p = osc.UDPPort.prototype = Object.create(osc.Port.prototype);
     p.constructor = osc.UDPPort;
 
     p.open = function () {
+        if (this.socketId) {
+            return;
+        }
+
         var o = this.options,
             props = {
                 persistent: o.persistent,

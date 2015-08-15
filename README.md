@@ -80,6 +80,11 @@ OSC messages over Web Sockets.
         <td>The Web Socket URL to connect to (required for clients)</td>
         <td>none</td>
     </tr>
+    <tr>
+        <td>socket</td>
+        <td>A Web Socket instance to bind to (optional); if supplied, it is your job to configure and open it appropriately</td>
+        <td>none</td>
+    </tr>
 </table>
 
 #### Sample Code
@@ -176,7 +181,7 @@ OSC messages over Web Sockets.
     </tr>
     <tr>
         <td>socket</td>
-        <td>A Web Socket instance to bind to (required for servers)</td>
+        <td>A Web Socket instance to bind to (required for servers, optional for clients); if supplied, it is your job to configure and open it appropriately</td>
         <td>none</td>
     </tr>
 </table>
@@ -257,6 +262,11 @@ OSC messages over Node.js's UDP sockets. It also supports broadcast and multicas
     <tr>
         <td>multicastMembership</td>
         <td>An array of multicast addresses to join when listening for multicast messages (optional)</td>
+        <td>none</td>
+    </tr>
+    <tr>
+        <td>socket</td>
+        <td>A raw dgram.Socket to use instead of osc.js creating one for you; if supplied, it is your job to configure and bind it appropriately</td>
         <td>none</td>
     </tr>
 </table>

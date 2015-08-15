@@ -2867,13 +2867,25 @@ var osc = osc;
     osc.WebSocketPort = function (options) {
         osc.Port.call(this, options);
         this.on("open", this.listen.bind(this));
+
+        this.socket = options.socket;
+        if (this.socket) {
+            if (this.socket.readyState === 1) {
+                this.emit("open", this.socket);
+            } else {
+                this.open();
+            }
+        }
     };
 
     var p = osc.WebSocketPort.prototype = Object.create(osc.Port.prototype);
     p.constructor = osc.WebSocketPort;
 
     p.open = function () {
-        this.socket = new WebSocket(this.options.url);
+        if (!this.socket) {
+            this.socket = new WebSocket(this.options.url);
+        }
+
         this.socket.binaryType = "arraybuffer";
 
         var that = this;

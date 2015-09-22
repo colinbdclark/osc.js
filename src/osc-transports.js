@@ -60,10 +60,13 @@ var osc = osc || require("./osc.js"),
     p.decodeOSC = function (data) {
         this.emit("raw", data);
 
-        var packet = osc.readPacket(data, this.options);
-        this.emit("osc", packet);
-
-        osc.firePacketEvents(this, packet);
+        try {
+            var packet = osc.readPacket(data, this.options);
+            this.emit("osc", packet);
+            osc.firePacketEvents(this, packet);
+        } catch(err){
+            this.emit("error", err);
+        }
     };
 
 

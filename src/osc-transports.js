@@ -53,7 +53,14 @@ var osc = osc || require("./osc.js"),
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options);
+        var encoded;
+
+        try {
+            encoded = osc.writePacket(packet, this.options);
+        } catch (err) {
+            this.emit("error", err);
+        }
+
         return encoded;
     };
 
@@ -64,7 +71,7 @@ var osc = osc || require("./osc.js"),
             var packet = osc.readPacket(data, this.options);
             this.emit("osc", packet);
             osc.firePacketEvents(this, packet);
-        } catch(err){
+        } catch (err) {
             this.emit("error", err);
         }
     };
@@ -91,8 +98,16 @@ var osc = osc || require("./osc.js"),
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options);
-        return slip.encode(encoded);
+        var framed;
+
+        try {
+            var encoded = osc.writePacket(packet, this.options);
+            framed = slip.encode(encoded);
+        } catch (err) {
+            this.emit("error", err);
+        }
+
+        return framed;
     };
 
     p.decodeSLIPData = function (data) {

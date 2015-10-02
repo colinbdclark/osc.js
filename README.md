@@ -30,7 +30,7 @@ In addition to the low-level encoder/decoder functions, osc.js also provides a c
     </tr>
     <tr>
         <td>Serial port</td>
-        <td>Node.js, Chrome Apps</td>
+        <td>Node.js (using [node-osc.js-serialport](https://github.com/colinbdclark/node-osc.js-serialport)), Chrome Apps</td>
     </tr>
     <tr>
         <td>Web Sockets</td>

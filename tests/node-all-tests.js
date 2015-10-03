@@ -12,6 +12,7 @@
 
 var testIncludes = [
     "./osc-tests.js",
+    "./transport-tests.js",
     "./node-buffer-tests.js",
     "./node-transport-tests.js"
 ];

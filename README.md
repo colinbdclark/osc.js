@@ -579,8 +579,9 @@ Running unit tests:
 Contributors
 ------------
 
- * @colinbdclark wrote the core.
+ * @colinbdclark wrote osc.js.
  * @jacoscaz and @xseignard fixed bugs.
+ * @drart made and helped test some examples.
  * @egasmus added support for 64-bit integers.
- * @heisters contributed fixes for broadcast and multicast UDP on Node.js.
+ * @heisters contributed fixes for broadcast and multicast UDP on Node.js and improved time tag support.
  * @tambien fixed error handling bugs in the transports layer.

@@ -45,9 +45,10 @@ var osc = osc || require("./osc.js"),
 
     p.send = function (oscPacket) {
         var args = Array.prototype.slice.call(arguments),
-            encoded = this.encodeOSC(oscPacket);
+            encoded = this.encodeOSC(oscPacket),
+            buf = osc.nativeBuffer(encoded);
 
-        args[0] = encoded;
+        args[0] = buf;
         this.sendRaw.apply(this, args);
     };
 
@@ -65,6 +66,7 @@ var osc = osc || require("./osc.js"),
     };
 
     p.decodeOSC = function (data) {
+        data = osc.byteArray(data);
         this.emit("raw", data);
 
         try {

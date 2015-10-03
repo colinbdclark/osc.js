@@ -25,38 +25,6 @@ var testOSCMessage = {
     args: [440]
 };
 
-var testOSCBlobMessage = {
-    address: "/test/blobby",
-    args: [
-        {
-            type: "b",
-            value: new Buffer([
-                0, 0, 0, 3,            // Length 3
-                0x63, 0x61, 0x74, 0   // raw bytes
-            ])
-        }
-    ]
-};
-
-
-jqUnit.asyncTest("gh-29: Receiving Buffer-based Blob messages", function () {
-    var port = new osc.Port({
-        metadata: true
-    });
-
-    port.on("message", function (message) {
-        jqUnit.assertDeepEq("The decoded message should contain a valid Blob.",
-            testOSCBlobMessage, message);
-    });
-
-    port.on("error", function (err) {
-        QUnit.ok(false, "An error was thrown while trying to decode a valid message with a Blob in it. " + err.message);
-    });
-
-    var rawMessage = osc.writeMessage(testOSCBlobMessage);
-    port.decodeOSC(rawMessage);
-});
-
 
 /*************
 * UDP Tests *

@@ -37,21 +37,63 @@ var decodedMessage = {
     args: 440
 };
 
-jqUnit.test("Read from a Node.js buffer", function () {
-    var actual = osc.readMessage(oscMessageBuffer);
-    QUnit.deepEqual(actual, decodedMessage, "A message specified as a Node.js buffer should be read correctly.");
-});
-
-jqUnit.test("Write to a Node.js buffer", function () {
-    var actual = osc.writePacket({
-        timeTag: osc.timeTag(0),
-        packets: [
-            {
-                address: "/oscillator/4/frequency",
-                args: 440
-            }
-        ]
+jqUnit.asyncTest("Read from a Node.js buffer", function () {
+    var port = new osc.Port({
+        metadata: false,
+        unpackSingleArgs: true
     });
 
-    QUnit.ok(actual instanceof Buffer, "Writing a packet should produce a Node.js Buffer object.");
+    port.on("osc", function (packet) {
+        jqUnit.assertDeepEq("A message specified as a Node.js buffer should be read correctly.",
+            decodedMessage, packet);
+        jqUnit.start();
+    });
+    port.decodeOSC(oscMessageBuffer);
+});
+
+
+var testOSCBlobMessage = {
+    address: "/test/blobby",
+    args: [
+        {
+            type: "b",
+            value: new Buffer([
+                0, 0, 0, 3,            // Length 3
+                0x63, 0x61, 0x74, 0   // raw bytes
+            ])
+        }
+    ]
+};
+
+var decodedOSCBlobMessage = {
+    address: testOSCBlobMessage.address,
+    args: [
+        {
+            type: testOSCBlobMessage.args[0].type,
+            value: new Uint8Array([
+                0, 0, 0, 3,            // Length 3
+                0x63, 0x61, 0x74, 0   // raw bytes
+            ])
+        }
+    ]
+};
+
+jqUnit.asyncTest("gh-29: Receiving Buffer-based Blob messages", function () {
+    var port = new osc.Port({
+        metadata: true
+    });
+
+    port.on("message", function (message) {
+        jqUnit.assertDeepEq("The decoded message should contain a valid Blob.",
+            decodedOSCBlobMessage, message);
+            jqUnit.start();
+    });
+
+    port.on("error", function (err) {
+        QUnit.ok(false, "An error was thrown while trying to decode a valid message with a Blob in it. " + err.message);
+        jqUnit.start();
+    });
+
+    var rawMessage = osc.writeMessage(testOSCBlobMessage);
+    port.decodeOSC(rawMessage);
 });

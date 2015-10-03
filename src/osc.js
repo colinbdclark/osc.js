@@ -47,15 +47,10 @@ var osc = osc || {};
         return osc.isBufferEnv && obj instanceof Buffer;
     };
 
-    // Private instance of the buffer-dataview object.
-    // Only used if we're in Node.js.
-    var BufferDataView = osc.isNode ? require("buffer-dataview") : undefined;
-
     // Private instance of the optional Long dependency.
     var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long :
         typeof Long !== "undefined" ? Long :
         osc.isNode ? require("long") : undefined;
-
 
     /**
      * Wraps the specified object in a DataView.
@@ -67,16 +62,6 @@ var osc = osc || {};
     osc.dataView = function (obj) {
         if (obj instanceof DataView) {
             return obj;
-        }
-
-        // Node.js-specific.
-        if (typeof BufferDataView !== "undefined" && obj instanceof BufferDataView) {
-            return obj;
-        }
-
-        // Node.js-specific.
-        if (osc.isBufferEnv && obj instanceof Buffer) {
-            return new BufferDataView(obj);
         }
 
         if (obj.buffer) {
@@ -91,7 +76,7 @@ var osc = osc || {};
     };
 
     /**
-     * Takes an ArrayBuffer, TypedArray, DataView, Node.js Buffer, or array-like object
+     * Takes an ArrayBuffer, TypedArray, DataView, Buffer, or array-like object
      * and returns a Uint8Array view of it.
      *
      * Throws an error if the object isn't suitably array-like.
@@ -115,17 +100,29 @@ var osc = osc || {};
         return new Uint8Array(buf);
     };
 
+    /**
+     * Takes an ArrayBuffer, TypedArray, DataView, or array-like object
+     * and returns a native buffer object
+     * (i.e. in Node.js, a Buffer object and in the browser, a Uint8Array).
+     *
+     * Throws an error if the object isn't suitably array-like.
+     *
+     * @param {Array-like or Array-wrapping} obj an array-like or array-wrapping object
+     * @returns {Buffer|Uint8Array} a buffer object
+     */
     // Unsupported, non-API function.
-    osc.makeByteArray = function (len) {
-        return osc.isBufferEnv ? new Buffer(len) : new Uint8Array(len);
+    osc.nativeBuffer = function (obj) {
+        if (osc.isBufferEnv) {
+            return osc.isBuffer(obj) ? obj : new Buffer(obj.buffer ? obj : new Uint8Array(obj));
+        }
+
+        return osc.isTypedArrayView(obj) ? obj : new Uint8Array(obj);
     };
 
     // Unsupported, non-API function
     osc.copyByteArray = function (source, target, offset) {
         if (osc.isTypedArrayView(source) && osc.isTypedArrayView(target)) {
             target.set(source, offset);
-        } else if (osc.isBuffer(source) && osc.isBuffer(target)) {
-            source.copy(target, offset);
         } else {
             var start = offset === undefined ? 0 : offset,
                 len = Math.min(target.length - offset, source.length);
@@ -670,7 +667,7 @@ var osc = osc || {};
 
     // Unsupported, non-API function.
     osc.joinParts = function (dataCollection) {
-        var buf = osc.makeByteArray(dataCollection.byteLength),
+        var buf = new Uint8Array(dataCollection.byteLength),
             parts = dataCollection.parts,
             offset = 0;
 
@@ -1019,8 +1016,7 @@ var osc = osc || {};
                 if (arg === null) {
                     return "N";
                 } else if (arg instanceof Uint8Array ||
-                    arg instanceof ArrayBuffer ||
-                    (osc.isBufferEnv && arg instanceof Buffer)) {
+                    arg instanceof ArrayBuffer) {
                     return "b";
                 } else if (arg.high instanceof Number && arg.low instanceof Number) {
                     return "h";
@@ -1028,7 +1024,8 @@ var osc = osc || {};
                 break;
         }
 
-        throw new Error("Can't infer OSC argument type for value: " + JSON.stringify(arg, null, 2));
+        throw new Error("Can't infer OSC argument type for value: " +
+            JSON.stringify(arg, null, 2));
     };
 
     // Unsupported, non-API function.

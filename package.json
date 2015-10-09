@@ -24,9 +24,9 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "infusion": "fluid-project/infusion#1.9.x",
+        "infusion": "2.0.0-dev.20151007T134312Z.8c33cd4",
+        "dedupe-infusion": "1.0.0",
         "jqUnit": "git://github.com/fluid-project/node-jqUnit.git",
-        "grunt-gpii": "git://github.com/GPII/grunt-gpii.git",
         "grunt": "~0.4.2",
         "grunt-contrib-concat": "~0.3.0",
         "grunt-contrib-uglify": "~0.3.2",
@@ -39,5 +39,9 @@
         "serialport": "1.7.4",
         "slip": "1.0.2",
         "ws": "0.7.2"
+    },
+    "scripts": {
+        "dedupe-infusion": "node -e \"require('dedupe-infusion')();\"",
+        "test": "npm run dedupe-infusion && node tests/node-all-tests.js"
     }
 }

@@ -90,7 +90,7 @@ var osc = osc || {};
 
         var buf = obj.buffer ? obj.buffer : obj;
 
-        if (typeof obj.length === "undefined" || typeof obj === "string") {
+        if (!(buf instanceof ArrayBuffer) && (typeof buf.length === "undefined" || typeof buf === "string")) {
             throw new Error("Can't wrap a non-array-like object as Uint8Array. Object was: " +
                 JSON.stringify(obj, null, 2));
         }

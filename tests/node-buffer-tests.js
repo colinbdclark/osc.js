@@ -86,7 +86,7 @@ jqUnit.asyncTest("gh-29: Receiving Buffer-based Blob messages", function () {
     port.on("message", function (message) {
         jqUnit.assertDeepEq("The decoded message should contain a valid Blob.",
             decodedOSCBlobMessage, message);
-            jqUnit.start();
+        jqUnit.start();
     });
 
     port.on("error", function (err) {

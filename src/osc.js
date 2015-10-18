@@ -59,20 +59,16 @@ var osc = osc || {};
      * @return {DataView} the DataView object
      */
     // Unsupported, non-API function.
-    osc.dataView = function (obj) {
-        if (obj instanceof DataView) {
-            return obj;
-        }
-
+    osc.dataView = function (obj, offset, length) {
         if (obj.buffer) {
-            return new DataView(obj.buffer);
+            return new DataView(obj.buffer, offset, length);
         }
 
         if (obj instanceof ArrayBuffer) {
-            return new DataView(obj);
+            return new DataView(obj, offset, length);
         }
 
-        return new DataView(new Uint8Array(obj));
+        return new DataView(new Uint8Array(obj), offset, length);
     };
 
     /**
@@ -756,7 +752,7 @@ var osc = osc || {};
     osc.readMessage = function (data, options, offsetState) {
         options = options || osc.defaults;
 
-        var dv = osc.dataView(data);
+        var dv = osc.dataView(data, data.byteOffset, data.length);
         offsetState = offsetState || {
             idx: 0
         };
@@ -899,7 +895,7 @@ var osc = osc || {};
      * @return {Object} a bundle or message object
      */
     osc.readPacket = function (data, options, offsetState, len) {
-        var dv = osc.dataView(data);
+        var dv = osc.dataView(data, data.byteOffset, data.length);
 
         len = len === undefined ? dv.byteLength : len;
         offsetState = offsetState || {

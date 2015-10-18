@@ -34,10 +34,10 @@
         "grunt-contrib-jshint": "~0.8.0"
     },
     "dependencies": {
-        "long": "2.2.5",
-        "serialport": "1.7.4",
+        "long": "2.4.0",
+        "serialport": "2.0.1",
         "slip": "1.0.2",
-        "ws": "0.7.2"
+        "ws": "0.8.0"
     },
     "scripts": {
         "dedupe-infusion": "node -e \"require('dedupe-infusion')();\"",

@@ -49,7 +49,6 @@
         modules = requireModules(["../osc.js", "../osc-transports.js"]),
         osc = shallowMerge({}, modules);
 
-
     /**********
      * Serial *
      **********/

@@ -1,6 +1,6 @@
 {
     "name": "osc.js",
-    "version": "2.0.0-dev",
+    "version": "2.0.0",
     "main": "dist/osc.min.js",
     "ignore": [
         ".jshintrc",

@@ -14,9 +14,9 @@
 
     require.config({
         paths: {
-            slip: "../bower_components/slip.js/dist/slip.min",
-            EventEmitter: "../bower_components/eventEmitter/EventEmitter.min",
-            long: "../bower_components/long/dist/Long.min",
+            slip: "../node_modules/slip/dist/slip.min",
+            EventEmitter: "../node_modules/wolfy87-eventemitter/EventEmitter.min",
+            long: "../node_modules/long/dist/long.min",
             osc: "../dist/osc-module.min"
         }
     });

@@ -10,7 +10,7 @@
 /*global require, dcodeIO*/
 
 var fluid = fluid || require("infusion"),
-    jqUnit = jqUnit || fluid.require("jqUnit"),
+    jqUnit = jqUnit || require("node-jqunit"),
     osc = osc || require("../src/platforms/osc-node.js");
 
 (function () {

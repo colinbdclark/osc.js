@@ -13,12 +13,18 @@ nodejs_app_git_clone: false
 
 # The absolute file system path where either the application directory or the
 # Git working directory will be located.
-nodejs_app_install_dir: /home/vagrant
+nodejs_app_install_dir: /home/vagrant/sync
+
+nodejs_app_rpm_packages:
+  - gcc-c++
 
 # A YAML list of commands that will be executed in order within the application's
 # Git working directory.
 nodejs_app_commands:
+  - ./clean-npm.sh
+  - sudo npm install -g node-pre-gyp
   - npm install
+  - npm run dedupe-infusion
 
 # The application script passed as an argument to the Node.js binary. If this
 # isn't set then the application won't start.
@@ -28,11 +34,3 @@ nodejs_app_start_script: tests/node-all-tests.js
 # so that Node process is restarted when file system changes are detected. This
 # will only work if 'nodejs_app_start_script' is set.
 nodejs_app_dev_env: true
-
-# A YAML list of RPM packages that the application requires.
-# nodejs_app_rpm_packages:
-#   - nodejs-grunt-cli
-
-# A TCP port used by the application.
-# Example: 8080
-# nodejs_app_tcp_port: ''

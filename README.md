@@ -553,7 +553,7 @@ osc.js is maintained by Colin Clark and distributed under the MIT and GPL 3 lice
 Supported Environments
 ----------------------
 
-osc.js releases are tested in Chrome, Firefox, and Safari on Mac OS X and Windows, and in Node.js 4.2.0 (LTS) and 0.10.40 on Mac OS X and Linux.
+osc.js releases are tested in Chrome, Firefox, Safari, and Microsoft Edge on Mac OS X and Windows, and in Node.js 4.2.0 (LTS) and 0.10.40 on Mac OS X and Linux.
 
 Contributing to osc.js
 ----------------------

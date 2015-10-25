@@ -754,7 +754,7 @@ var osc = osc || {};
     osc.readMessage = function (data, options, offsetState) {
         options = options || osc.defaults;
 
-        var dv = osc.dataView(data, data.byteOffset, data.length);
+        var dv = osc.dataView(data, data.byteOffset, data.byteLength);
         offsetState = offsetState || {
             idx: 0
         };
@@ -897,7 +897,7 @@ var osc = osc || {};
      * @return {Object} a bundle or message object
      */
     osc.readPacket = function (data, options, offsetState, len) {
-        var dv = osc.dataView(data, data.byteOffset, data.length);
+        var dv = osc.dataView(data, data.byteOffset, data.byteLength);
 
         len = len === undefined ? dv.byteLength : len;
         offsetState = offsetState || {

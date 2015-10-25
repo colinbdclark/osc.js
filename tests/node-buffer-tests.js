@@ -78,7 +78,7 @@ var decodedOSCBlobMessage = {
     ]
 };
 
-function messageCanonicalizer (msg) {
+function messageCanonicalizer(msg) {
     var togo = fluid.copy(msg);
 
     fluid.each(togo.args, function (arg, idx) {

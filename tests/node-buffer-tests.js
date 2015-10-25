@@ -78,14 +78,26 @@ var decodedOSCBlobMessage = {
     ]
 };
 
+function messageCanonicalizer (msg) {
+    var togo = fluid.copy(msg);
+
+    fluid.each(togo.args, function (arg, idx) {
+        if (osc.isTypedArrayView(arg.value) || osc.isBuffer(arg.value)) {
+            togo.args[idx] = osc.copyByteArray(arg.value, new Uint8Array(arg.value.length));
+        }
+    });
+
+    return togo;
+}
+
 jqUnit.asyncTest("gh-29: Receiving Buffer-based Blob messages", function () {
     var port = new osc.Port({
         metadata: true
     });
 
     port.on("message", function (message) {
-        jqUnit.assertDeepEq("The decoded message should contain a valid Blob.",
-            decodedOSCBlobMessage, message);
+        jqUnit.assertCanoniseEqual("The decoded message should contain a valid Blob.",
+            decodedOSCBlobMessage, message, messageCanonicalizer);
         jqUnit.start();
     });
 

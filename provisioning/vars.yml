@@ -2,6 +2,9 @@
 # Please refer to https://github.com/idi-ops/ansible-nodejs/blob/master/defaults/main.yml
 # for additional documentation related to these variables
 
+# The version of Node.js to use.
+nodejs_version: 0.10.40
+
 # A hyphenated string representing the application's name.
 nodejs_app_name: oscjs-tests
 

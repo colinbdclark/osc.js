@@ -550,6 +550,11 @@ License
 
 osc.js is maintained by Colin Clark and distributed under the MIT and GPL 3 licenses.
 
+Supported Environments
+----------------------
+
+osc.js releases are tested in Chrome, Firefox, Safari, and Microsoft Edge on Mac OS X and Windows, and in Node.js 4.2.0 (LTS) and 0.10.40 on Mac OS X and Linux.
+
 Contributing to osc.js
 ----------------------
 
@@ -561,20 +566,20 @@ Currently, the project is maintained by one person; sometimes it will take a bit
 
 ## How to Build and Test Your Contributions
 
-osc.js depends on npm, bower, and Grunt. Make sure you have these installed, and then run the following commands to fetch all necessary dependencies:
+osc.js depends on npm and Grunt. Make sure you have these installed, and then run the following commands to fetch all necessary dependencies:
 
     npm install
-    grunt dedupe-infusion
-    bower install
+    npm run dedupe-infusion
 
 To lint and generate builds from new source code:
 
     grunt
 
-Running unit tests:
+Running the unit tests:
 
-1. To run the Node.js unit tests, run <code>node tests/node-all-tests.js</code>
+1. To run the Node.js unit tests, run <code>npm run clean-test</code>
 2. In the browser, open <code>tests/all-tests.html</code>
+3. To run the tests in a Vagrant VM under Node.js 0.10.40, run <code>vagrant up</code>
 
 Contributors
 ------------

@@ -4,14 +4,15 @@
     <meta charset="UTF-8" />
     <title>All osc.js Tests</title>
 
-    <link rel="stylesheet" href="third-party/qunit/css/qunit.css" type="text/css" media="screen">
-    <link rel="stylesheet" href="third-party/qunit/addons/composite/qunit-composite.css">
-    <script src="third-party/qunit/js/qunit.js"></script>
-    <script src="third-party/qunit/addons/composite/qunit-composite.js"></script>
+    <link rel="stylesheet" href="../node_modules/infusion/tests/lib/qunit/css/qunit.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="../node_modules/infusion/tests/lib/qunit/addons/composite/qunit-composite.css">
+    <script src="../node_modules/infusion/tests/lib/qunit/js/qunit.js"></script>
+    <script src="../node_modules/infusion/tests/lib/qunit/addons/composite/qunit-composite.js"></script>
     <!-- find . -name "*-tests.html" | awk '{print "\""$1"\","}' -->
     <script>
         QUnit.testSuites("osc.js Tests", [
             "osc-tests.html",
+            "transport-tests.html",
             "osc-module-tests.html"
         ]);
     </script>

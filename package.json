@@ -1,7 +1,7 @@
 {
     "name": "osc",
     "main": "src/platforms/osc-node.js",
-    "version": "1.3.0",
+    "version": "2.0.0",
     "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
     "author": "Colin Clark",
     "homepage": "https://github.com/colinbdclark/osc.js",
@@ -24,9 +24,11 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "infusion": "fluid-project/infusion#1.9.x",
-        "jqUnit": "git://github.com/fluid-project/node-jqUnit.git",
-        "grunt-gpii": "git://github.com/GPII/grunt-gpii.git",
+        "jquery": "2.1.4",
+        "infusion": "2.0.0-dev.20151007T134312Z.8c33cd4",
+        "requirejs": "2.1.20",
+        "dedupe-infusion": "1.0.0",
+        "node-jqunit": "1.1.0",
         "grunt": "~0.4.2",
         "grunt-contrib-concat": "~0.3.0",
         "grunt-contrib-uglify": "~0.3.2",
@@ -34,10 +36,15 @@
         "grunt-contrib-jshint": "~0.8.0"
     },
     "dependencies": {
-        "buffer-dataview": "0.0.2",
-        "long": "2.2.5",
-        "serialport": "1.7.4",
+        "wolfy87-eventemitter": "4.3.0",
+        "long": "3.0.0",
+        "serialport": "2.0.2",
         "slip": "1.0.2",
-        "ws": "0.7.2"
+        "ws": "0.8.0"
+    },
+    "scripts": {
+        "dedupe-infusion": "node -e \"require('dedupe-infusion')();\"",
+        "test": "npm run dedupe-infusion && node tests/node-all-tests.js",
+        "clean-test": "./clean-npm.sh && npm install && npm test"
     }
 }

@@ -45,25 +45,37 @@ var osc = osc || require("./osc.js"),
 
     p.send = function (oscPacket) {
         var args = Array.prototype.slice.call(arguments),
-            encoded = this.encodeOSC(oscPacket);
+            encoded = this.encodeOSC(oscPacket),
+            buf = osc.nativeBuffer(encoded);
 
-        args[0] = encoded;
+        args[0] = buf;
         this.sendRaw.apply(this, args);
     };
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options);
+        var encoded;
+
+        try {
+            encoded = osc.writePacket(packet, this.options);
+        } catch (err) {
+            this.emit("error", err);
+        }
+
         return encoded;
     };
 
     p.decodeOSC = function (data) {
+        data = osc.byteArray(data);
         this.emit("raw", data);
 
-        var packet = osc.readPacket(data, this.options);
-        this.emit("osc", packet);
-
-        osc.firePacketEvents(this, packet);
+        try {
+            var packet = osc.readPacket(data, this.options);
+            this.emit("osc", packet);
+            osc.firePacketEvents(this, packet);
+        } catch (err) {
+            this.emit("error", err);
+        }
     };
 
 
@@ -88,8 +100,16 @@ var osc = osc || require("./osc.js"),
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options);
-        return slip.encode(encoded);
+        var framed;
+
+        try {
+            var encoded = osc.writePacket(packet, this.options);
+            framed = slip.encode(encoded);
+        } catch (err) {
+            this.emit("error", err);
+        }
+
+        return framed;
     };
 
     p.decodeSLIPData = function (data) {

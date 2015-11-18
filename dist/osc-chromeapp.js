@@ -1,4 +1,4 @@
-/*! osc.js 1.3.0, Copyright 2015 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.0.0, Copyright 2015 Colin Clark | github.com/colinbdclark/osc.js */
 
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
@@ -49,15 +49,10 @@ var osc = osc || {};
         return osc.isBufferEnv && obj instanceof Buffer;
     };
 
-    // Private instance of the buffer-dataview object.
-    // Only used if we're in Node.js.
-    var BufferDataView = osc.isNode ? require("buffer-dataview") : undefined;
-
     // Private instance of the optional Long dependency.
     var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long :
         typeof Long !== "undefined" ? Long :
         osc.isNode ? require("long") : undefined;
-
 
     /**
      * Wraps the specified object in a DataView.
@@ -66,34 +61,20 @@ var osc = osc || {};
      * @return {DataView} the DataView object
      */
     // Unsupported, non-API function.
-    osc.dataView = function (obj) {
-        if (obj instanceof DataView) {
-            return obj;
-        }
-
-        // Node.js-specific.
-        if (typeof BufferDataView !== "undefined" && obj instanceof BufferDataView) {
-            return obj;
-        }
-
-        // Node.js-specific.
-        if (osc.isBufferEnv && obj instanceof Buffer) {
-            return new BufferDataView(obj);
-        }
-
+    osc.dataView = function (obj, offset, length) {
         if (obj.buffer) {
-            return new DataView(obj.buffer);
+            return new DataView(obj.buffer, offset, length);
         }
 
         if (obj instanceof ArrayBuffer) {
-            return new DataView(obj);
+            return new DataView(obj, offset, length);
         }
 
-        return new DataView(new Uint8Array(obj));
+        return new DataView(new Uint8Array(obj), offset, length);
     };
 
     /**
-     * Takes an ArrayBuffer, TypedArray, DataView, Node.js Buffer, or array-like object
+     * Takes an ArrayBuffer, TypedArray, DataView, Buffer, or array-like object
      * and returns a Uint8Array view of it.
      *
      * Throws an error if the object isn't suitably array-like.
@@ -109,7 +90,7 @@ var osc = osc || {};
 
         var buf = obj.buffer ? obj.buffer : obj;
 
-        if (typeof obj.length === "undefined" || typeof obj === "string") {
+        if (!(buf instanceof ArrayBuffer) && (typeof buf.length === "undefined" || typeof buf === "string")) {
             throw new Error("Can't wrap a non-array-like object as Uint8Array. Object was: " +
                 JSON.stringify(obj, null, 2));
         }
@@ -117,17 +98,29 @@ var osc = osc || {};
         return new Uint8Array(buf);
     };
 
+    /**
+     * Takes an ArrayBuffer, TypedArray, DataView, or array-like object
+     * and returns a native buffer object
+     * (i.e. in Node.js, a Buffer object and in the browser, a Uint8Array).
+     *
+     * Throws an error if the object isn't suitably array-like.
+     *
+     * @param {Array-like or Array-wrapping} obj an array-like or array-wrapping object
+     * @returns {Buffer|Uint8Array} a buffer object
+     */
     // Unsupported, non-API function.
-    osc.makeByteArray = function (len) {
-        return osc.isBufferEnv ? new Buffer(len) : new Uint8Array(len);
+    osc.nativeBuffer = function (obj) {
+        if (osc.isBufferEnv) {
+            return osc.isBuffer(obj) ? obj : new Buffer(obj.buffer ? obj : new Uint8Array(obj));
+        }
+
+        return osc.isTypedArrayView(obj) ? obj : new Uint8Array(obj);
     };
 
     // Unsupported, non-API function
     osc.copyByteArray = function (source, target, offset) {
         if (osc.isTypedArrayView(source) && osc.isTypedArrayView(target)) {
             target.set(source, offset);
-        } else if (osc.isBuffer(source) && osc.isBuffer(target)) {
-            source.copy(target, offset);
         } else {
             var start = offset === undefined ? 0 : offset,
                 len = Math.min(target.length - offset, source.length);
@@ -523,12 +516,14 @@ var osc = osc || {};
      * relative to now by the specified number of seconds.
      *
      * @param {Number} secs the number of seconds relative to now (i.e. + for the future, - for the past)
+     * @param {Number} now the number of milliseconds since epoch to use as the current time. Defaults to Date.now()
      * @return {Object} the time tag
      */
-    osc.timeTag = function (secs) {
+    osc.timeTag = function (secs, now) {
         secs = secs || 0;
+        now = now || Date.now();
 
-        var nowSecs = Date.now() / 1000,
+        var nowSecs = now / 1000,
             nowWhole = Math.floor(nowSecs),
             nowFracs = nowSecs - nowWhole,
             secsWhole = Math.floor(secs),
@@ -670,7 +665,7 @@ var osc = osc || {};
 
     // Unsupported, non-API function.
     osc.joinParts = function (dataCollection) {
-        var buf = osc.makeByteArray(dataCollection.byteLength),
+        var buf = new Uint8Array(dataCollection.byteLength),
             parts = dataCollection.parts,
             offset = 0;
 
@@ -759,7 +754,7 @@ var osc = osc || {};
     osc.readMessage = function (data, options, offsetState) {
         options = options || osc.defaults;
 
-        var dv = osc.dataView(data);
+        var dv = osc.dataView(data, data.byteOffset, data.byteLength);
         offsetState = offsetState || {
             idx: 0
         };
@@ -803,8 +798,18 @@ var osc = osc || {};
      */
     osc.writeMessage = function (msg, options) {
         options = options || osc.defaults;
+
+        if (!osc.isValidMessage(msg)) {
+            throw new Error("An OSC message must contain a valid address. Message was: " +
+                JSON.stringify(msg, null, 2));
+        }
+
         var msgCollection = osc.collectMessageParts(msg, options);
         return osc.joinParts(msgCollection);
+    };
+
+    osc.isValidMessage = function (msg) {
+        return msg.address && msg.address.indexOf("/") === 0;
     };
 
     /**
@@ -850,14 +855,19 @@ var osc = osc || {};
      * @return {Uint8Array} an array of bytes containing the message
      */
     osc.writeBundle = function (bundle, options) {
-        if (!bundle.timeTag || !bundle.packets) {
-            return;
+        if (!osc.isValidBundle(bundle)) {
+            throw new Error("An OSC bundle must contain 'timeTag' and 'packets' properties. " +
+                "Bundle was: " + JSON.stringify(bundle, null, 2));
         }
 
         options = options || osc.defaults;
         var bundleCollection = osc.collectBundlePackets(bundle, options);
 
         return osc.joinParts(bundleCollection);
+    };
+
+    osc.isValidBundle = function (bundle) {
+        return bundle.timeTag !== undefined && bundle.packets !== undefined;
     };
 
     // Unsupported, non-API function.
@@ -887,7 +897,7 @@ var osc = osc || {};
      * @return {Object} a bundle or message object
      */
     osc.readPacket = function (data, options, offsetState, len) {
-        var dv = osc.dataView(data);
+        var dv = osc.dataView(data, data.byteOffset, data.byteLength);
 
         len = len === undefined ? dv.byteLength : len;
         offsetState = offsetState || {
@@ -915,8 +925,14 @@ var osc = osc || {};
      * @return {Uint8Array} an array of bytes containing the message
      */
     osc.writePacket = function (packet, options) {
-        var writer = packet.address ? osc.writeMessage : osc.writeBundle;
-        return writer(packet, options);
+        if (osc.isValidMessage(packet)) {
+            return osc.writeMessage(packet, options);
+        } else if (osc.isValidBundle(packet)) {
+            return osc.writeBundle(packet, options);
+        } else {
+            throw new Error("The specified packet was not recognized as a valid OSC message or bundle." +
+                " Packet was: " + JSON.stringify(packet, null, 2));
+        }
     };
 
     // Unsupported, non-API.
@@ -998,8 +1014,7 @@ var osc = osc || {};
                 if (arg === null) {
                     return "N";
                 } else if (arg instanceof Uint8Array ||
-                    arg instanceof ArrayBuffer ||
-                    (osc.isBufferEnv && arg instanceof Buffer)) {
+                    arg instanceof ArrayBuffer) {
                     return "b";
                 } else if (arg.high instanceof Number && arg.low instanceof Number) {
                     return "h";
@@ -1007,7 +1022,8 @@ var osc = osc || {};
                 break;
         }
 
-        throw new Error("Can't infer OSC argument type for value: " + JSON.stringify(arg, null, 2));
+        throw new Error("Can't infer OSC argument type for value: " +
+            JSON.stringify(arg, null, 2));
     };
 
     // Unsupported, non-API function.
@@ -1064,7 +1080,16 @@ var osc = osc || {};
  * Released under the Apache License, Version 2.0
  * see: https://github.com/dcodeIO/Long.js for details
  */
-(function(global) {
+(function(global, factory) {
+
+    /* AMD */ if (typeof define === 'function' && define["amd"])
+        define([], factory);
+    /* CommonJS */ else if (typeof require === 'function' && typeof module === "object" && module && module["exports"])
+        module["exports"] = factory();
+    /* Global */ else
+        (global["dcodeIO"] = global["dcodeIO"] || {})["Long"] = factory();
+
+})(this, function() {
     "use strict";
 
     /**
@@ -1077,7 +1102,7 @@ var osc = osc || {};
      * @param {boolean=} unsigned Whether unsigned or not, defaults to `false` for signed
      * @constructor
      */
-    var Long = function(low, high, unsigned) {
+    function Long(low, high, unsigned) {
 
         /**
          * The low 32 bits as a signed value.
@@ -1099,7 +1124,7 @@ var osc = osc || {};
          * @expose
          */
         this.unsigned = !!unsigned;
-    };
+    }
 
     // The internal representation of a long is the two given signed, 32-bit values.
     // We use 32-bit pieces because these are the size of integers on which
@@ -1119,13 +1144,28 @@ var osc = osc || {};
     // methods on which they depend.
 
     /**
+     * An indicator used to reliably determine if an object is a Long or not.
+     * @type {boolean}
+     * @const
+     * @expose
+     * @private
+     */
+    Long.__isLong__;
+
+    Object.defineProperty(Long.prototype, "__isLong__", {
+        value: true,
+        enumerable: false,
+        configurable: false
+    });
+
+    /**
      * Tests if the specified object is a Long.
      * @param {*} obj Object
      * @returns {boolean}
      * @expose
      */
-    Long.isLong = function(obj) {
-        return (obj && obj instanceof Long) === true;
+    Long.isLong = function isLong(obj) {
+        return (obj && obj["__isLong__"]) === true;
     };
 
     /**
@@ -1149,7 +1189,7 @@ var osc = osc || {};
      * @returns {!Long} The corresponding Long value
      * @expose
      */
-    Long.fromInt = function(value, unsigned) {
+    Long.fromInt = function fromInt(value, unsigned) {
         var obj, cachedObj;
         if (!unsigned) {
             value = value | 0;
@@ -1183,7 +1223,7 @@ var osc = osc || {};
      * @returns {!Long} The corresponding Long value
      * @expose
      */
-    Long.fromNumber = function(value, unsigned) {
+    Long.fromNumber = function fromNumber(value, unsigned) {
         unsigned = !!unsigned;
         if (isNaN(value) || !isFinite(value))
             return Long.ZERO;
@@ -1207,7 +1247,7 @@ var osc = osc || {};
      * @returns {!Long} The corresponding Long value
      * @expose
      */
-    Long.fromBits = function(lowBits, highBits, unsigned) {
+    Long.fromBits = function fromBits(lowBits, highBits, unsigned) {
         return new Long(lowBits, highBits, unsigned);
     };
 
@@ -1219,7 +1259,7 @@ var osc = osc || {};
      * @returns {!Long} The corresponding Long value
      * @expose
      */
-    Long.fromString = function(str, unsigned, radix) {
+    Long.fromString = function fromString(str, unsigned, radix) {
         if (str.length === 0)
             throw Error('number format error: empty string');
         if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
@@ -1263,14 +1303,14 @@ var osc = osc || {};
      * @returns {!Long}
      * @expose
      */
-    Long.fromValue = function(val) {
+    Long.fromValue = function fromValue(val) {
+        if (val /* is compatible */ instanceof Long)
+            return val;
         if (typeof val === 'number')
             return Long.fromNumber(val);
         if (typeof val === 'string')
             return Long.fromString(val);
-        if (Long.isLong(val))
-            return val;
-        // Throws for not an object (undefined, null):
+        // Throws for non-objects, converts non-instanceof Long:
         return new Long(val.low, val.high, val.unsigned);
     };
 
@@ -1380,7 +1420,7 @@ var osc = osc || {};
      * @returns {number}
      * @expose
      */
-    Long.prototype.toInt = function() {
+    Long.prototype.toInt = function toInt() {
         return this.unsigned ? this.low >>> 0 : this.low;
     };
 
@@ -1389,7 +1429,7 @@ var osc = osc || {};
      * @returns {number}
      * @expose
      */
-    Long.prototype.toNumber = function() {
+    Long.prototype.toNumber = function toNumber() {
         if (this.unsigned) {
             return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
         }
@@ -1404,7 +1444,7 @@ var osc = osc || {};
      * @throws {RangeError} If `radix` is out of range
      * @expose
      */
-    Long.prototype.toString = function(radix) {
+    Long.prototype.toString = function toString(radix) {
         radix = radix || 10;
         if (radix < 2 || 36 < radix)
             throw RangeError('radix out of range: ' + radix);
@@ -1416,7 +1456,7 @@ var osc = osc || {};
                 // We need to change the Long value before it can be negated, so we remove
                 // the bottom-most digit in this base and then recurse to do the rest.
                 var radixLong = Long.fromNumber(radix);
-                var div = this.div(radixLong);
+                var div = this.divide(radixLong);
                 rem = div.multiply(radixLong).subtract(this);
                 return div.toString(radix) + rem.toInt().toString(radix);
             } else
@@ -1429,7 +1469,7 @@ var osc = osc || {};
         rem = this;
         var result = '';
         while (true) {
-            var remDiv = rem.div(radixToPower),
+            var remDiv = rem.divide(radixToPower),
                 intval = rem.subtract(remDiv.multiply(radixToPower)).toInt() >>> 0,
                 digits = intval.toString(radix);
             rem = remDiv;
@@ -1448,7 +1488,7 @@ var osc = osc || {};
      * @returns {number} Signed high bits
      * @expose
      */
-    Long.prototype.getHighBits = function() {
+    Long.prototype.getHighBits = function getHighBits() {
         return this.high;
     };
 
@@ -1457,7 +1497,7 @@ var osc = osc || {};
      * @returns {number} Unsigned high bits
      * @expose
      */
-    Long.prototype.getHighBitsUnsigned = function() {
+    Long.prototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
         return this.high >>> 0;
     };
 
@@ -1466,7 +1506,7 @@ var osc = osc || {};
      * @returns {number} Signed low bits
      * @expose
      */
-    Long.prototype.getLowBits = function() {
+    Long.prototype.getLowBits = function getLowBits() {
         return this.low;
     };
 
@@ -1475,7 +1515,7 @@ var osc = osc || {};
      * @returns {number} Unsigned low bits
      * @expose
      */
-    Long.prototype.getLowBitsUnsigned = function() {
+    Long.prototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
         return this.low >>> 0;
     };
 
@@ -1484,7 +1524,7 @@ var osc = osc || {};
      * @returns {number}
      * @expose
      */
-    Long.prototype.getNumBitsAbs = function() {
+    Long.prototype.getNumBitsAbs = function getNumBitsAbs() {
         if (this.isNegative()) // Unsigned Longs are never negative
             return this.equals(Long.MIN_VALUE) ? 64 : this.negate().getNumBitsAbs();
         var val = this.high != 0 ? this.high : this.low;
@@ -1499,7 +1539,7 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.isZero = function() {
+    Long.prototype.isZero = function isZero() {
         return this.high === 0 && this.low === 0;
     };
 
@@ -1508,7 +1548,7 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.isNegative = function() {
+    Long.prototype.isNegative = function isNegative() {
         return !this.unsigned && this.high < 0;
     };
 
@@ -1517,7 +1557,7 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.isPositive = function() {
+    Long.prototype.isPositive = function isPositive() {
         return this.unsigned || this.high >= 0;
     };
 
@@ -1526,7 +1566,7 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.isOdd = function() {
+    Long.prototype.isOdd = function isOdd() {
         return (this.low & 1) === 1;
     };
 
@@ -1535,7 +1575,7 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.isEven = function() {
+    Long.prototype.isEven = function isEven() {
         return (this.low & 1) === 0;
     };
 
@@ -1545,7 +1585,7 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.equals = function(other) {
+    Long.prototype.equals = function equals(other) {
         if (!Long.isLong(other))
             other = Long.fromValue(other);
         if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
@@ -1554,16 +1594,32 @@ var osc = osc || {};
     };
 
     /**
+     * Tests if this Long's value equals the specified's. This is an alias of {@link Long#equals}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     * @expose
+     */
+    Long.eq = Long.prototype.equals;
+
+    /**
      * Tests if this Long's value differs from the specified's.
      * @param {!Long|number|string} other Other value
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.notEquals = function(other) {
-        if (!Long.isLong(other))
-            other = Long.fromValue(other);
-        return !this.equals(other);
+    Long.prototype.notEquals = function notEquals(other) {
+        return !this.equals(/* validates */ other);
     };
+
+    /**
+     * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     * @expose
+     */
+    Long.neq = Long.prototype.notEquals;
 
     /**
      * Tests if this Long's value is less than the specified's.
@@ -1571,11 +1627,18 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.lessThan = function(other) {
-        if (!Long.isLong(other))
-            other = Long.fromValue(other);
-        return this.compare(other) < 0;
+    Long.prototype.lessThan = function lessThan(other) {
+        return this.compare(/* validates */ other) < 0;
     };
+
+    /**
+     * Tests if this Long's value is less than the specified's. This is an alias of {@link Long#lessThan}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     * @expose
+     */
+    Long.prototype.lt = Long.prototype.lessThan;
 
     /**
      * Tests if this Long's value is less than or equal the specified's.
@@ -1583,11 +1646,18 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.lessThanOrEqual = function(other) {
-        if (!Long.isLong(other))
-            other = Long.fromValue(other);
-        return this.compare(other) <= 0;
+    Long.prototype.lessThanOrEqual = function lessThanOrEqual(other) {
+        return this.compare(/* validates */ other) <= 0;
     };
+
+    /**
+     * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     * @expose
+     */
+    Long.prototype.lte = Long.prototype.lessThanOrEqual;
 
     /**
      * Tests if this Long's value is greater than the specified's.
@@ -1595,11 +1665,18 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.greaterThan = function(other) {
-        if (!Long.isLong(other))
-            other = Long.fromValue(other);
-        return this.compare(other) > 0;
+    Long.prototype.greaterThan = function greaterThan(other) {
+        return this.compare(/* validates */ other) > 0;
     };
+
+    /**
+     * Tests if this Long's value is greater than the specified's. This is an alias of {@link Long#greaterThan}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     * @expose
+     */
+    Long.prototype.gt = Long.prototype.greaterThan;
 
     /**
      * Tests if this Long's value is greater than or equal the specified's.
@@ -1607,11 +1684,18 @@ var osc = osc || {};
      * @returns {boolean}
      * @expose
      */
-    Long.prototype.greaterThanOrEqual = function(other) {
-        if (!Long.isLong(other))
-            other = Long.fromValue(other);
-        return this.compare(other) >= 0;
+    Long.prototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
+        return this.compare(/* validates */ other) >= 0;
     };
+
+    /**
+     * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     * @expose
+     */
+    Long.prototype.gte = Long.prototype.greaterThanOrEqual;
 
     /**
      * Compares this Long's value with the specified's.
@@ -1620,7 +1704,9 @@ var osc = osc || {};
      *  if the given one is greater
      * @expose
      */
-    Long.prototype.compare = function(other) {
+    Long.prototype.compare = function compare(other) {
+        if (!Long.isLong(other))
+            other = Long.fromValue(other);
         if (this.equals(other))
             return 0;
         var thisNeg = this.isNegative(),
@@ -1641,11 +1727,19 @@ var osc = osc || {};
      * @returns {!Long} Negated Long
      * @expose
      */
-    Long.prototype.negate = function() {
+    Long.prototype.negate = function negate() {
         if (!this.unsigned && this.equals(Long.MIN_VALUE))
             return Long.MIN_VALUE;
         return this.not().add(Long.ONE);
     };
+
+    /**
+     * Negates this Long's value. This is an alias of {@link Long#negate}.
+     * @function
+     * @returns {!Long} Negated Long
+     * @expose
+     */
+    Long.prototype.neg = Long.prototype.negate;
 
     /**
      * Returns the sum of this and the specified Long.
@@ -1653,7 +1747,7 @@ var osc = osc || {};
      * @returns {!Long} Sum
      * @expose
      */
-    Long.prototype.add = function(addend) {
+    Long.prototype.add = function add(addend) {
         if (!Long.isLong(addend))
             addend = Long.fromValue(addend);
 
@@ -1690,11 +1784,20 @@ var osc = osc || {};
      * @returns {!Long} Difference
      * @expose
      */
-    Long.prototype.subtract = function(subtrahend) {
+    Long.prototype.subtract = function subtract(subtrahend) {
         if (!Long.isLong(subtrahend))
             subtrahend = Long.fromValue(subtrahend);
         return this.add(subtrahend.negate());
     };
+
+    /**
+     * Returns the difference of this and the specified Long. This is an alias of {@link Long#subtract}.
+     * @function
+     * @param {!Long|number|string} subtrahend Subtrahend
+     * @returns {!Long} Difference
+     * @expose
+     */
+    Long.prototype.sub = Long.prototype.subtract;
 
     /**
      * Returns the product of this and the specified Long.
@@ -1702,7 +1805,7 @@ var osc = osc || {};
      * @returns {!Long} Product
      * @expose
      */
-    Long.prototype.multiply = function(multiplier) {
+    Long.prototype.multiply = function multiply(multiplier) {
         if (this.isZero())
             return Long.ZERO;
         if (!Long.isLong(multiplier))
@@ -1764,12 +1867,21 @@ var osc = osc || {};
     };
 
     /**
+     * Returns the product of this and the specified Long. This is an alias of {@link Long#multiply}.
+     * @function
+     * @param {!Long|number|string} multiplier Multiplier
+     * @returns {!Long} Product
+     * @expose
+     */
+    Long.prototype.mul = Long.prototype.multiply;
+
+    /**
      * Returns this Long divided by the specified.
      * @param {!Long|number|string} divisor Divisor
      * @returns {!Long} Quotient
      * @expose
      */
-    Long.prototype.div = function(divisor) {
+    Long.prototype.divide = function divide(divisor) {
         if (!Long.isLong(divisor))
             divisor = Long.fromValue(divisor);
         if (divisor.isZero())
@@ -1785,12 +1897,12 @@ var osc = osc || {};
             else {
                 // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
                 var halfThis = this.shiftRight(1);
-                approx = halfThis.div(divisor).shiftLeft(1);
+                approx = halfThis.divide(divisor).shiftLeft(1);
                 if (approx.equals(Long.ZERO)) {
                     return divisor.isNegative() ? Long.ONE : Long.NEG_ONE;
                 } else {
                     rem = this.subtract(divisor.multiply(approx));
-                    res = approx.add(rem.div(divisor));
+                    res = approx.add(rem.divide(divisor));
                     return res;
                 }
             }
@@ -1798,10 +1910,10 @@ var osc = osc || {};
             return this.unsigned ? Long.UZERO : Long.ZERO;
         if (this.isNegative()) {
             if (divisor.isNegative())
-                return this.negate().div(divisor.negate());
-            return this.negate().div(divisor).negate();
+                return this.negate().divide(divisor.negate());
+            return this.negate().divide(divisor).negate();
         } else if (divisor.isNegative())
-            return this.div(divisor.negate()).negate();
+            return this.divide(divisor.negate()).negate();
 
         // Repeat the following until the remainder is less than other:  find a
         // floating-point that approximates remainder / other *from below*, add this
@@ -1842,23 +1954,41 @@ var osc = osc || {};
     };
 
     /**
+     * Returns this Long divided by the specified. This is an alias of {@link Long#divide}.
+     * @function
+     * @param {!Long|number|string} divisor Divisor
+     * @returns {!Long} Quotient
+     * @expose
+     */
+    Long.prototype.div = Long.prototype.divide;
+
+    /**
      * Returns this Long modulo the specified.
      * @param {!Long|number|string} divisor Divisor
      * @returns {!Long} Remainder
      * @expose
      */
-    Long.prototype.modulo = function(divisor) {
+    Long.prototype.modulo = function modulo(divisor) {
         if (!Long.isLong(divisor))
             divisor = Long.fromValue(divisor);
-        return this.subtract(this.div(divisor).multiply(divisor));
+        return this.subtract(this.divide(divisor).multiply(divisor));
     };
+
+    /**
+     * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
+     * @function
+     * @param {!Long|number|string} divisor Divisor
+     * @returns {!Long} Remainder
+     * @expose
+     */
+    Long.prototype.mod = Long.prototype.modulo;
 
     /**
      * Returns the bitwise NOT of this Long.
      * @returns {!Long}
      * @expose
      */
-    Long.prototype.not = function() {
+    Long.prototype.not = function not() {
         return Long.fromBits(~this.low, ~this.high, this.unsigned);
     };
 
@@ -1868,7 +1998,7 @@ var osc = osc || {};
      * @returns {!Long}
      * @expose
      */
-    Long.prototype.and = function(other) {
+    Long.prototype.and = function and(other) {
         if (!Long.isLong(other))
             other = Long.fromValue(other);
         return Long.fromBits(this.low & other.low, this.high & other.high, this.unsigned);
@@ -1880,7 +2010,7 @@ var osc = osc || {};
      * @returns {!Long}
      * @expose
      */
-    Long.prototype.or = function(other) {
+    Long.prototype.or = function or(other) {
         if (!Long.isLong(other))
             other = Long.fromValue(other);
         return Long.fromBits(this.low | other.low, this.high | other.high, this.unsigned);
@@ -1892,7 +2022,7 @@ var osc = osc || {};
      * @returns {!Long}
      * @expose
      */
-    Long.prototype.xor = function(other) {
+    Long.prototype.xor = function xor(other) {
         if (!Long.isLong(other))
             other = Long.fromValue(other);
         return Long.fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
@@ -1904,7 +2034,7 @@ var osc = osc || {};
      * @returns {!Long} Shifted Long
      * @expose
      */
-    Long.prototype.shiftLeft = function(numBits) {
+    Long.prototype.shiftLeft = function shiftLeft(numBits) {
         if (Long.isLong(numBits))
             numBits = numBits.toInt();
         if ((numBits &= 63) === 0)
@@ -1916,12 +2046,21 @@ var osc = osc || {};
     };
 
     /**
+     * Returns this Long with bits shifted to the left by the given amount. This is an alias of {@link Long#shiftLeft}.
+     * @function
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     * @expose
+     */
+    Long.prototype.shl = Long.prototype.shiftLeft;
+
+    /**
      * Returns this Long with bits arithmetically shifted to the right by the given amount.
      * @param {number|!Long} numBits Number of bits
      * @returns {!Long} Shifted Long
      * @expose
      */
-    Long.prototype.shiftRight = function(numBits) {
+    Long.prototype.shiftRight = function shiftRight(numBits) {
         if (Long.isLong(numBits))
             numBits = numBits.toInt();
         if ((numBits &= 63) === 0)
@@ -1933,12 +2072,21 @@ var osc = osc || {};
     };
 
     /**
+     * Returns this Long with bits arithmetically shifted to the right by the given amount. This is an alias of {@link Long#shiftRight}.
+     * @function
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     * @expose
+     */
+    Long.prototype.shr = Long.prototype.shiftRight;
+
+    /**
      * Returns this Long with bits logically shifted to the right by the given amount.
      * @param {number|!Long} numBits Number of bits
      * @returns {!Long} Shifted Long
      * @expose
      */
-    Long.prototype.shiftRightUnsigned = function(numBits) {
+    Long.prototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
         if (Long.isLong(numBits))
             numBits = numBits.toInt();
         numBits &= 63;
@@ -1957,11 +2105,20 @@ var osc = osc || {};
     };
 
     /**
+     * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
+     * @function
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     * @expose
+     */
+    Long.prototype.shru = Long.prototype.shiftRightUnsigned;
+
+    /**
      * Converts this Long to signed.
      * @returns {!Long} Signed long
      * @expose
      */
-    Long.prototype.toSigned = function() {
+    Long.prototype.toSigned = function toSigned() {
         if (!this.unsigned)
             return this;
         return new Long(this.low, this.high, false);
@@ -1972,20 +2129,14 @@ var osc = osc || {};
      * @returns {!Long} Unsigned long
      * @expose
      */
-    Long.prototype.toUnsigned = function() {
+    Long.prototype.toUnsigned = function toUnsigned() {
         if (this.unsigned)
             return this;
         return new Long(this.low, this.high, true);
     };
 
-    /* CommonJS */ if (typeof require === 'function' && typeof module === 'object' && module && typeof exports === 'object' && exports)
-        module["exports"] = Long;
-    /* AMD */ else if (typeof define === 'function' && define["amd"])
-        define(function() { return Long; });
-    /* Global */ else
-        (global["dcodeIO"] = global["dcodeIO"] || {})["Long"] = Long;
-
-})(this);
+    return Long;
+});
 ;/*
  * slip.js: A plain JavaScript SLIP implementation that works in both the browser and Node.js
  *
@@ -2545,20 +2696,22 @@ var osc = osc || {};
      * @return {Object} Current instance of EventEmitter for chaining.
      */
     proto.emitEvent = function emitEvent(evt, args) {
-        var listeners = this.getListenersAsObject(evt);
+        var listenersMap = this.getListenersAsObject(evt);
+        var listeners;
         var listener;
         var i;
         var key;
         var response;
 
-        for (key in listeners) {
-            if (listeners.hasOwnProperty(key)) {
-                i = listeners[key].length;
+        for (key in listenersMap) {
+            if (listenersMap.hasOwnProperty(key)) {
+                listeners = listenersMap[key].slice(0);
+                i = listeners.length;
 
                 while (i--) {
                     // If the listener returns true then it shall be removed from the event
                     // The function is executed either with a basic call or an apply if there is an args array
-                    listener = listeners[key][i];
+                    listener = listeners[i];
 
                     if (listener.once === true) {
                         this.removeListener(evt, listener.listener);
@@ -2704,25 +2857,37 @@ var osc = osc || require("./osc.js"),
 
     p.send = function (oscPacket) {
         var args = Array.prototype.slice.call(arguments),
-            encoded = this.encodeOSC(oscPacket);
+            encoded = this.encodeOSC(oscPacket),
+            buf = osc.nativeBuffer(encoded);
 
-        args[0] = encoded;
+        args[0] = buf;
         this.sendRaw.apply(this, args);
     };
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options);
+        var encoded;
+
+        try {
+            encoded = osc.writePacket(packet, this.options);
+        } catch (err) {
+            this.emit("error", err);
+        }
+
         return encoded;
     };
 
     p.decodeOSC = function (data) {
+        data = osc.byteArray(data);
         this.emit("raw", data);
 
-        var packet = osc.readPacket(data, this.options);
-        this.emit("osc", packet);
-
-        osc.firePacketEvents(this, packet);
+        try {
+            var packet = osc.readPacket(data, this.options);
+            this.emit("osc", packet);
+            osc.firePacketEvents(this, packet);
+        } catch (err) {
+            this.emit("error", err);
+        }
     };
 
 
@@ -2747,8 +2912,16 @@ var osc = osc || require("./osc.js"),
 
     p.encodeOSC = function (packet) {
         packet = packet.buffer ? packet.buffer : packet;
-        var encoded = osc.writePacket(packet, this.options);
-        return slip.encode(encoded);
+        var framed;
+
+        try {
+            var encoded = osc.writePacket(packet, this.options);
+            framed = slip.encode(encoded);
+        } catch (err) {
+            this.emit("error", err);
+        }
+
+        return framed;
     };
 
     p.decodeSLIPData = function (data) {

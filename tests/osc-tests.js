@@ -10,7 +10,7 @@
 /*global require, dcodeIO*/
 
 var fluid = fluid || require("infusion"),
-    jqUnit = jqUnit || fluid.require("jqUnit"),
+    jqUnit = jqUnit || require("node-jqunit"),
     osc = osc || require("../src/platforms/osc-node.js");
 
 (function () {
@@ -556,6 +556,13 @@ var fluid = fluid || require("infusion"),
 
         actual = osc.timeTag(-0.01);
         expected = Date.now() - 10;
+        testTimeTag(actual, expected);
+    });
+
+    jqUnit.test("osc.timeTag relative to provided time", function () {
+        var actual = osc.timeTag(0, Date.parse("2015-01-01")),
+            expected = Date.parse("2015-01-01");
+        testTimeTag(actual, expected);
     });
 
 

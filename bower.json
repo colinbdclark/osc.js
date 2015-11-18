@@ -1,6 +1,6 @@
 {
     "name": "osc.js",
-    "version": "1.3.0",
+    "version": "2.0.0",
     "main": "dist/osc.min.js",
     "ignore": [
         ".jshintrc",
@@ -12,10 +12,10 @@
     ],
     "dependencies": {
         "slip.js": "1.0.2",
-        "eventEmitter": "4.2.11",
-        "long": "2.2.5"
+        "eventEmitter": "4.3.0",
+        "long": "3.0.0"
     },
     "devDependencies": {
-        "requirejs": ">=2.1.14"
+        "requirejs": "2.1.20"
     }
 }

@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>osc.js Tests</title>
+        <title>osc.js Cross-Platform Transport Tests</title>
 
         <link rel="stylesheet" media="screen" href="../node_modules/infusion/tests/lib/qunit/css/qunit.css" />
 
@@ -15,13 +15,18 @@
         <script type="text/javascript" src="../node_modules/infusion/tests/lib/qunit/js/qunit.js"></script>
         <script type="text/javascript" src="../node_modules/infusion/tests/test-core/jqUnit/js/jqUnit.js"></script>
         <script src="../node_modules/long/dist/long.js"></script>
-        <script src="../src/osc.js"></script>
 
-        <script src="osc-tests.js"></script>
+        <script src="../node_modules/slip/dist/slip.min.js"></script>
+        <script src="../node_modules/wolfy87-eventemitter/EventEmitter.min.js"></script>
+
+        <script src="../src/osc.js"></script>
+        <script src="../src/osc-transports.js"></script>
+
+        <script src="transport-tests.js"></script>
     </head>
 
     <body id="body">
-        <h1 id="qunit-header">osc.js Tests</h1>
+        <h1 id="qunit-header">osc.js Cross-Platform Transport Tests</h1>
         <h2 id="qunit-banner"></h2>
         <div id="qunit-testrunner-toolbar"></div>
         <h2 id="qunit-userAgent"></h2>

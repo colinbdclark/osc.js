@@ -1157,4 +1157,39 @@ var fluid = fluid || require("infusion"),
 
     testBundles(bundleTestSpecs);
 
+    QUnit.test("gh-xyz: Write Long argument", function () {
+        var msg = {
+            address: "/cat/slash",
+            args: [
+                new Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
+            ]
+        };
+
+        var actual = osc.writeMessage(msg, {
+            metadata: false
+        });
+
+        var actualRead = osc.readMessage(actual, {
+            metadata: true
+        });
+
+        var expected = {
+            addres: msg.address,
+            args: [
+                {
+                    type: "h",
+                    value: msg.args[0]
+                }
+            ]
+        };
+
+        QUnit.expect(2);
+
+        QUnit.equal(1, actualRead.args.length,
+            "There should only be one message argument.");
+
+        QUnit.ok(actualRead.args[0].value.equals(expected.args[0].value),
+            "The long integer should have been correctly type inferred when writing it" +
+            " to a message.");
+    });
 }());

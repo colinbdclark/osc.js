@@ -1033,7 +1033,7 @@ var osc = osc || {};
                 } else if (arg instanceof Uint8Array ||
                     arg instanceof ArrayBuffer) {
                     return "b";
-                } else if (arg.high instanceof Number && arg.low instanceof Number) {
+                } else if (typeof arg.high === "number" && typeof arg.low === "number") {
                     return "h";
                 }
                 break;

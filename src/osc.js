@@ -1014,7 +1014,7 @@ var osc = osc || {};
                 } else if (arg instanceof Uint8Array ||
                     arg instanceof ArrayBuffer) {
                     return "b";
-                } else if (typeof arg.high === 'number' && typeof arg.low === 'number') {
+                } else if (typeof arg.high === "number" && typeof arg.low === "number") {
                     return "h";
                 }
                 break;

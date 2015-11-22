@@ -394,6 +394,34 @@ OSC messages over a <code>chrome.sockets.udp</code> socket. It also supports bro
 </table>
 
 
+Handling Errors
+---------------
+
+All osc.js Transport objects emit <code>"error"</code> messages whenever an error occurs,
+such as when a malformed message is received. You should always listen for errors and
+handle them in an appropriate manner for your application.
+
+```javascript
+var port = osc.UDPPort();
+port.on("error", function (error) {
+    console.log("An error occurred: ", error.message);
+});
+```
+
+The low-level osc.js API, described below, will throw JavaScript <code>Error</code> objects whenever an error occurs;
+they should be caught and handled using
+<code>try</code>/<code>catch</code>.
+
+```javascript
+var msg;
+
+try {
+    msg = osc.readPacket(rawPacket);
+} catch (error) {
+    console.log("An error occurred: ", error.message);
+}
+```
+
 The osc.js Low-Level API
 ------------------------
 

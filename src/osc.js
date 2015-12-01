@@ -93,6 +93,10 @@ var osc = osc || {};
                 JSON.stringify(obj, null, 2));
         }
 
+
+        // TODO: This is a potentially unsafe algorithm;
+        // if we're getting anything other than a TypedArrayView (such as a DataView),
+        // we really need to determine the range of the view it is viewing.
         return new Uint8Array(buf);
     };
 
@@ -108,7 +112,7 @@ var osc = osc || {};
      */
     // Unsupported, non-API function.
     osc.nativeBuffer = function (obj) {
-        if (osc.isBufferEnv) {
+        if (osc.isBufferEnv && osc.isNode) {
             return osc.isBuffer(obj) ? obj : new Buffer(obj.buffer ? obj : new Uint8Array(obj));
         }
 

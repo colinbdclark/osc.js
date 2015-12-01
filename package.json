@@ -40,7 +40,7 @@
         "long": "3.0.0",
         "serialport": "2.0.2",
         "slip": "1.0.2",
-        "ws": "0.8.0"
+        "ws": "0.8.1"
     },
     "scripts": {
         "dedupe-infusion": "node -e \"require('dedupe-infusion')();\"",

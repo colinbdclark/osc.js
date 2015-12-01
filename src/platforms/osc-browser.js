@@ -66,7 +66,7 @@ var osc = osc;
         if (!this.socket) {
             return;
         }
-        this.socket.send(encoded.buffer);
+        this.socket.send(encoded);
     };
 
     p.close = function (code, reason) {

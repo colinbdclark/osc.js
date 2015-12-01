@@ -95,6 +95,10 @@ var osc = osc || {};
                 JSON.stringify(obj, null, 2));
         }
 
+
+        // TODO: This is a potentially unsafe algorithm;
+        // if we're getting anything other than a TypedArrayView (such as a DataView),
+        // we really need to determine the range of the view it is viewing.
         return new Uint8Array(buf);
     };
 
@@ -110,7 +114,7 @@ var osc = osc || {};
      */
     // Unsupported, non-API function.
     osc.nativeBuffer = function (obj) {
-        if (osc.isBufferEnv) {
+        if (osc.isBufferEnv && osc.isNode) {
             return osc.isBuffer(obj) ? obj : new Buffer(obj.buffer ? obj : new Uint8Array(obj));
         }
 
@@ -2865,6 +2869,8 @@ var osc = osc || require("./osc.js"),
     };
 
     p.encodeOSC = function (packet) {
+        // TODO: This is unsafe; we should only access the underlying
+        // buffer within the range of its view.
         packet = packet.buffer ? packet.buffer : packet;
         var encoded;
 
@@ -2911,6 +2917,8 @@ var osc = osc || require("./osc.js"),
     p.constructor = osc.SLIPPort;
 
     p.encodeOSC = function (packet) {
+        // TODO: This is unsafe; we should only access the underlying
+        // buffer within the range of its view.
         packet = packet.buffer ? packet.buffer : packet;
         var framed;
 
@@ -3088,7 +3096,7 @@ var osc = osc;
         if (!this.socket) {
             return;
         }
-        this.socket.send(encoded.buffer);
+        this.socket.send(encoded);
     };
 
     p.close = function (code, reason) {

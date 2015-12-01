@@ -71,6 +71,8 @@ var osc = osc || {};
 
         var that = this;
 
+        // TODO: This is unsafe; we should only access the underlying
+        // buffer within the range of its view.
         chrome.serial.send(this.connectionId, encoded.buffer, function (bytesSent, err) {
             if (err) {
                 that.emit("error", err + ". Total bytes sent: " + bytesSent);
@@ -193,6 +195,8 @@ var osc = osc || {};
         address = address || o.remoteAddress;
         port = port !== undefined ? port : o.remotePort;
 
+        // TODO: This is unsafe; we should only access the underlying
+        // buffer within the range of its view.
         chrome.sockets.udp.send(this.socketId, encoded.buffer, address, port, function (info) {
             if (!info) {
                 that.emit("error",

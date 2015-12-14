@@ -94,7 +94,7 @@ var osc = osc || {};
         }
 
 
-        // TODO: This is a potentially unsafe algorithm;
+        // TODO gh-39: This is a potentially unsafe algorithm;
         // if we're getting anything other than a TypedArrayView (such as a DataView),
         // we really need to determine the range of the view it is viewing.
         return new Uint8Array(buf);

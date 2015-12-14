@@ -53,7 +53,7 @@ var osc = osc || require("./osc.js"),
     };
 
     p.encodeOSC = function (packet) {
-        // TODO: This is unsafe; we should only access the underlying
+        // TODO gh-39: This is unsafe; we should only access the underlying
         // buffer within the range of its view.
         packet = packet.buffer ? packet.buffer : packet;
         var encoded;
@@ -101,7 +101,7 @@ var osc = osc || require("./osc.js"),
     p.constructor = osc.SLIPPort;
 
     p.encodeOSC = function (packet) {
-        // TODO: This is unsafe; we should only access the underlying
+        // TODO gh-39: This is unsafe; we should only access the underlying
         // buffer within the range of its view.
         packet = packet.buffer ? packet.buffer : packet;
         var framed;

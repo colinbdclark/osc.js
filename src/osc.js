@@ -749,7 +749,7 @@ var osc = osc || {};
      * Reads an OSC message.
      *
      * @param {Array-like} data an array of bytes to read from
-     * @param {Object} [options] read optoins
+     * @param {Object} [options] read options
      * @param {Object} [offsetState] an offsetState object that stores the current offset into dv
      * @return {Object} the OSC message, formatted as a JavaScript object containing "address" and "args" properties
      */

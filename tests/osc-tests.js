@@ -201,6 +201,49 @@ var fluid = fluid || require("infusion"),
     stringTests(stringTestSpecs);
 
 
+    var testEncodedObjectArgument = function (objectArg, argEncoder, argDecoder) {
+        var msg = {
+            address: "/thecat",
+            args: argEncoder(objectArg)
+        };
+
+        var encoded = osc.writeMessage(msg),
+            decoded = osc.readMessage(encoded);
+
+        QUnit.deepEqual(decoded, msg,
+            "The stringified object should have been correctly decoded.");
+        QUnit.deepEqual(argDecoder(decoded.args), objectArg,
+            "The object should parse correctly.");
+    };
+
+    QUnit.test("gh-40: Stringified ASCII-only object as string argument", function () {
+        var objectArg =  {
+            name: "Hugo",
+            color: "White with tabby spots",
+            age: 8
+        };
+
+        testEncodedObjectArgument(objectArg, function (arg) {
+            return JSON.stringify(arg);
+        }, function (arg) {
+            return JSON.parse(arg);
+        });
+    });
+
+    QUnit.test("gh-40: Stringified extended characer object as string argument", function () {
+        var objectArg = {
+            oneProperty: "Murdock’s Fougere",
+            anotherProperty: "a gentleman’s look"
+        };
+
+        testEncodedObjectArgument(objectArg, function (arg) {
+            return encodeURIComponent(JSON.stringify(arg));
+        }, function (arg) {
+            return JSON.parse(decodeURIComponent(arg));
+        });
+    });
+
+
     /***********
      * Numbers *
      ***********/
@@ -1157,7 +1200,7 @@ var fluid = fluid || require("infusion"),
 
     testBundles(bundleTestSpecs);
 
-    QUnit.test("gh-xyz: Write Long argument", function () {
+    QUnit.test("gh-36: Write Long argument", function () {
         var msg = {
             address: "/cat/slash",
             args: [

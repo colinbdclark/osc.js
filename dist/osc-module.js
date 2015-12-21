@@ -1,4 +1,4 @@
-/*! osc.js 2.0.1, Copyright 2015 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.0.2, Copyright 2015 Colin Clark | github.com/colinbdclark/osc.js */
 
 (function (root, factory) {
     if (typeof exports === "object") {
@@ -113,7 +113,7 @@ var osc = osc || {};
         }
 
 
-        // TODO: This is a potentially unsafe algorithm;
+        // TODO gh-39: This is a potentially unsafe algorithm;
         // if we're getting anything other than a TypedArrayView (such as a DataView),
         // we really need to determine the range of the view it is viewing.
         return new Uint8Array(buf);
@@ -737,7 +737,7 @@ var osc = osc || {};
     // Unsupported, non-API function.
     osc.collectArguments = function (args, options, dataCollection) {
         if (!osc.isArray(args)) {
-            args = [args];
+            args = typeof args === "undefined" ? [] : [args];
         }
 
         dataCollection = dataCollection || {
@@ -768,7 +768,7 @@ var osc = osc || {};
      * Reads an OSC message.
      *
      * @param {Array-like} data an array of bytes to read from
-     * @param {Object} [options] read optoins
+     * @param {Object} [options] read options
      * @param {Object} [offsetState] an offsetState object that stores the current offset into dv
      * @return {Object} the OSC message, formatted as a JavaScript object containing "address" and "args" properties
      */
@@ -1134,7 +1134,7 @@ var osc = osc || require("./osc.js"),
     };
 
     p.encodeOSC = function (packet) {
-        // TODO: This is unsafe; we should only access the underlying
+        // TODO gh-39: This is unsafe; we should only access the underlying
         // buffer within the range of its view.
         packet = packet.buffer ? packet.buffer : packet;
         var encoded;
@@ -1182,7 +1182,7 @@ var osc = osc || require("./osc.js"),
     p.constructor = osc.SLIPPort;
 
     p.encodeOSC = function (packet) {
-        // TODO: This is unsafe; we should only access the underlying
+        // TODO gh-39: This is unsafe; we should only access the underlying
         // buffer within the range of its view.
         packet = packet.buffer ? packet.buffer : packet;
         var framed;

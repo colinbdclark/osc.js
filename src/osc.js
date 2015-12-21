@@ -718,7 +718,7 @@ var osc = osc || {};
     // Unsupported, non-API function.
     osc.collectArguments = function (args, options, dataCollection) {
         if (!osc.isArray(args)) {
-            args = [args];
+            args = typeof args === "undefined" ? [] : [args];
         }
 
         dataCollection = dataCollection || {

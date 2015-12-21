@@ -941,6 +941,7 @@ var fluid = fluid || require("infusion"),
 
             var readWrittenSpec = fluid.copy(testSpec);
             readWrittenSpec.oscMessageBuffer = encoded;
+            readWrittenSpec.offsetState = null;
             readMessageTester(readWrittenSpec);
         });
     };
@@ -948,7 +949,7 @@ var fluid = fluid || require("infusion"),
 
     var messageTestSpecs = [
         {
-            name: "float and array example",
+            name: "float and array example without type metadata",
 
             roundToDecimals: 3,
 
@@ -974,6 +975,49 @@ var fluid = fluid || require("infusion"),
 
             options: {
                 metadata: false
+            }
+        },
+
+        {
+            name: "float and array example with type metadata",
+
+            roundToDecimals: 3,
+
+            oscMessageBuffer: new Uint8Array([
+                // "//carrier/freq" | ",f[ii]" | 440.4, 42, 47
+                0x2f, 0x63, 0x61, 0x72, // "/carrier/freq" + padding
+                0x72, 0x69, 0x65, 0x72,
+                0x2f, 0x66, 0x72, 0x65,
+                0x71, 0, 0, 0,
+                0x2c, 0x66, 0x5b, 0x69, // ,f[i
+                0x69, 0x5d, 0, 0,       // i] padding
+                0x43, 0xdc, 0x33, 0x33, // 440.4
+                0, 0, 0, 42,
+                0, 0, 0, 47
+            ]),
+
+            message: {
+                address: "/carrier/freq",
+                args: [
+                    {
+                        type: "f",
+                        value: 440.4
+                    },
+                    [
+                        {
+                            type: "i",
+                            value: 42
+                        },
+                        {
+                            type: "i",
+                            value: 47
+                        }
+                    ]
+                ]
+            },
+
+            options: {
+                metadata: true
             }
         },
 
@@ -1052,7 +1096,7 @@ var fluid = fluid || require("infusion"),
         },
 
         {
-            name: "no arguments, without type inference",
+            name: "zero arguments, without type inference",
             // "/foo"
             oscMessageBuffer: new Uint8Array([
                 0x2f, 0x66, 0x6f, 0x6f, // "/foo"
@@ -1075,7 +1119,7 @@ var fluid = fluid || require("infusion"),
         },
 
         {
-            name: "no arguments, with type inference",
+            name: "zero arguments, with type inference",
             // "/foo"
             oscMessageBuffer: new Uint8Array([
                 0x2f, 0x66, 0x6f, 0x6f, // "/foo"

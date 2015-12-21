@@ -898,35 +898,85 @@ var fluid = fluid || require("infusion"),
 
     jqUnit.module("Messages");
 
-    var testReadMessage = function (testSpec) {
+    var readMessageTester = function (testSpec) {
         testSpec.offsetState = testSpec.offsetState || {
             idx: 0
         };
 
-        jqUnit.test("readMessage " + testSpec.name, function () {
-            var expected = testSpec.message,
-                dv = new DataView(testSpec.oscMessageBuffer.buffer),
-                actual = osc.readMessage(dv, testSpec.options, testSpec.offsetState),
-                msg = "The returned message object should match the raw message data.";
+        var expected = testSpec.expectedMessage || testSpec.message,
+            dv = new DataView(testSpec.oscMessageBuffer.buffer),
+            actual = osc.readMessage(dv, testSpec.options, testSpec.offsetState),
+            msg = "The returned message object should match the raw message data.";
 
-            if (testSpec.roundToDecimals !== undefined) {
-                deepEqualRounded(actual, expected, testSpec.roundToDecimals, msg);
-            } else {
-                QUnit.deepEqual(actual, expected, msg);
-            }
+        if (testSpec.roundToDecimals !== undefined) {
+            deepEqualRounded(actual, expected, testSpec.roundToDecimals, msg);
+        } else {
+            QUnit.deepEqual(actual, expected, msg);
+        }
+    };
+
+    var testReadMessage = function (testSpec) {
+        jqUnit.test("readMessage " + testSpec.name, function () {
+            readMessageTester(testSpec);
         });
+    };
+
+    var writeMessageTester = function (expected, message, options) {
+        var actual = osc.writeMessage(message, options);
+        arrayEqual(actual, expected, "The message should have been written correctly.");
+
+        return actual;
     };
 
     var testWriteMessage = function (testSpec) {
         jqUnit.test("writeMessage " + testSpec.name, function () {
-            var expected = testSpec.oscMessageBuffer,
-                actual = osc.writeMessage(testSpec.message, testSpec.options);
-
-            arrayEqual(actual, expected, "The message should have been written correctly.");
+            writeMessageTester(testSpec.oscMessageBuffer, testSpec.message, testSpec.options);
         });
     };
 
+    var testWriteMessageRoundTrip = function (testSpec) {
+        jqUnit.test("Read written message (roundtrip) " + testSpec.name, function () {
+            var encoded = writeMessageTester(testSpec.oscMessageBuffer,
+                testSpec.message, testSpec.options);
+
+            var readWrittenSpec = fluid.copy(testSpec);
+            readWrittenSpec.oscMessageBuffer = encoded;
+            readMessageTester(readWrittenSpec);
+        });
+    };
+
+
     var messageTestSpecs = [
+        {
+            name: "float and array example",
+
+            roundToDecimals: 3,
+
+            oscMessageBuffer: new Uint8Array([
+                // "//carrier/freq" | ",f[ii]" | 440.4, 42, 47
+                0x2f, 0x63, 0x61, 0x72, // "/carrier/freq" + padding
+                0x72, 0x69, 0x65, 0x72,
+                0x2f, 0x66, 0x72, 0x65,
+                0x71, 0, 0, 0,
+                0x2c, 0x66, 0x5b, 0x69, // ,f[i
+                0x69, 0x5d, 0, 0,       // i] padding
+                0x43, 0xdc, 0x33, 0x33, // 440.4
+                0, 0, 0, 42,
+                0, 0, 0, 47
+            ]),
+
+            message: {
+                address: "/carrier/freq",
+                args: [
+                    440.4, [42, 47]
+                ]
+            },
+
+            options: {
+                metadata: false
+            }
+        },
+
         {
             name: "without type metadata",
 
@@ -999,6 +1049,52 @@ var fluid = fluid || require("infusion"),
             options: {
                 metadata: true
             }
+        },
+
+        {
+            name: "no arguments, without type inference",
+            // "/foo"
+            oscMessageBuffer: new Uint8Array([
+                0x2f, 0x66, 0x6f, 0x6f, // "/foo"
+                0, 0, 0, 0,             // padding
+                0x2c, 0, 0, 0           // , padding
+            ]),
+
+            message: {
+                address: "/foo"
+            },
+
+            expectedMessage: {
+                address: "/foo",
+                args: []
+            },
+
+            options: {
+                metadata: true
+            }
+        },
+
+        {
+            name: "no arguments, with type inference",
+            // "/foo"
+            oscMessageBuffer: new Uint8Array([
+                0x2f, 0x66, 0x6f, 0x6f, // "/foo"
+                0, 0, 0, 0,             // padding
+                0x2c, 0, 0, 0           // , padding
+            ]),
+
+            message: {
+                address: "/foo"
+            },
+
+            expectedMessage: {
+                address: "/foo",
+                args: []
+            },
+
+            options: {
+                metadata: false
+            }
         }
     ];
 
@@ -1007,6 +1103,7 @@ var fluid = fluid || require("infusion"),
             var testSpec = testSpecs[i];
             testReadMessage(testSpec);
             testWriteMessage(testSpec);
+            testWriteMessageRoundTrip(testSpec);
         }
     };
 

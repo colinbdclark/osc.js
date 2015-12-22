@@ -230,7 +230,7 @@ var fluid = fluid || require("infusion"),
         });
     });
 
-    QUnit.test("gh-40: Stringified extended characer object as string argument", function () {
+    QUnit.test("gh-40: Stringified extended character object as string argument", function () {
         var objectArg = {
             oneProperty: "Murdock’s Fougere",
             anotherProperty: "a gentleman’s look"
@@ -305,13 +305,13 @@ var fluid = fluid || require("infusion"),
                 offset: 8
             },
             {
-                name: "Read an in32 value at the end of a byte array",
+                name: "Read an int32 value at the end of a byte array",
                 nums: new Int32Array([1, -1, 2000000, -600]),
                 expected: -600,
                 offset: 12
             },
             {
-                name: "Read an in32 value at the beginning of a byte array",
+                name: "Read an int32 value at the beginning of a byte array",
                 nums: new Int32Array([1, -1, 2000000, -600]),
                 expected: 1,
                 offset: 0
@@ -911,7 +911,7 @@ var fluid = fluid || require("infusion"),
         if (testSpec.roundToDecimals !== undefined) {
             deepEqualRounded(actual, expected, testSpec.roundToDecimals, msg);
         } else {
-            QUnit.deepEqual(actual, expected, msg);
+            QUnit.propEqual(actual, expected, msg);
         }
     };
 
@@ -953,17 +953,20 @@ var fluid = fluid || require("infusion"),
 
             roundToDecimals: 3,
 
+            // Note that without type metadata,
+            // this message is semantically different from the one below,
+            // since the number arguments must be interpreted as floats.
             oscMessageBuffer: new Uint8Array([
-                // "//carrier/freq" | ",f[ii]" | 440.4, 42, 47
+                // "//carrier/freq" | ",f[ff]" | 440.4, 42, 47
                 0x2f, 0x63, 0x61, 0x72, // "/carrier/freq" + padding
                 0x72, 0x69, 0x65, 0x72,
                 0x2f, 0x66, 0x72, 0x65,
                 0x71, 0, 0, 0,
-                0x2c, 0x66, 0x5b, 0x69, // ,f[i
-                0x69, 0x5d, 0, 0,       // i] padding
+                0x2c, 0x66, 0x5b, 0x66, // ,f[f
+                0x66, 0x5d, 0, 0,       // f] padding
                 0x43, 0xdc, 0x33, 0x33, // 440.4
-                0, 0, 0, 42,
-                0, 0, 0, 47
+                66, 40, 0, 0,           // 42.0
+                66, 60, 0, 0            // 47.0
             ]),
 
             message: {

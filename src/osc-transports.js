@@ -118,7 +118,7 @@ var osc = osc || require("./osc.js"),
 
     p.decodeSLIPData = function (data, packetInfo) {
         // TODO: Get packetInfo through SLIP decoder.
-        this.decoder.decode(data);
+        this.decoder.decode(data, packetInfo);
     };
 
 

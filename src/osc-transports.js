@@ -18,20 +18,20 @@ var osc = osc || require("./osc.js"),
     "use strict";
 
     // Unsupported, non-API function.
-    osc.firePacketEvents = function (port, packet, timeTag) {
+    osc.firePacketEvents = function (port, packet, timeTag, packetInfo) {
         if (packet.address) {
-            port.emit("message", packet, timeTag);
+            port.emit("message", packet, timeTag, packetInfo);
         } else {
-            osc.fireBundleEvents(port, packet, timeTag);
+            osc.fireBundleEvents(port, packet, timeTag, packetInfo);
         }
     };
 
     // Unsupported, non-API function.
-    osc.fireBundleEvents = function (port, bundle, timeTag) {
-        port.emit("bundle", bundle, timeTag);
+    osc.fireBundleEvents = function (port, bundle, timeTag, packetInfo) {
+        port.emit("bundle", bundle, timeTag, packetInfo);
         for (var i = 0; i < bundle.packets.length; i++) {
             var packet = bundle.packets[i];
-            osc.firePacketEvents(port, packet, bundle.timeTag);
+            osc.firePacketEvents(port, packet, bundle.timeTag, packetInfo);
         }
     };
 
@@ -69,12 +69,12 @@ var osc = osc || require("./osc.js"),
 
     p.decodeOSC = function (data, packetInfo) {
         data = osc.byteArray(data);
-        this.emit("raw", data);
+        this.emit("raw", data, packetInfo);
 
         try {
             var packet = osc.readPacket(data, this.options);
-            this.emit("osc", packet);
-            osc.firePacketEvents(this, packet);
+            this.emit("osc", packet, packetInfo);
+            osc.firePacketEvents(this, packet, undefined, packetInfo);
         } catch (err) {
             this.emit("error", err);
         }
@@ -117,6 +117,7 @@ var osc = osc || require("./osc.js"),
     };
 
     p.decodeSLIPData = function (data, packetInfo) {
+        // TODO: Get packetInfo through SLIP decoder.
         this.decoder.decode(data);
     };
 

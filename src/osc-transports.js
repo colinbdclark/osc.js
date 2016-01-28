@@ -67,7 +67,7 @@ var osc = osc || require("./osc.js"),
         return encoded;
     };
 
-    p.decodeOSC = function (data) {
+    p.decodeOSC = function (data, packetInfo) {
         data = osc.byteArray(data);
         this.emit("raw", data);
 
@@ -116,7 +116,7 @@ var osc = osc || require("./osc.js"),
         return framed;
     };
 
-    p.decodeSLIPData = function (data) {
+    p.decodeSLIPData = function (data, packetInfo) {
         this.decoder.decode(data);
     };
 

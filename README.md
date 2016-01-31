@@ -430,14 +430,14 @@ There are two primary functions in osc.js used to read and write OSC data:
 * ``osc.readPacket()``, which takes a DataView-friendly data buffer (i.e. an ArrayBuffer, TypedArray, or DataView object) and returns a tree of JavaScript objects representing the messages and bundles that were read
 * ``osc.writePacket()``, which takes a message or bundle object and packs it up into a Uint8Array object
 
-Both functions take an optional `withMetadata` parameter, which specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets.If you need greater precision in regards to the arguments in an OSC message, set the `withMetadata` argument to true.
+Both functions take an optional <code>metadata</code> parameter, which specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets. If you need greater precision in regards to the arguments in an OSC message, set the <code>metadata</code> argument to true. The <code>metadata</code> option is also supported by all <code>osc.Port</code> objects, and can be included as a parameter in the <code>options</code> arguments passed to any <code>Port</code> constructor.
 
 ### OSC Bundle and Message Objects
 
 osc.js represents bundles and messages as (mostly) JSON-compatible objects. Here's how they are structured:
 
 #### Messages
-OSC Message objects consist of two properties, `address`, which contains the URL-style address path and `args` which is an array of either raw argument values or type-annotated Argument objects (depending on the value of `withMetadata` when reading the message).
+OSC Message objects consist of two properties, `address`, which contains the URL-style address path and `args` which is an array of either raw argument values or type-annotated Argument objects (depending on the value of the <code>metadata</code> option used when reading the message).
 
 ```javascript
 {
@@ -521,11 +521,11 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
 }</pre></code></td>
     </tr>
     <tr>
-        <td>"/float/andArray" ",f[ii]" 440.4 42 47</td>
+        <td>"/float/andArray" ",f[ff]" 440.4 42 47</td>
         <td><pre><code>{
   address: "/carrier/freq",
   args: [
-    440.4, [42, 47]
+    440.4, [42.0, 47.0]
   ]
 }</pre></code></td>
     </tr>

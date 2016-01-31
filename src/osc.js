@@ -718,7 +718,7 @@ var osc = osc || {};
     // Unsupported, non-API function.
     osc.collectArguments = function (args, options, dataCollection) {
         if (!osc.isArray(args)) {
-            args = [args];
+            args = typeof args === "undefined" ? [] : [args];
         }
 
         dataCollection = dataCollection || {
@@ -1030,11 +1030,8 @@ var osc = osc || {};
 
     // Unsupported, non-API function.
     osc.annotateArguments = function (args) {
-        if (!osc.isArray(args)) {
-            args = [args];
-        }
-
         var annotated = [];
+
         for (var i = 0; i < args.length; i++) {
             var arg = args[i],
                 msgArg;
@@ -1042,6 +1039,10 @@ var osc = osc || {};
             if (typeof (arg) === "object" && arg.type && arg.value !== undefined) {
                 // We've got an explicitly typed argument.
                 msgArg = arg;
+            } else if (osc.isArray(arg)) {
+                // We've got an array of arguments,
+                // so they each need to be inferred and expanded.
+                msgArg = osc.annotateArguments(arg);
             } else {
                 var oscType = osc.inferTypeForArgument(arg);
                 msgArg = {

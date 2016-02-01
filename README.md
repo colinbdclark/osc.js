@@ -730,3 +730,4 @@ Contributors
  * @egasimus added support for 64-bit integers.
  * @heisters contributed fixes for broadcast and multicast UDP on Node.js and improved time tag support.
  * @tambien fixed error handling bugs in the transports layer.
+ * @janslow added support for passing remote information to all Port data events.

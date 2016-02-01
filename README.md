@@ -57,6 +57,83 @@ osc.js consists of two distinct layers:
 1. The transports, which provide a simple EventEmitter-style API for sending an receiving OSC packets using a variety of transports such as UDP and Web Sockets.
 2. The underlying stateless API that provides functions for reading and writing OSC packets.
 
+
+Port API
+--------
+
+### Methods
+
+All <code>osc.Port</code> objects implement the following supported methods:
+
+<table>
+    <tr>
+        <th>Method</th>
+        <th>Description</th>
+        <th>Arguments</th>
+    </tr>
+    <tr>
+        <td><code>send</code></td>
+        <td>Sends an OSC package (either a message or a bundle) on this Port.</td>
+        <td>
+            <code>packet</code>: the OSC message or bundle to send<br />
+        </td>
+    </tr>
+</table>
+
+### Events
+
+All <code>osc.Port</code>s implement the [Event Emitter API](https://nodejs.org/api/events.html). The following events are supported:
+
+<table>
+    <tr>
+        <th>Event</th>
+        <th>Description</th>
+        <th>Arguments</th>
+    </tr>
+    <tr>
+        <td><code>message</code></td>
+        <td>Fires whenever an OSC message is received by the Port.</td>
+        <td>
+            <code>message</code>: the OSC message received; <br />
+            <code>timeTag</code>: the time tag specified by the sender (may be <code>undefined</code> for non-bundle messages); <br />
+            <code>info</code>an implementation-specific remote information object
+        </td>
+    </tr>
+    <tr>
+        <td><code>bundle</code></td>
+        <td>Fires whenever an OSC bundle is received. Subsequent <code>bundle</code> and/or <code>message</code> events will be fired for each sub-packet in the bundle.</td>
+        <td>
+            <code>bundle</code>: the OSC bundle received; <br />
+            <code>timeTag</code>: the time tag specified by the sender; <br />
+            <code>info</code>an implementation-specific remote information object
+        </td>
+    </tr>
+    <tr>
+        <td><code>osc</code></td>
+        <td>Fires whenever any type of OSC packet is recieved by this Port.</td>
+        <td>
+            <code>packet</code>: the OSC message or bundle received<br />
+            <code>info</code>an implementation-specific remote information object
+        </td>
+    </tr>
+    <tr>
+        <td><code>raw</code></td>
+        <td>Fires whenever any data is recieved by this Port.</td>
+        <td>
+            <code>data</code>: an Uint8Array containing the raw data received<br />
+            <code>info</code>an implementation-specific remote information object
+        </td>
+    </tr>
+    <tr>
+        <td><code>error</code></td>
+        <td>Fires whenever an error occurs.</td>
+        <td>
+            <code>error</code>: the Error object that was raised
+        </td>
+    </tr>
+</table>
+
+
 Examples
 --------
 
@@ -283,8 +360,9 @@ var udpPort = new osc.UDPPort({
 });
 
 // Listen for incoming OSC bundles.
-udpPort.on("bundle", function (oscBundle) {
-    console.log("An OSC bundle just arrived!", oscBundle);
+udpPort.on("bundle", function (oscBundle, timeTag, info) {
+    console.log("An OSC bundle just arrived for time tag", timeTag, ":" oscBundle);
+    console.log("Remote info is: ", info);
 });
 
 // Open the socket.
@@ -425,13 +503,6 @@ try {
 The osc.js Low-Level API
 ------------------------
 
-There are two primary functions in osc.js used to read and write OSC data:
-
-* ``osc.readPacket()``, which takes a DataView-friendly data buffer (i.e. an ArrayBuffer, TypedArray, or DataView object) and returns a tree of JavaScript objects representing the messages and bundles that were read
-* ``osc.writePacket()``, which takes a message or bundle object and packs it up into a Uint8Array object
-
-Both functions take an optional <code>metadata</code> parameter, which specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets. If you need greater precision in regards to the arguments in an OSC message, set the <code>metadata</code> argument to true. The <code>metadata</code> option is also supported by all <code>osc.Port</code> objects, and can be included as a parameter in the <code>options</code> arguments passed to any <code>Port</code> constructor.
-
 ### OSC Bundle and Message Objects
 
 osc.js represents bundles and messages as (mostly) JSON-compatible objects. Here's how they are structured:
@@ -502,6 +573,47 @@ Colours are automatically normalized to CSS 3 rgba values (i.e. the alpha channe
     a: 1.0
 }
 ```
+
+### Functions
+
+There are two primary functions in osc.js used to read and write OSC data:
+
+<table>
+    <tr>
+        <th>Function</th>
+        <th>Description</th>
+        <th>Arguments</th>
+        <th>Return value</th>
+    </tr>
+    <tr>
+        <td><code>osc.readPacket()</code></td>
+        <td>Decodes binary OSC message into a tree of JavaScript objects containing the messages or bundles that were read.</td>
+        <td>
+            <code>data</code>: A <code>Uint8Array</code> containing the raw data of the OSC packet.; <br />
+            <code>options</code>: (optional) An options object, described below; <br />
+            <code>offsetState</code>: (optional) an offset state object containing an <code>idx</code> property that specifies the offset index into <code>data</code>; <br />
+            <code>length</code> the length (in bytes) to read from <code>data</code>
+        </td>
+        <td>An osc.js message or bundle object</td>
+    </tr>
+    <tr>
+        <td><code>osc.writePacket()</code></td>
+        <td>Writes an OSC message or bundle object to a binary array.</td>
+        <td>
+            <code>packate</code>: An osc.js message or bundle object;<br />
+            <code>options</code>: (optional) An options object, described below<br />
+        </td>
+        <td>A <code>Uint8Array</code></td>
+    </tr>
+</table>
+
+### Options
+
+Many osc.js functions take an <code>options</code> object that can be used to customize its behaviour. These options are also supported by all <code>osc.Port</code> objects, and can be included as a parameter in the <code>options</code> arguments passed to any <code>Port</code> constructor. The supported fields in an options object are:
+
+* <code>metadata</code>: specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets. If you need greater precision in regards to the arguments in an OSC message, set the <code>metadata</code> argument to true. Defaults to <code>false</code>.
+* <code>unpackSingleArgs</code>: specifies if osc.js should automatically unpack single-argument messages so that their <code>args</code> property isn't wrapped in an array. Defaults to <code>true</code>.
+
 
 Mapping OSC to JS
 ------------------

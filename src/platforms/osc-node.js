@@ -277,8 +277,8 @@
 
     p.listen = function () {
         var that = this;
-        this.socket.on("message", function (data) {
-            that.emit("data", data, undefined);
+        this.socket.on("message", function (data, flags) {
+            that.emit("data", data, flags);
         });
 
         this.socket.on("error", function (err) {

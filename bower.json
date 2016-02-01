@@ -13,7 +13,7 @@
     "dependencies": {
         "slip.js": "1.0.2",
         "eventEmitter": "4.3.0",
-        "long": "3.0.0"
+        "long": "3.0.3"
     },
     "devDependencies": {
         "requirejs": "2.1.20"

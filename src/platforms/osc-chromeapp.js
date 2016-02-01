@@ -18,7 +18,7 @@ var osc = osc || {};
     osc.listenToTransport = function (that, transport, idName) {
         transport.onReceive.addListener(function (e) {
             if (e[idName] === that[idName]) {
-                that.emit("data", e.data);
+                that.emit("data", e.data, e);
             }
         });
 

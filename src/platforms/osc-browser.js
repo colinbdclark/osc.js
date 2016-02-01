@@ -48,7 +48,7 @@ var osc = osc;
     p.listen = function () {
         var that = this;
         this.socket.onmessage = function (e) {
-            that.emit("data", e.data);
+            that.emit("data", e.data, e);
         };
 
         this.socket.onerror = function (err) {

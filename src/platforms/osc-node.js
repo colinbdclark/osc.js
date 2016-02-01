@@ -90,7 +90,7 @@
         var that = this;
 
         this.serialPort.on("data", function (data) {
-            that.emit("data", data);
+            that.emit("data", data, undefined);
         });
 
         this.serialPort.on("error", function (err) {
@@ -277,8 +277,8 @@
 
     p.listen = function () {
         var that = this;
-        this.socket.on("message", function (data) {
-            that.emit("data", data);
+        this.socket.on("message", function (data, flags) {
+            that.emit("data", data, flags);
         });
 
         this.socket.on("error", function (err) {
@@ -355,7 +355,7 @@
     p.listen = function () {
         var that = this;
         this.socket.on("data", function (msg) {
-            that.emit("data", msg);
+            that.emit("data", msg, undefined);
         });
 
         this.socket.on("error", function (err) {

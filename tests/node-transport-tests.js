@@ -36,8 +36,8 @@ function createUDPReceiver(onMessage, o) {
     var oscUDP = new osc.UDPPort(o);
 
     if (onMessage) {
-        oscUDP.on("message", function (msg) {
-            onMessage(msg, oscUDP);
+        oscUDP.on("message", function (msg, timeTag, rinfo) {
+            onMessage(msg, oscUDP, rinfo);
         });
     }
 
@@ -137,7 +137,7 @@ jqUnit.asyncTest("Read from a UDP socket with metadata: true", function () {
         ]
     };
 
-    var udpListener = function (msg, udpPort) {
+    var udpListener = function (msg, udpPort, rinfo) {
         QUnit.equal(msg.address, expected.address);
         QUnit.ok(Object.prototype.toString.call(msg.args) === "[object Array]",
             "The message arguments should be in an array.");
@@ -146,7 +146,14 @@ jqUnit.asyncTest("Read from a UDP socket with metadata: true", function () {
             "Type metadata should have been included.");
         QUnit.equal(typeof msg.args[0].value, "number",
             "The argument type should be a number.");
-
+        jqUnit.assertLeftHand(
+            "A remote information object should have been passed to the onMessage callback.",
+            {
+                address: "127.0.0.1",
+                port: 57121
+            },
+            rinfo
+        );
         udpPort.close();
         jqUnit.start();
     };
@@ -216,9 +223,17 @@ jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function 
         });
     });
 
-    var wsc = createWSClient(function (msg) {
+    var wsc = createWSClient(function (msg, timeTag, flags) {
         checkMessageReceived(msg, wss, wsc,
             "The message should have been sent to the web socket client.");
+        jqUnit.assertLeftHand(
+            "The web socket flags object should have been supplied",
+            {
+                binary: true,
+                masked: false
+            },
+            flags
+        );
         jqUnit.start();
     });
 

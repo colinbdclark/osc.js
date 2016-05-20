@@ -1,0 +1,4 @@
+{
+    "test_page": "tests/all-tests.html",
+    "timeout": 300
+}

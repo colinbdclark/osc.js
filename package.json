@@ -42,7 +42,8 @@
         "ws": "1.1.0"
     },
     "scripts": {
-        "test": "node tests/node-all-tests.js",
+        "test": "node tests/node-all-tests.js && npm run browser-test",
+        "browser-test": "testem ci --file tests/testem.json",
         "clean-test": "./clean-npm.sh && npm install && npm test"
     }
 }

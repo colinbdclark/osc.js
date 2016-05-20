@@ -1,7 +1,7 @@
 {
     "name": "osc.js",
     "version": "2.0.3",
-    "main": "dist/osc.min.js",
+    "main": "dist/osc-browser.js",
     "ignore": [
         ".jshintrc",
         "package.json",

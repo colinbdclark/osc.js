@@ -1,7 +1,7 @@
 {
     "name": "osc",
     "main": "src/platforms/osc-node.js",
-    "version": "2.0.3",
+    "version": "2.1.0",
     "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
     "author": "Colin Clark",
     "homepage": "https://github.com/colinbdclark/osc.js",
@@ -24,27 +24,26 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "jquery": "2.1.4",
-        "infusion": "2.0.0-dev.20151007T134312Z.8c33cd4",
-        "requirejs": "2.1.20",
-        "dedupe-infusion": "1.0.0",
-        "node-jqunit": "1.1.0",
-        "grunt": "~0.4.2",
-        "grunt-contrib-concat": "~0.3.0",
-        "grunt-contrib-uglify": "~0.3.2",
-        "grunt-contrib-clean": "~0.4.1",
-        "grunt-contrib-jshint": "~0.8.0"
+        "jquery": "2.2.3",
+        "infusion": "2.0.0-dev.20160519T222603Z.754d2c6",
+        "requirejs": "2.2.0",
+        "node-jqunit": "1.1.4",
+        "grunt": "~1.0.1",
+        "grunt-contrib-concat": "~1.0.1",
+        "grunt-contrib-uglify": "~1.0.1",
+        "grunt-contrib-clean": "~1.0.0",
+        "grunt-contrib-jshint": "~1.0.0"
     },
     "dependencies": {
-        "wolfy87-eventemitter": "4.3.0",
-        "long": "3.0.3",
-        "serialport": "2.0.6",
+        "wolfy87-eventemitter": "5.0.0",
+        "long": "3.1.0",
+        "serialport": "3.1.2",
         "slip": "1.0.2",
-        "ws": "1.0.1"
+        "ws": "1.1.0"
     },
     "scripts": {
-        "dedupe-infusion": "node -e \"require('dedupe-infusion')();\"",
-        "test": "npm run dedupe-infusion && node tests/node-all-tests.js",
+        "test": "node tests/node-all-tests.js && npm run browser-test",
+        "browser-test": "testem ci --file tests/testem.json",
         "clean-test": "./clean-npm.sh && npm install && npm test"
     }
 }

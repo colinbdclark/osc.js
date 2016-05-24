@@ -46,7 +46,11 @@
         serialport = require("serialport"),
         net = require("net"),
         WebSocket = require("ws"),
-        modules = requireModules(["../osc.js", "../osc-transports.js"]),
+        modules = requireModules([
+            "../osc.js",
+            "../osc-transports.js",
+            "./osc-websocket-client.js"
+        ]),
         osc = shallowMerge({}, modules);
 
     /**********
@@ -109,7 +113,8 @@
     };
 
     p.sendRaw = function (encoded) {
-        if (!this.serialPort) {
+        if (!this.serialPort || !this.serialPort.isOpen()) {
+            osc.fireClosedPortSendError(this);
             return;
         }
 
@@ -199,8 +204,8 @@
 
     p.sendRaw = function (encoded, address, port) {
         if (!this.socket) {
-            this.emit("error", new Error(
-                "Can't send an OSC packet on a closed socket. Call open() on this osc.Port first."));
+            osc.fireClosedPortSendError(this);
+            return;
         }
 
         var length = encoded.byteLength !== undefined ? encoded.byteLength : encoded.length,
@@ -240,76 +245,6 @@
                 }
             });
         }
-    };
-
-
-    /**************
-     * Web Sockets *
-     **************/
-
-    osc.WebSocketPort = function (options) {
-        osc.Port.call(this, options);
-        this.socket = options.socket;
-        this.on("open", this.listen.bind(this));
-
-        if (this.socket) {
-            if (this.socket.readyState === 1) {
-                this.emit("open", this.socket);
-            } else {
-                this.open();
-            }
-        }
-    };
-
-    p = osc.WebSocketPort.prototype = Object.create(osc.Port.prototype);
-    p.constructor = osc.WebSocketPort;
-
-    p.open = function () {
-        if (!this.socket) {
-            this.socket = new WebSocket(this.options.url);
-        }
-
-        var that = this;
-        this.socket.on("open", function () {
-            that.emit("open", that.socket);
-        });
-    };
-
-    p.listen = function () {
-        var that = this;
-        this.socket.on("message", function (data, flags) {
-            that.emit("data", data, flags);
-        });
-
-        this.socket.on("error", function (err) {
-            that.emit("error", err);
-        });
-
-        this.socket.on("close", function (e) {
-            that.emit("close", e);
-        });
-
-        that.emit("ready");
-    };
-
-    p.sendRaw = function (encoded) {
-        if (!this.socket) {
-            return;
-        }
-
-        var that = this;
-
-        this.socket.send(encoded, {
-            binary: true
-        }, function (err) {
-            if (err) {
-                that.emit("error", err);
-            }
-        });
-    };
-
-    p.close = function (code, reason) {
-        this.socket.close(code, reason);
     };
 
 

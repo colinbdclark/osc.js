@@ -35,6 +35,12 @@ var osc = osc || require("./osc.js"),
         }
     };
 
+    osc.fireClosedPortSendError = function (port, msg) {
+        msg = msg || "Can't send packets on a closed osc.Port object. Please open (or reopen) this Port by calling open().";
+
+        port.emit("error", msg);
+    };
+
     osc.Port = function (options) {
         this.options = options || {};
         this.on("data", this.decodeOSC.bind(this));

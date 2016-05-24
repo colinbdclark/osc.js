@@ -66,6 +66,7 @@ var osc = osc || {};
 
     p.sendRaw = function (encoded) {
         if (!this.connectionId) {
+            osc.fireClosedPortSendError(this);
             return;
         }
 
@@ -186,6 +187,7 @@ var osc = osc || {};
 
     p.sendRaw = function (encoded, address, port) {
         if (!this.socketId) {
+            osc.fireClosedPortSendError(this);
             return;
         }
 

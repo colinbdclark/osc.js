@@ -223,17 +223,9 @@ jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function 
         });
     });
 
-    var wsc = createWSClient(function (msg, timeTag, flags) {
+    var wsc = createWSClient(function (msg) {
         checkMessageReceived(msg, wss, wsc,
             "The message should have been sent to the web socket client.");
-        jqUnit.assertLeftHand(
-            "The web socket flags object should have been supplied",
-            {
-                binary: true,
-                masked: false
-            },
-            flags
-        );
         jqUnit.start();
     });
 

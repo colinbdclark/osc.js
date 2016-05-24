@@ -202,6 +202,7 @@ oscPort.on("message", function (oscMsg) {
 
 ##### Sending OSC messages:
 ```javascript
+// For most Ports, send() should only be called after the "open" event fires.
 oscPort.send({
     address: "/carrier/frequency",
     args: 440

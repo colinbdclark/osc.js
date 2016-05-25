@@ -20,7 +20,7 @@
 ;/*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
  *
- * Copyright 2014-2015, Colin Clark
+ * Copyright 2014-2016, Colin Clark
  * Licensed under the MIT and GPL 3 licenses.
  */
 
@@ -1085,7 +1085,7 @@ var osc = osc || {};
  *
  * Cross-platform base transport library for osc.js.
  *
- * Copyright 2014-2015, Colin Clark
+ * Copyright 2014-2016, Colin Clark
  * Licensed under the MIT and GPL 3 licenses.
  */
 

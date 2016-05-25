@@ -3,7 +3,7 @@
  *
  * Cross-Platform osc.js Transport Tests
  *
- * Copyright 2015, Colin Clark
+ * Copyright 2015-2016, Colin Clark
  * Licensed under the MIT and GPL 3 licenses.
  */
 

@@ -1117,6 +1117,12 @@ var osc = osc || require("./osc.js"),
         }
     };
 
+    osc.fireClosedPortSendError = function (port, msg) {
+        msg = msg || "Can't send packets on a closed osc.Port object. Please open (or reopen) this Port by calling open().";
+
+        port.emit("error", msg);
+    };
+
     osc.Port = function (options) {
         this.options = options || {};
         this.on("data", this.decodeOSC.bind(this));
@@ -1298,19 +1304,21 @@ var osc = osc || require("./osc.js"),
 ;/*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
  *
- * Browser transports for osc.js
+ * Cross-Platform Web Socket client transport for osc.js.
  *
- * Copyright 2014-2015, Colin Clark
+ * Copyright 2014-2016, Colin Clark
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/*global WebSocket*/
+/*global WebSocket, require*/
 
-var osc = osc;
+var osc = osc || require("../osc.js");
 
 (function () {
 
     "use strict";
+
+    osc.WebSocket = typeof WebSocket !== "undefined" ? WebSocket : require ("ws");
 
     osc.WebSocketPort = function (options) {
         osc.Port.call(this, options);
@@ -1319,6 +1327,7 @@ var osc = osc;
         this.socket = options.socket;
         if (this.socket) {
             if (this.socket.readyState === 1) {
+                osc.WebSocketPort.setupSocketForBinary(this.socket);
                 this.emit("open", this.socket);
             } else {
                 this.open();
@@ -1330,11 +1339,11 @@ var osc = osc;
     p.constructor = osc.WebSocketPort;
 
     p.open = function () {
-        if (!this.socket) {
-            this.socket = new WebSocket(this.options.url);
+        if (!this.socket || this.socket.readyState > 1) {
+            this.socket = new osc.WebSocket(this.options.url);
         }
 
-        this.socket.binaryType = "arraybuffer";
+        osc.WebSocketPort.setupSocketForBinary(this.socket);
 
         var that = this;
         this.socket.onopen = function () {
@@ -1360,14 +1369,20 @@ var osc = osc;
     };
 
     p.sendRaw = function (encoded) {
-        if (!this.socket) {
+        if (!this.socket || this.socket.readyState !== 1) {
+            osc.fireClosedPortSendError(this);
             return;
         }
+
         this.socket.send(encoded);
     };
 
     p.close = function (code, reason) {
         this.socket.close(code, reason);
+    };
+
+    osc.WebSocketPort.setupSocketForBinary = function (socket) {
+        socket.binaryType = osc.isNode ? "nodebuffer" : "arraybuffer";
     };
 
 }());

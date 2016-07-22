@@ -112,7 +112,7 @@ var osc = osc || {};
      */
     // Unsupported, non-API function.
     osc.nativeBuffer = function (obj) {
-        if (osc.isBufferEnv && osc.isNode) {
+        if (osc.isBufferEnv || osc.isNode) {
             return osc.isBuffer(obj) ? obj : new Buffer(obj.buffer ? obj : new Uint8Array(obj));
         }
 

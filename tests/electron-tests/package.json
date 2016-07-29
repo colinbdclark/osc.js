@@ -1,0 +1,7 @@
+{
+    "name": "oscjs-electron-tests",
+    "main": "main.js",
+    "description": "osc.js Electron-based unit tests",
+    "version": "1.0.0",
+    "author": "Colin Clark"
+}

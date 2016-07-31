@@ -3,5 +3,11 @@
     "main": "main.js",
     "description": "osc.js Electron-based unit tests",
     "version": "1.0.0",
-    "author": "Colin Clark"
+    "author": "Colin Clark",
+    "dependencies": {
+        "electron-prebuilt": "1.3.1",
+        "electron-rebuild": "1.1.4",
+        "infusion-electron": "colinbdclark/infusion-electron#new-electron-api",
+        "osc": "../.."
+    }
 }

@@ -9,41 +9,61 @@ fluid.defaults("oscjs.tests.electron.app", {
     gradeNames: "electron.app",
 
     components: {
-        mainWindow: {
+        browserTestWindow: {
             createOnEvent: "onReady",
-            type: "oscjs.tests.electron.mainWindow"
+            type: "oscjs.tests.electron.browserTestWindow"
+        },
+
+        // We need a separate window for Electron-specific tests
+        // because qunit-composite uses iFrames, which are sandboxed from the
+        // Electron Node.js API (e.g. require()).
+        electronTestWindow: {
+            createOnEvent: "onReady",
+            type: "oscjs.tests.electron.electronTestWindow"
         }
     }
 });
 
-fluid.defaults("oscjs.tests.electron.mainWindow", {
+// TODO: infusion-electron's API needs to be fixed;
+// it's very inconvenient to specify a window's URL.
+fluid.defaults("oscjs.tests.electron.window", {
     gradeNames: "electron.browserWindow",
 
-    windowOptions: {
-        title: "osc.js Electron Unit Tests"
-    },
+    url: undefined,
 
     model: {
         url: {
             expander: {
                 funcName: "fluid.stringTemplate",
-                args: ["%url/all-electron-tests.html", "{app}.env.appRoot"]
+                args: ["{that}.options.url", "{app}.env.appRoot"]
             }
         },
 
         dimensions: {
-            width: 1280,
-            height: 720
+            width: 640,
+            height: 480
         }
+    }
+});
+
+fluid.defaults("oscjs.tests.electron.browserTestWindow", {
+    gradeNames: "oscjs.tests.electron.window",
+
+    windowOptions: {
+        title: "osc.js Browser Unit Tests in Electron",
+        x: 0,
+        y: 0
     },
 
-    listeners: {
-        onCreate: [
-            {
-                "this": "console",
-                method: "log",
-                args: "{that}.model.url"
-            }
-        ]
-    }
+    url: "%url/../all-tests.html"
+});
+
+fluid.defaults("oscjs.tests.electron.electronTestWindow", {
+    gradeNames: "oscjs.tests.electron.window",
+
+    windowOptions: {
+        title: "osc.js Electron Unit Tests"
+    },
+
+    url: "%url/electron-render-process-tests.html"
 });

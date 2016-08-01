@@ -1,17 +1,23 @@
-var osc = require("osc");
+/*jshint node:true*/
+/*global fluid, require, QUnit*/
+
+"use strict";
+
+var osc = require("osc"),
+    oscjs = fluid.registerNamespace("oscjs");
 
 fluid.registerNamespace("oscjs.tests.electron");
 
 QUnit.test("osc.js' Node module is correctly loaded within an Electron renderer process", function () {
     QUnit.expect(3);
 
-    ok(typeof osc.UDPPort === "function", "osc.UDPPort constructor is defined");
-    ok(typeof osc.SerialPort === "function", "osc.SerialPort constructor is defined");
-    ok(typeof osc.TCPSocketPort === "function", "osc.TCPSocketPort constructor is defined");
+    QUnit.ok(typeof osc.UDPPort === "function", "osc.UDPPort constructor is defined");
+    QUnit.ok(typeof osc.SerialPort === "function", "osc.SerialPort constructor is defined");
+    QUnit.ok(typeof osc.TCPSocketPort === "function", "osc.TCPSocketPort constructor is defined");
 });
 
 oscjs.tests.electron.testSuccessfulUDPSend = function (udpPort) {
-    udpPort.send({
+    var sentMessage = {
         address: "/hello",
         args: [
             {
@@ -19,10 +25,15 @@ oscjs.tests.electron.testSuccessfulUDPSend = function (udpPort) {
                 value: 440.0
             }
         ]
-    });
+    };
 
-    QUnit.ok(true,
-        "A message can successfully be send along a UDP in an Electron BrowserWindow.");
+    udpPort.send(sentMessage);
+
+    udpPort.once("osc", function (receivedMessage) {
+        QUnit.deepEqual(receivedMessage, sentMessage,
+            "A message can be successfully send and received by UDP in an Electron BrowserWindow.");
+        QUnit.start();
+    });
 };
 
 QUnit.asyncTest("Sending via UDP from an Electron renderer process", function () {
@@ -38,7 +49,6 @@ QUnit.asyncTest("Sending via UDP from an Electron renderer process", function ()
 
     udpPort.on("ready", function () {
         oscjs.tests.electron.testSuccessfulUDPSend(udpPort);
-        start();
     });
 
     udpPort.open();

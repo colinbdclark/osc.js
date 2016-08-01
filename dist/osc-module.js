@@ -24,7 +24,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global require, module, Buffer, dcodeIO */
+/* global require, module, process, Buffer, dcodeIO */
 
 var osc = osc || {};
 
@@ -40,16 +40,18 @@ var osc = osc || {};
         unpackSingleArgs: true
     };
 
-    // A flag to tell us if we're in a Node.js-compatible environment with Buffers,
-    // which we will assume are faster.
     // Unsupported, non-API property.
-    osc.isBufferEnv = typeof Buffer !== "undefined";
-
-    // Unsupported, non-API property.
-    osc.isCommonJS = typeof module !== "undefined" && module.exports;
+    osc.isCommonJS = typeof module !== "undefined" && module.exports ? true : false;
 
     // Unsupported, non-API property.
     osc.isNode = osc.isCommonJS && typeof window === "undefined";
+
+    // Unsupported, non-API property.
+    osc.isElectron = typeof process !== "undefined" &&
+        process.versions && process.versions.electron ? true : false;
+
+    // Unsupported, non-API property.
+    osc.isBufferEnv = osc.isNode || osc.isElectron;
 
     // Unsupported, non-API function.
     osc.isArray = function (obj) {
@@ -131,8 +133,9 @@ var osc = osc || {};
      */
     // Unsupported, non-API function.
     osc.nativeBuffer = function (obj) {
-        if (osc.isBufferEnv && osc.isNode) {
-            return osc.isBuffer(obj) ? obj : new Buffer(obj.buffer ? obj : new Uint8Array(obj));
+        if (osc.isBufferEnv) {
+            return osc.isBuffer(obj) ? obj :
+                new Buffer(obj.buffer ? obj : new Uint8Array(obj));
         }
 
         return osc.isTypedArrayView(obj) ? obj : new Uint8Array(obj);

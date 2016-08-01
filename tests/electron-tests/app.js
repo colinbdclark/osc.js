@@ -26,7 +26,7 @@ fluid.defaults("oscjs.tests.electron.app", {
         },
 
         udpServer: {
-            type: "oscjs.tests.electron.udpServer"
+            type: "oscjs.tests.electron.echoUDPServer"
         }
     }
 });
@@ -88,7 +88,8 @@ fluid.defaults("oscjs.tests.electron.udpServer", {
     },
 
     events: {
-        onReady: null
+        onReady: null,
+        onOSC: null
     },
 
     listeners: {
@@ -97,6 +98,11 @@ fluid.defaults("oscjs.tests.electron.udpServer", {
                 "this": "{that}.udpPort",
                 method: "on",
                 args: ["ready", "{that}.events.onReady.fire"]
+            },
+            {
+                "this": "{that}.udpPort",
+                method: "on",
+                args: ["osc", "{that}.events.onOSC.fire"]
             },
             {
                 "this": "{that}.udpPort",
@@ -109,3 +115,17 @@ fluid.defaults("oscjs.tests.electron.udpServer", {
 oscjs.tests.electron.createUDPPort = function (options) {
     return new osc.UDPPort(options);
 };
+
+fluid.defaults("oscjs.tests.electron.echoUDPServer", {
+    gradeNames: ["oscjs.tests.electron.udpServer"],
+
+    listeners: {
+        onOSC: [
+            {
+                "this": "{that}.udpPort",
+                method: "send",
+                args: ["{arguments}.0", "{arguments}.1.address", "{arguments}.1.port"]
+            }
+        ]
+    }
+});

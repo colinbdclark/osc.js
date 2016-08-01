@@ -2,8 +2,11 @@
 
 "use strict";
 
-var fluid = require("infusion");
+var fluid = require("infusion"),
+    osc = require("osc");
 require("infusion-electron");
+
+var oscjs = fluid.registerNamespace("oscjs");
 
 fluid.defaults("oscjs.tests.electron.app", {
     gradeNames: "electron.app",
@@ -20,6 +23,10 @@ fluid.defaults("oscjs.tests.electron.app", {
         electronTestWindow: {
             createOnEvent: "onReady",
             type: "oscjs.tests.electron.electronTestWindow"
+        },
+
+        udpServer: {
+            type: "oscjs.tests.electron.udpServer"
         }
     }
 });
@@ -67,3 +74,38 @@ fluid.defaults("oscjs.tests.electron.electronTestWindow", {
 
     url: "%url/electron-render-process-tests.html"
 });
+
+fluid.defaults("oscjs.tests.electron.udpServer", {
+    gradeNames: "fluid.component",
+
+    portOptions: {
+        localAddress: "127.0.0.1",
+        localPort: 57121
+    },
+
+    members: {
+        udpPort: "@expand:oscjs.tests.electron.createUDPPort({that}.options.portOptions)"
+    },
+
+    events: {
+        onReady: null
+    },
+
+    listeners: {
+        onCreate: [
+            {
+                "this": "{that}.udpPort",
+                method: "on",
+                args: ["ready", "{that}.events.onReady.fire"]
+            },
+            {
+                "this": "{that}.udpPort",
+                method: "open"
+            }
+        ]
+    }
+});
+
+oscjs.tests.electron.createUDPPort = function (options) {
+    return new osc.UDPPort(options);
+};

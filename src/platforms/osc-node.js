@@ -43,7 +43,7 @@
     };
 
     var dgram = require("dgram"),
-        serialport = require("serialport"),
+        SerialPort = require("serialport"),
         net = require("net"),
         WebSocket = require("ws"),
         modules = requireModules([
@@ -81,7 +81,7 @@
 
         var that = this;
 
-        this.serialPort = new serialport.SerialPort(this.options.devicePath, {
+        this.serialPort = new SerialPort(this.options.devicePath, {
             baudrate: this.options.bitrate
         }, false);
 

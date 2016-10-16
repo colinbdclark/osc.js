@@ -4,6 +4,7 @@
 
 var fluid = require("infusion"),
     osc = require("osc");
+
 require("infusion-electron");
 
 var oscjs = fluid.registerNamespace("oscjs");

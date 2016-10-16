@@ -3,8 +3,20 @@
 
 "use strict";
 
-var osc = require("osc"),
+var fluid = require("infusion"),
+    jqUnit = require("node-jqunit"),
+    osc = require("osc"),
+    QUnit = fluid.registerNamespace("QUnit"),
     oscjs = fluid.registerNamespace("oscjs");
+
+/*************************************************
+ * Run all the existing osc.js Node tests as-is. *
+ *************************************************/
+// require("../node-all-tests.js");
+
+/***************************
+ * Electron-specific tests *
+ ***************************/
 
 fluid.registerNamespace("oscjs.tests.electron");
 
@@ -31,7 +43,7 @@ oscjs.tests.electron.testSuccessfulUDPSend = function (udpPort) {
 
     udpPort.once("osc", function (receivedMessage) {
         QUnit.deepEqual(receivedMessage, sentMessage,
-            "A message can be successfully send and received by UDP in an Electron BrowserWindow.");
+            "An OSC message was successfully sent and a response received via UDP in an Electron BrowserWindow.");
         QUnit.start();
     });
 };

@@ -44,7 +44,7 @@
     "scripts": {
         "test": "node tests/node-all-tests.js && grunt && npm run browser-test",
         "browser-test": "testem ci --file tests/testem.json",
-        "electron-test": "cd tests/electron-tests && ./build-for-electron.sh && node_modules/.bin/electron .",
+        "electron-test": "cd tests/electron-tests && npm install && node_modules/.bin/electron .",
         "clean-test": "./clean-npm.sh && npm install && npm test"
     }
 }

@@ -81,7 +81,7 @@ fluid.defaults("oscjs.tests.electron.udpServer", {
 
     portOptions: {
         localAddress: "127.0.0.1",
-        localPort: 57121
+        localPort: 57129
     },
 
     members: {

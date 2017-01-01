@@ -5,8 +5,8 @@
     "version": "1.0.0",
     "author": "Colin Clark",
     "dependencies": {
-        "electron": "1.4.3",
-        "infusion-electron": "colinbdclark/infusion-electron#new-electron-api",
+        "electron": "1.4.13",
+        "infusion-electron": "colinbdclark/infusion-electron#47aab9932c77edc169c2e1386156bad5b2cc246d",
         "osc": "../.."
     }
 }

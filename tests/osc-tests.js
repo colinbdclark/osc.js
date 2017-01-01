@@ -19,13 +19,13 @@ var fluid = fluid || require("infusion"),
     var QUnit = fluid.registerNamespace("QUnit");
     var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long : require("long");
 
-    fluid.registerNamespace("osc.tests");
+    var oscjsTests = fluid.registerNamespace("oscjsTests");
 
     /*************
      * Utilities *
      *************/
 
-    osc.tests.stringToDataView = function (str) {
+    oscjsTests.stringToDataView = function (str) {
         var arr = new Uint8Array(str.length),
             dv = new DataView(arr.buffer);
 
@@ -36,7 +36,7 @@ var fluid = fluid || require("infusion"),
         return dv;
     };
 
-    osc.tests.numbersToDataView = function (nums, type, width) {
+    oscjsTests.numbersToDataView = function (nums, type, width) {
         var arr = new ArrayBuffer(nums.length * width),
             setter = "set" + type[0].toUpperCase() + type.substring(1),
             dv = new DataView(arr);
@@ -49,77 +49,77 @@ var fluid = fluid || require("infusion"),
         return dv;
     };
 
-    osc.tests.arrayEqual = function (actual, expected, msg) {
+    oscjsTests.arrayEqual = function (actual, expected, msg) {
         QUnit.equal(actual.length, expected.length, "The array should be the expected length.");
         for (var i = 0; i < actual.length; i++) {
             var actualVal = actual[i],
                 expectedVal = expected[i];
 
             if (typeof actualVal === "object" && typeof actualVal.length === "number") {
-                osc.tests.arrayEqual(actualVal, expectedVal, msg);
+                oscjsTests.arrayEqual(actualVal, expectedVal, msg);
             } else {
                 QUnit.deepEqual(actualVal, expectedVal, msg);
             }
         }
     };
 
-    osc.tests.roundTo = function (val, numDecimals) {
+    oscjsTests.roundTo = function (val, numDecimals) {
         return typeof val === "number" ? parseFloat(val.toFixed(numDecimals)) : val;
     };
 
-    osc.tests.equalRoundedTo = function (actual, expected, numDecimals, msg) {
-        var actualRounded = osc.tests.roundTo(actual, numDecimals),
-            expectedRounded = osc.tests.roundTo(expected, numDecimals);
+    oscjsTests.equalRoundedTo = function (actual, expected, numDecimals, msg) {
+        var actualRounded = oscjsTests.roundTo(actual, numDecimals),
+            expectedRounded = oscjsTests.roundTo(expected, numDecimals);
 
         QUnit.equal(actualRounded, expectedRounded, msg + "\nUnrounded value was: " + expected);
     };
 
-    osc.tests.roundArrayValues = function (arr, numDecimals) {
+    oscjsTests.roundArrayValues = function (arr, numDecimals) {
         var togo = [];
 
         for (var i = 0; i < arr.length; i++) {
             var val = arr[i];
             var type = typeof val;
-            togo[i] = type === "object" ? osc.tests.roundAllValues(val, numDecimals) :
-                osc.tests.roundTo(val, numDecimals);
+            togo[i] = type === "object" ? oscjsTests.roundAllValues(val, numDecimals) :
+                oscjsTests.roundTo(val, numDecimals);
         }
 
         return togo;
     };
 
-    osc.tests.roundAllValues = function (obj, numDecimals) {
+    oscjsTests.roundAllValues = function (obj, numDecimals) {
         var togo = {};
 
         for (var key in obj) {
             var val = obj[key];
             if (osc.isArray(val)) {
-                togo[key] = osc.tests.roundArrayValues(val, numDecimals);
+                togo[key] = oscjsTests.roundArrayValues(val, numDecimals);
             } else if (typeof val === "object") {
-                togo[key] = osc.tests.roundAllValues(val, numDecimals);
+                togo[key] = oscjsTests.roundAllValues(val, numDecimals);
             } else {
-                togo[key] = osc.tests.roundTo(val, numDecimals);
+                togo[key] = oscjsTests.roundTo(val, numDecimals);
             }
         }
 
         return togo;
     };
 
-    osc.tests.deepEqualRounded = function (actual, expected, numDecimals, msg) {
-        var roundedActual = osc.tests.roundAllValues(actual, numDecimals),
-            roundedExpected = osc.tests.roundAllValues(expected, numDecimals);
+    oscjsTests.deepEqualRounded = function (actual, expected, numDecimals, msg) {
+        var roundedActual = oscjsTests.roundAllValues(actual, numDecimals),
+            roundedExpected = oscjsTests.roundAllValues(expected, numDecimals);
 
         QUnit.deepEqual(roundedActual, roundedExpected, msg = "\nUnrounded actual object was: " +
             JSON.stringify(roundedActual));
     };
 
-    osc.tests.isNonNumberPrimitive = function (val) {
+    oscjsTests.isNonNumberPrimitive = function (val) {
         var type = typeof val;
 
         return val === null || type === "number" || type === "string" ||
             type === "undefined";
     };
 
-    osc.tests.messageArgumentsEqual = function (actual, expected, numDecimals, msg) {
+    oscjsTests.messageArgumentsEqual = function (actual, expected, numDecimals, msg) {
         QUnit.equal(actual.length, expected.length, "The arguments should be the expected length.");
 
         for (var i = 0; i < actual.length; i++) {
@@ -129,11 +129,11 @@ var fluid = fluid || require("infusion"),
             var msgTogo = "Argument #" + i + ": " + msg;
 
             if (typeof actualArg === "number") {
-                osc.tests.equalRoundedTo(actualArg, expectedArg, numDecimals, msgTogo);
-            } else if (osc.tests.isNonNumberPrimitive(actualArg)) {
+                oscjsTests.equalRoundedTo(actualArg, expectedArg, numDecimals, msgTogo);
+            } else if (oscjsTests.isNonNumberPrimitive(actualArg)) {
                 QUnit.equal(actualArg, expectedArg, msgTogo);
             } else if (typeof actualArg === "object" && typeof actualArg.length === "number") {
-                osc.tests.arrayEqual(actualArg, expectedArg, msgTogo);
+                oscjsTests.arrayEqual(actualArg, expectedArg, msgTogo);
             } else if (expectedArg instanceof Long) {
                 QUnit.deepEqual(actualArg, expectedArg, msgTogo + " actual: " +
                     actualArg.toString() + " expected: " + expectedArg.toString());
@@ -148,17 +148,17 @@ var fluid = fluid || require("infusion"),
      * Strings  *
      ************/
 
-    fluid.registerNamespace("osc.tests.strings");
+    fluid.registerNamespace("oscjsTests.strings");
     jqUnit.module("Strings");
 
-    osc.tests.strings.testRead = function (testSpec) {
+    oscjsTests.strings.testRead = function (testSpec) {
         var offsetState = testSpec.offsetState || {
             idx: 0
         };
 
         jqUnit.test("readString " + testSpec.name, function () {
             var expected = testSpec.rawString,
-                dv = osc.tests.stringToDataView(testSpec.paddedString),
+                dv = oscjsTests.stringToDataView(testSpec.paddedString),
                 actual = osc.readString(dv, offsetState);
 
             QUnit.equal(actual, expected, "The string should have been read correctly.");
@@ -169,19 +169,19 @@ var fluid = fluid || require("infusion"),
     };
 
 
-    osc.tests.strings.testWrite = function (testSpec) {
+    oscjsTests.strings.testWrite = function (testSpec) {
         jqUnit.test("writeString " + testSpec.name, function () {
-            var expectedDV = osc.tests.stringToDataView(testSpec.paddedString),
+            var expectedDV = oscjsTests.stringToDataView(testSpec.paddedString),
                 expected = new Uint8Array(expectedDV.buffer),
                 actualBuf = osc.writeString(testSpec.rawString),
                 actual = new Uint8Array(actualBuf);
 
-            osc.tests.arrayEqual(actual, expected, "The string should have been written correctly.");
+            oscjsTests.arrayEqual(actual, expected, "The string should have been written correctly.");
             QUnit.ok(actualBuf instanceof Uint8Array, "The returned value should be a Uint8Array.");
         });
     };
 
-    osc.tests.strings.testSpecs = [
+    oscjsTests.strings.testSpecs = [
         {
             name: "four character (eight byte) string",
             paddedString: "data\u0000\u0000\u0000\u0000",
@@ -194,18 +194,18 @@ var fluid = fluid || require("infusion"),
         }
     ];
 
-    osc.tests.strings.readAndWriteTests = function (testSpecs) {
+    oscjsTests.strings.readAndWriteTests = function (testSpecs) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            osc.tests.strings.testRead(testSpec);
-            osc.tests.strings.testWrite(testSpec);
+            oscjsTests.strings.testRead(testSpec);
+            oscjsTests.strings.testWrite(testSpec);
         }
     };
 
-    osc.tests.strings.readAndWriteTests(osc.tests.strings.testSpecs);
+    oscjsTests.strings.readAndWriteTests(oscjsTests.strings.testSpecs);
 
 
-    osc.tests.strings.testEncodedObjectArgument = function (objectArg, argEncoder, argDecoder) {
+    oscjsTests.strings.testEncodedObjectArgument = function (objectArg, argEncoder, argDecoder) {
         var msg = {
             address: "/thecat",
             args: argEncoder(objectArg)
@@ -227,7 +227,7 @@ var fluid = fluid || require("infusion"),
             age: 8
         };
 
-        osc.tests.strings.testEncodedObjectArgument(objectArg, function (arg) {
+        oscjsTests.strings.testEncodedObjectArgument(objectArg, function (arg) {
             return JSON.stringify(arg);
         }, function (arg) {
             return JSON.parse(arg);
@@ -240,7 +240,7 @@ var fluid = fluid || require("infusion"),
             anotherProperty: "a gentleman’s look"
         };
 
-        osc.tests.strings.testEncodedObjectArgument(objectArg, function (arg) {
+        oscjsTests.strings.testEncodedObjectArgument(objectArg, function (arg) {
             return encodeURIComponent(JSON.stringify(arg));
         }, function (arg) {
             return JSON.parse(decodeURIComponent(arg));
@@ -253,55 +253,55 @@ var fluid = fluid || require("infusion"),
      ***********/
 
     jqUnit.module("Numbers");
-    fluid.registerNamespace("osc.tests.numbers");
+    fluid.registerNamespace("oscjsTests.numbers");
 
-    osc.tests.numbers.typeTesters = {
+    oscjsTests.numbers.typeTesters = {
         "int32": {
-            dataViewConverter: osc.tests.numbersToDataView,
+            dataViewConverter: oscjsTests.numbersToDataView,
             reader: osc.readInt32,
             width: 4
         },
         "float32": {
-            dataViewConverter: osc.tests.numbersToDataView,
+            dataViewConverter: oscjsTests.numbersToDataView,
             reader: osc.readFloat32,
             width: 4
         }
     };
 
-    osc.tests.numbers.testReadPrimitive = function (type, arr, expected, offsetState) {
+    oscjsTests.numbers.testReadPrimitive = function (type, arr, expected, offsetState) {
         offsetState = offsetState || {
             idx: 0
         };
 
-        var testMap = osc.tests.numbers.typeTesters[type],
+        var testMap = oscjsTests.numbers.typeTesters[type],
             dv = testMap.dataViewConverter(arr, type, testMap.width),
             expectedOffsetIdx = offsetState.idx + testMap.width,
             actual = testMap.reader(dv, offsetState);
 
-        osc.tests.equalRoundedTo(actual, expected, 5, "The correct value should have been read.");
+        oscjsTests.equalRoundedTo(actual, expected, 5, "The correct value should have been read.");
         QUnit.equal(offsetState.idx, expectedOffsetIdx, "The offset state should have been updated appropriately.");
     };
 
-    osc.tests.numbers.makeReadPrimitiveTester = function (type, testSpec) {
+    oscjsTests.numbers.makeReadPrimitiveTester = function (type, testSpec) {
         return function () {
-            osc.tests.numbers.testReadPrimitive(type, testSpec.nums, testSpec.expected, {
+            oscjsTests.numbers.testReadPrimitive(type, testSpec.nums, testSpec.expected, {
                 idx: testSpec.offset
             });
         };
     };
 
-    osc.tests.numbers.readPrimitiveTests = function (testSpecs) {
+    oscjsTests.numbers.readPrimitiveTests = function (testSpecs) {
         for (var type in testSpecs) {
             var specsForType = testSpecs[type];
 
             for (var i = 0; i < specsForType.length; i++) {
                 var spec = specsForType[i];
-                jqUnit.test(spec.name, osc.tests.numbers.makeReadPrimitiveTester(type, spec));
+                jqUnit.test(spec.name, oscjsTests.numbers.makeReadPrimitiveTester(type, spec));
             }
         }
     };
 
-    osc.tests.numbers.readPrimitiveTestSpecs = {
+    oscjsTests.numbers.readPrimitiveTestSpecs = {
         "int32": [
             {
                 name: "Read an int32 value in the middle of a byte array",
@@ -345,21 +345,21 @@ var fluid = fluid || require("infusion"),
         ]
     };
 
-    osc.tests.numbers.readPrimitiveTests(osc.tests.numbers.readPrimitiveTestSpecs);
+    oscjsTests.numbers.readPrimitiveTests(oscjsTests.numbers.readPrimitiveTestSpecs);
 
 
-    osc.tests.numbers.testWritePrimitive = function (testSpec) {
+    oscjsTests.numbers.testWritePrimitive = function (testSpec) {
         jqUnit.test(testSpec.writer + " " + testSpec.name, function () {
             var expected = testSpec.expected,
                 outBuf = new ArrayBuffer(expected.buffer.byteLength),
                 dv = new DataView(outBuf),
                 actual = osc[testSpec.writer](testSpec.val, dv, testSpec.offset);
 
-            osc.tests.arrayEqual(actual, expected, "The value should have been written to the output buffer.");
+            oscjsTests.arrayEqual(actual, expected, "The value should have been written to the output buffer.");
         });
     };
 
-    osc.tests.numbers.writePrimitiveTestSpecs = [
+    oscjsTests.numbers.writePrimitiveTestSpecs = [
         {
             writer: "writeInt32",
             name: "simple value",
@@ -402,14 +402,14 @@ var fluid = fluid || require("infusion"),
         }
     ];
 
-    osc.tests.numbers.writePrimitiveTests = function (testSpecs) {
+    oscjsTests.numbers.writePrimitiveTests = function (testSpecs) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            osc.tests.numbers.testWritePrimitive(testSpec);
+            oscjsTests.numbers.testWritePrimitive(testSpec);
         }
     };
 
-    osc.tests.numbers.writePrimitiveTests(osc.tests.numbers.writePrimitiveTestSpecs);
+    oscjsTests.numbers.writePrimitiveTests(oscjsTests.numbers.writePrimitiveTestSpecs);
 
 
     /*********
@@ -417,23 +417,23 @@ var fluid = fluid || require("infusion"),
      *********/
 
     jqUnit.module("Blobs");
-    fluid.registerNamespace("osc.tests.blobs");
+    fluid.registerNamespace("oscjsTests.blobs");
 
-    osc.tests.blobs.oscBlobOctets = [
+    oscjsTests.blobs.oscBlobOctets = [
         0, 0, 0, 3,            // Length 3
         0x63, 0x61, 0x74, 0   // raw bytes
     ];
-    osc.tests.blobs.oscBlob = new Uint8Array(osc.tests.blobs.oscBlobOctets);
-    osc.tests.blobs.oscBlobOctetsWithExtra = osc.tests.blobs.oscBlobOctets.concat([1, 2, 3, 4]);  // some random stuff afterwards.
-    osc.tests.blobs.oscExtraBlob = new Uint8Array(osc.tests.blobs.oscBlobOctetsWithExtra);
+    oscjsTests.blobs.oscBlob = new Uint8Array(oscjsTests.blobs.oscBlobOctets);
+    oscjsTests.blobs.oscBlobOctetsWithExtra = oscjsTests.blobs.oscBlobOctets.concat([1, 2, 3, 4]);  // some random stuff afterwards.
+    oscjsTests.blobs.oscExtraBlob = new Uint8Array(oscjsTests.blobs.oscBlobOctetsWithExtra);
 
-    osc.tests.blobs.rawData = new Uint8Array([
+    oscjsTests.blobs.rawData = new Uint8Array([
         0x63, 0x61, 0x74
     ]);
 
     jqUnit.test("readBlob", function () {
-        var dv = new DataView(osc.tests.blobs.oscExtraBlob.buffer);
-        var expected = osc.tests.blobs.rawData;
+        var dv = new DataView(oscjsTests.blobs.oscExtraBlob.buffer);
+        var expected = oscjsTests.blobs.rawData;
 
         var offsetState = {
             idx: 0
@@ -441,17 +441,17 @@ var fluid = fluid || require("infusion"),
 
         var actual = osc.readBlob(dv, offsetState);
 
-        osc.tests.arrayEqual(actual, expected, "The blob should be returned as-is.");
+        oscjsTests.arrayEqual(actual, expected, "The blob should be returned as-is.");
         QUnit.ok(actual instanceof Uint8Array, "The blob should be returned as a Uint8Array.");
         QUnit.equal(offsetState.idx, 8, "The offset state should have been updated correctly.");
     });
 
 
     jqUnit.test("writeBlob", function () {
-        var expected = osc.tests.blobs.oscBlob,
-            actual = osc.writeBlob(osc.tests.blobs.rawData);
+        var expected = oscjsTests.blobs.oscBlob,
+            actual = osc.writeBlob(oscjsTests.blobs.rawData);
 
-        osc.tests.arrayEqual(new Uint8Array(actual), expected,
+        oscjsTests.arrayEqual(new Uint8Array(actual), expected,
             "The data should have been packed into a correctly-formatted OSC blob.");
         QUnit.ok(actual instanceof Uint8Array, "The written blob should be a Uint8Array");
     });
@@ -462,9 +462,9 @@ var fluid = fluid || require("infusion"),
      *************/
 
     jqUnit.module("Time Tags");
-    fluid.registerNamespace("osc.tests.timeTags");
+    fluid.registerNamespace("oscjsTests.timeTags");
 
-    osc.tests.timeTags.equalWithinTolerance = function (actual, expected, tolerance, msg) {
+    oscjsTests.timeTags.equalWithinTolerance = function (actual, expected, tolerance, msg) {
         var max = expected + tolerance,
             min = expected - tolerance;
 
@@ -472,7 +472,7 @@ var fluid = fluid || require("infusion"),
         QUnit.ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
     };
 
-    osc.tests.timeTags.testRead = function (testSpec) {
+    oscjsTests.timeTags.testRead = function (testSpec) {
         jqUnit.test("Read time tag " + testSpec.name, function () {
             var expected = testSpec.timeTag,
                 dv = new DataView(testSpec.timeTagBytes.buffer);
@@ -483,7 +483,7 @@ var fluid = fluid || require("infusion"),
 
             if (expected.raw[0] === 0 && expected.raw[1] === 1) {
                 var tolerance = 250;
-                osc.tests.timeTags.equalWithinTolerance(actual.native, expected.native,
+                oscjsTests.timeTags.equalWithinTolerance(actual.native, expected.native,
                     tolerance, "The native time tag should be within " + tolerance +
                     "ms of expected. Difference was: " + (actual.native - expected.native) + "ms.");
                 QUnit.deepEqual(actual.raw, expected.raw, "The raw time should match identically.");
@@ -494,16 +494,16 @@ var fluid = fluid || require("infusion"),
         });
     };
 
-    osc.tests.timeTags.testWrite = function (testSpec) {
+    oscjsTests.timeTags.testWrite = function (testSpec) {
         jqUnit.test("Write time tag " + testSpec.name, function () {
             var expected = testSpec.timeTagBytes,
                 actual = osc.writeTimeTag(testSpec.timeTag);
 
-            osc.tests.arrayEqual(actual, expected, "The raw time tag should have have been written correctly.");
+            oscjsTests.arrayEqual(actual, expected, "The raw time tag should have have been written correctly.");
         });
     };
 
-    osc.tests.timeTags.testSpecs = [
+    oscjsTests.timeTags.testSpecs = [
         {
             name: "with seconds only",
             // May 4, 2014 at 0:00:00 UTC.
@@ -542,29 +542,29 @@ var fluid = fluid || require("infusion"),
         }
     ];
 
-    osc.tests.timeTags.readAndWriteTests = function (testSpecs) {
+    oscjsTests.timeTags.readAndWriteTests = function (testSpecs) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            osc.tests.timeTags.testRead(testSpec);
-            osc.tests.timeTags.testWrite(testSpec);
+            oscjsTests.timeTags.testRead(testSpec);
+            oscjsTests.timeTags.testWrite(testSpec);
         }
     };
 
-    osc.tests.timeTags.readAndWriteTests(osc.tests.timeTags.testSpecs);
+    oscjsTests.timeTags.readAndWriteTests(oscjsTests.timeTags.testSpecs);
 
     jqUnit.test("Write native-only time tag.", function () {
-        var testSpec = osc.tests.timeTags.testSpecs[1],
+        var testSpec = oscjsTests.timeTags.testSpecs[1],
             expected = testSpec.timeTagBytes,
             timeTag = {
                 native: testSpec.timeTag.native
             };
 
         var actual = osc.writeTimeTag(timeTag);
-        osc.tests.arrayEqual(actual, expected,
+        oscjsTests.arrayEqual(actual, expected,
             "A time tag with no raw value (only a native value) should be written correctly.");
     });
 
-    osc.tests.timeTags.testTimeTag = function (actual, expectedJSTime, tolerance) {
+    oscjsTests.timeTags.testTimeTag = function (actual, expectedJSTime, tolerance) {
         if (tolerance === undefined) {
             tolerance = 1000; // NTP fractional values.
         }
@@ -582,37 +582,37 @@ var fluid = fluid || require("infusion"),
 
     jqUnit.test("osc.timeTag now", function () {
         var actual = osc.timeTag();
-        osc.tests.timeTags.testTimeTag(actual, Date.now());
+        oscjsTests.timeTags.testTimeTag(actual, Date.now());
 
         actual = osc.timeTag(0);
-        osc.tests.timeTags.testTimeTag(actual, Date.now());
+        oscjsTests.timeTags.testTimeTag(actual, Date.now());
     });
 
     jqUnit.test("osc.timeTag future", function () {
         var actual = osc.timeTag(10.5),
             expected = Date.now() + 10500;
-        osc.tests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.timeTags.testTimeTag(actual, expected);
 
         actual = osc.timeTag(0.1);
         expected = Date.now() + 100;
-        osc.tests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.timeTags.testTimeTag(actual, expected);
 
     });
 
     jqUnit.test("osc.timeTag past", function () {
         var actual = osc.timeTag(-1000),
             expected = Date.now() - 1000000;
-        osc.tests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.timeTags.testTimeTag(actual, expected);
 
         actual = osc.timeTag(-0.01);
         expected = Date.now() - 10;
-        osc.tests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.timeTags.testTimeTag(actual, expected);
     });
 
     jqUnit.test("osc.timeTag relative to provided time", function () {
         var actual = osc.timeTag(0, Date.parse("2015-01-01")),
             expected = Date.parse("2015-01-01");
-        osc.tests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.timeTags.testTimeTag(actual, expected);
     });
 
 
@@ -620,7 +620,7 @@ var fluid = fluid || require("infusion"),
      * Read Type-Only Arguments (e.g. T, F, N, I) *
      **********************************************/
 
-    fluid.registerNamespace("osc.tests.args");
+    fluid.registerNamespace("oscjsTests.args");
 
     jqUnit.module("Type-Only Arguments");
 
@@ -651,7 +651,7 @@ var fluid = fluid || require("infusion"),
      * Read and Write Arguments *
      ****************************/
 
-    osc.tests.args.testRead = function (testSpec) {
+    oscjsTests.args.testRead = function (testSpec) {
         jqUnit.test("Read " + testSpec.name, function () {
             var offsetState = {
                 idx: 0
@@ -661,14 +661,14 @@ var fluid = fluid || require("infusion"),
                 dv = new DataView(testSpec.rawArgBuffer.buffer),
                 actual = osc.readArguments(dv, false, offsetState);
 
-            osc.tests.messageArgumentsEqual(actual, expected, testSpec.roundToDecimals,
+            oscjsTests.messageArgumentsEqual(actual, expected, testSpec.roundToDecimals,
                 "The returned arguments should have the correct values in the correct order.");
         });
     };
 
-    osc.tests.args.createTypedArguments = function (args, typeTags) {
+    oscjsTests.args.createTypedArguments = function (args, typeTags) {
         return fluid.transform(args, function (arg, i) {
-            return osc.isArray(arg) ? osc.tests.args.createTypedArguments(arg, typeTags[i]) :
+            return osc.isArray(arg) ? oscjsTests.args.createTypedArguments(arg, typeTags[i]) :
                 {
                     type: typeTags[i],
                     value: arg
@@ -676,9 +676,9 @@ var fluid = fluid || require("infusion"),
         });
     };
 
-    osc.tests.args.testWrite = function (testSpec) {
+    oscjsTests.args.testWrite = function (testSpec) {
         jqUnit.test("Write " + testSpec.name, function () {
-            var argsToWrite = osc.tests.args.createTypedArguments(testSpec.args, testSpec.typeTags);
+            var argsToWrite = oscjsTests.args.createTypedArguments(testSpec.args, testSpec.typeTags);
 
             var actual = osc.writeArguments(argsToWrite, {
                 metadata: true
@@ -691,7 +691,7 @@ var fluid = fluid || require("infusion"),
         });
     };
 
-    osc.tests.args.testSpecs = [
+    oscjsTests.args.testSpecs = [
         {
             name: "single argument",
 
@@ -887,7 +887,7 @@ var fluid = fluid || require("infusion"),
         }
     ];
 
-    osc.tests.args.testArguments = function (testSpecs, tester) {
+    oscjsTests.args.testArguments = function (testSpecs, tester) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
             tester(testSpec);
@@ -895,10 +895,10 @@ var fluid = fluid || require("infusion"),
     };
 
     jqUnit.module("readArguments()");
-    osc.tests.args.testArguments(osc.tests.args.testSpecs, osc.tests.args.testRead);
+    oscjsTests.args.testArguments(oscjsTests.args.testSpecs, oscjsTests.args.testRead);
 
     jqUnit.module("writeArguments()");
-    osc.tests.args.testArguments(osc.tests.args.testSpecs, osc.tests.args.testWrite);
+    oscjsTests.args.testArguments(oscjsTests.args.testSpecs, oscjsTests.args.testWrite);
 
 
     /************
@@ -906,9 +906,9 @@ var fluid = fluid || require("infusion"),
      ************/
 
     jqUnit.module("Messages");
-    fluid.registerNamespace("osc.tests.messages");
+    fluid.registerNamespace("oscjsTests.messages");
 
-    osc.tests.messages.readMessageTester = function (testSpec) {
+    oscjsTests.messages.readMessageTester = function (testSpec) {
         testSpec.offsetState = testSpec.offsetState || {
             idx: 0
         };
@@ -919,45 +919,45 @@ var fluid = fluid || require("infusion"),
             msg = "The returned message object should match the raw message data.";
 
         if (testSpec.roundToDecimals !== undefined) {
-            osc.tests.deepEqualRounded(actual, expected, testSpec.roundToDecimals, msg);
+            oscjsTests.deepEqualRounded(actual, expected, testSpec.roundToDecimals, msg);
         } else {
             QUnit.propEqual(actual, expected, msg);
         }
     };
 
-    osc.tests.messages.testRead = function (testSpec) {
+    oscjsTests.messages.testRead = function (testSpec) {
         jqUnit.test("readMessage " + testSpec.name, function () {
-            osc.tests.messages.readMessageTester(testSpec);
+            oscjsTests.messages.readMessageTester(testSpec);
         });
     };
 
-    osc.tests.messages.writeMessageTester = function (expected, message, options) {
+    oscjsTests.messages.writeMessageTester = function (expected, message, options) {
         var actual = osc.writeMessage(message, options);
-        osc.tests.arrayEqual(actual, expected, "The message should have been written correctly.");
+        oscjsTests.arrayEqual(actual, expected, "The message should have been written correctly.");
 
         return actual;
     };
 
-    osc.tests.messages.testWrite = function (testSpec) {
+    oscjsTests.messages.testWrite = function (testSpec) {
         jqUnit.test("writeMessage " + testSpec.name, function () {
-            osc.tests.messages.writeMessageTester(testSpec.oscMessageBuffer, testSpec.message, testSpec.options);
+            oscjsTests.messages.writeMessageTester(testSpec.oscMessageBuffer, testSpec.message, testSpec.options);
         });
     };
 
-    osc.tests.messages.testRoundTrip = function (testSpec) {
+    oscjsTests.messages.testRoundTrip = function (testSpec) {
         jqUnit.test("Read written message (roundtrip) " + testSpec.name, function () {
-            var encoded = osc.tests.messages.writeMessageTester(testSpec.oscMessageBuffer,
+            var encoded = oscjsTests.messages.writeMessageTester(testSpec.oscMessageBuffer,
                 testSpec.message, testSpec.options);
 
             var readWrittenSpec = fluid.copy(testSpec);
             readWrittenSpec.oscMessageBuffer = encoded;
             readWrittenSpec.offsetState = null;
-            osc.tests.messages.readMessageTester(readWrittenSpec);
+            oscjsTests.messages.readMessageTester(readWrittenSpec);
         });
     };
 
 
-    osc.tests.messages.testSpecs = [
+    oscjsTests.messages.testSpecs = [
         {
             name: "float and array example without type metadata",
 
@@ -1155,16 +1155,16 @@ var fluid = fluid || require("infusion"),
         }
     ];
 
-    osc.tests.messages.testMessages = function (testSpecs) {
+    oscjsTests.messages.testMessages = function (testSpecs) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            osc.tests.messages.testRead(testSpec);
-            osc.tests.messages.testWrite(testSpec);
-            osc.tests.messages.testRoundTrip(testSpec);
+            oscjsTests.messages.testRead(testSpec);
+            oscjsTests.messages.testWrite(testSpec);
+            oscjsTests.messages.testRoundTrip(testSpec);
         }
     };
 
-    osc.tests.messages.testMessages(osc.tests.messages.testSpecs);
+    oscjsTests.messages.testMessages(oscjsTests.messages.testSpecs);
 
     jqUnit.test("gh-17", function () {
         var msg = {
@@ -1181,7 +1181,7 @@ var fluid = fluid || require("infusion"),
         var decoded = osc.readMessage(encoded, {
             metadata: true
         });
-        osc.tests.deepEqualRounded(decoded, msg, "The message should have been encoded and decoded correctly.");
+        oscjsTests.deepEqualRounded(decoded, msg, "The message should have been encoded and decoded correctly.");
     });
 
 
@@ -1190,9 +1190,9 @@ var fluid = fluid || require("infusion"),
      ***********/
 
     jqUnit.module("Bundles");
-    fluid.registerNamespace("osc.tests.bundles");
+    fluid.registerNamespace("oscjsTests.bundles");
 
-    osc.tests.bundles.testRead = function (testSpec) {
+    oscjsTests.bundles.testRead = function (testSpec) {
         jqUnit.test("readBundle " + testSpec.name, function () {
             var expected = testSpec.bundle,
                 dv = new DataView(testSpec.bytes.buffer),
@@ -1201,24 +1201,24 @@ var fluid = fluid || require("infusion"),
                 };
 
             var actual = osc.readBundle(dv, testSpec.options, offsetState);
-            osc.tests.deepEqualRounded(actual, expected,
+            oscjsTests.deepEqualRounded(actual, expected,
                 "The bundle should have been read correctly.");
             QUnit.equal(offsetState.idx, dv.byteLength,
                 "The offset state should have been adjusted correctly.");
         });
     };
 
-    osc.tests.bundles.testWrite = function (testSpec) {
+    oscjsTests.bundles.testWrite = function (testSpec) {
         jqUnit.test("writeBundle " + testSpec.name, function () {
             var expected = testSpec.bytes,
                 actual = osc.writeBundle(testSpec.bundle, testSpec.options);
 
-            osc.tests.arrayEqual(actual, expected,
+            oscjsTests.arrayEqual(actual, expected,
                 "The bundle should have been written correctly.");
         });
     };
 
-    osc.tests.bundles.testSpecs = [
+    oscjsTests.bundles.testSpecs = [
         {
             name: "with nested bundles.",
             bytes: new Uint8Array([
@@ -1345,15 +1345,15 @@ var fluid = fluid || require("infusion"),
         }
     ];
 
-    osc.tests.bundles.testBundles = function (testSpecs) {
+    oscjsTests.bundles.testBundles = function (testSpecs) {
         for (var i = 0; i < testSpecs.length; i++) {
             var testSpec = testSpecs[i];
-            osc.tests.bundles.testRead(testSpec);
-            osc.tests.bundles.testWrite(testSpec);
+            oscjsTests.bundles.testRead(testSpec);
+            oscjsTests.bundles.testWrite(testSpec);
         }
     };
 
-    osc.tests.bundles.testBundles(osc.tests.bundles.testSpecs);
+    oscjsTests.bundles.testBundles(oscjsTests.bundles.testSpecs);
 
     QUnit.test("gh-36: Write Long argument", function () {
         var msg = {

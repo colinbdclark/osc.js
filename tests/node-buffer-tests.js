@@ -12,9 +12,9 @@
 
 "use strict";
 
-var fluid = require("infusion"),
-    jqUnit = require("node-jqunit"),
-    osc = require("../src/platforms/osc-node.js");
+var fluid = fluid || require("infusion"),
+    jqUnit = jqUnit || fluid.require("node-jqunit"),
+    osc = osc || require("../src/platforms/osc-node.js");
 
 var QUnit = fluid.registerNamespace("QUnit");
 

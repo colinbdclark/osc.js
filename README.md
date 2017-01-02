@@ -136,52 +136,61 @@ All <code>osc.Port</code> objects implement the following supported methods:
 All <code>osc.Port</code>s implement the [Event Emitter API](https://nodejs.org/api/events.html). The following events are supported:
 
 <table>
-    <tr>
-        <th>Event</th>
-        <th>Description</th>
-        <th>Arguments</th>
-    </tr>
-    <tr>
-        <td><code>message</code></td>
-        <td>Fires whenever an OSC message is received by the Port.</td>
-        <td>
-            <code>message</code>: the OSC message received; <br />
-            <code>timeTag</code>: the time tag specified by the sender (may be <code>undefined</code> for non-bundle messages); <br />
-            <code>info</code>an implementation-specific remote information object
-        </td>
-    </tr>
-    <tr>
-        <td><code>bundle</code></td>
-        <td>Fires whenever an OSC bundle is received. Subsequent <code>bundle</code> and/or <code>message</code> events will be fired for each sub-packet in the bundle.</td>
-        <td>
-            <code>bundle</code>: the OSC bundle received; <br />
-            <code>timeTag</code>: the time tag specified by the sender; <br />
-            <code>info</code>an implementation-specific remote information object
-        </td>
-    </tr>
-    <tr>
-        <td><code>osc</code></td>
-        <td>Fires whenever any type of OSC packet is recieved by this Port.</td>
-        <td>
-            <code>packet</code>: the OSC message or bundle received<br />
-            <code>info</code>an implementation-specific remote information object
-        </td>
-    </tr>
-    <tr>
-        <td><code>raw</code></td>
-        <td>Fires whenever any data is recieved by this Port.</td>
-        <td>
-            <code>data</code>: an Uint8Array containing the raw data received<br />
-            <code>info</code>an implementation-specific remote information object
-        </td>
-    </tr>
-    <tr>
-        <td><code>error</code></td>
-        <td>Fires whenever an error occurs.</td>
-        <td>
-            <code>error</code>: the Error object that was raised
-        </td>
-    </tr>
+    <thead>
+        <tr>
+            <th>Event</th>
+            <th>Description</th>
+            <th>Arguments</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>ready</code></td>
+            <td>Fires when a Port is ready to send or receive messages.</td>
+            <td>_none_</td>
+        </tr>
+        <tr>
+            <td><code>message</code></td>
+            <td>Fires whenever an OSC message is received by the Port.</td>
+            <td>
+                <code>message</code>: the OSC message received; <br />
+                <code>timeTag</code>: the time tag specified by the sender (may be <code>undefined</code> for non-bundle messages); <br />
+                <code>info</code>an implementation-specific remote information object
+            </td>
+        </tr>
+        <tr>
+            <td><code>bundle</code></td>
+            <td>Fires whenever an OSC bundle is received. Subsequent <code>bundle</code> and/or <code>message</code> events will be fired for each sub-packet in the bundle.</td>
+            <td>
+                <code>bundle</code>: the OSC bundle received; <br />
+                <code>timeTag</code>: the time tag specified by the sender; <br />
+                <code>info</code>an implementation-specific remote information object
+            </td>
+        </tr>
+        <tr>
+            <td><code>osc</code></td>
+            <td>Fires whenever any type of OSC packet is recieved by this Port.</td>
+            <td>
+                <code>packet</code>: the OSC message or bundle received<br />
+                <code>info</code>an implementation-specific remote information object
+            </td>
+        </tr>
+        <tr>
+            <td><code>raw</code></td>
+            <td>Fires whenever any data is recieved by this Port.</td>
+            <td>
+                <code>data</code>: an Uint8Array containing the raw data received<br />
+                <code>info</code>an implementation-specific remote information object
+            </td>
+        </tr>
+        <tr>
+            <td><code>error</code></td>
+            <td>Fires whenever an error occurs.</td>
+            <td>
+                <code>error</code>: the Error object that was raised
+            </td>
+        </tr>
+    </tbody>
 </table>
 
 
@@ -255,28 +264,33 @@ oscPort.on("message", function (oscMsg) {
 
 ##### Sending OSC messages:
 ```javascript
-// For most Ports, send() should only be called after the "open" event fires.
-oscPort.send({
-    address: "/carrier/frequency",
-    args: 440
+// For most Ports, send() should only be called after the "ready" event fires.
+oscPort.on("ready", function () {
+    oscPort.send({
+        address: "/carrier/frequency",
+        args: 440
+    });
 });
 ```
 
 ##### Sending OSC bundles:
 ```javascript
-oscPort.send({
-    timeTag: osc.timeTag(60), // Schedules this bundle 60 seconds from now.
-    packets: [
-        {
-            address: "/carrier/frequency",
-            args: 440
-        },
-        {
-            address: "/carrier/amplitude"
-            args: 0.5
-        }
-    ]
+oscPort.on("ready", function () {
+    oscPort.send({
+        timeTag: osc.timeTag(60), // Schedules this bundle 60 seconds from now.
+        packets: [
+            {
+                address: "/carrier/frequency",
+                args: 440
+            },
+            {
+                address: "/carrier/amplitude"
+                args: 0.5
+            }
+        ]
+    });
 });
+
 ```
 
 ##### Using osc.js with Require.js
@@ -428,11 +442,14 @@ udpPort.on("bundle", function (oscBundle, timeTag, info) {
 // Open the socket.
 udpPort.open();
 
-// Send an OSC message to, say, SuperCollider
-udpPort.send({
-    address: "/s_new",
-    args: ["default", 100]
-}, "127.0.0.1", 57110);
+
+// When the port is read, send an OSC message to, say, SuperCollider
+udpPort.on("ready", function () {
+    udpPort.send({
+        address: "/s_new",
+        args: ["default", 100]
+    }, "127.0.0.1", 57110);
+});
 ```
 
 ### Serial in a Chrome App

@@ -3,7 +3,7 @@
 # for additional documentation related to these variables
 
 # The version of Node.js to use.
-nodejs_version: 6.1.0
+nodejs_branch: current
 
 # A hyphenated string representing the application's name.
 nodejs_app_name: oscjs-tests

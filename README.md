@@ -54,9 +54,10 @@ How it Works
 
 osc.js consists of two distinct layers:
 
-1. The transports, which provide a simple EventEmitter-style API for sending an receiving OSC packets using a variety of transports such as UDP and Web Sockets.
-2. The underlying stateless API that provides functions for reading and writing OSC packets.
+1. The low-level functional API, which provides simple stateless functions for reading and writing OSC packets.
+2. The transport layer, which provide a simple EventEmitter-style API for sending an receiving OSC packets using a variety of transports such as UDP and Web Sockets.
 
+Typically, you'll use the Port API for sending and receiving OSC packets over a particular transport, but if you want to write your own transports or want a lower-level interface, you can use the functional API directly.
 
 Port API
 --------
@@ -700,7 +701,21 @@ osc.js is maintained by Colin Clark and distributed under the MIT and GPL 3 lice
 Supported Environments
 ----------------------
 
-osc.js releases are tested in Chrome, Firefox, Safari, and Microsoft Edge on Mac OS X and Windows, and in Node.js 4.2.0 (LTS) and 0.10.40 on Mac OS X and Linux.
+osc.js releases are tested and supported in the following environments:
+
+<table>
+    <thead>
+        <tr><th>Environment</th><th>Tested OS</th><th>Version</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Chrome</td><td>Mac OS X, Windows</td><td>Stable channel</td></tr>
+        <tr><td>Firefox</td><td>Mac OS X, Windows</td><td>Stable channel</td></tr>
+        <tr><td>Safari</td><td>Mac OS X</td><td>Latest</td></tr>
+        <tr><td>Edge</td><td>Windows</td><td>Latest</td></tr>
+        <tr><td>Node.js</td><td>Mac OS X, Windows</td><td>LTS</td></tr>
+        <tr><td>Electron</td><td>Mac OS X, Windows</td><td>1.4.x</td></tr>
+    </tbody>
+</table>
 
 Contributing to osc.js
 ----------------------
@@ -713,10 +728,9 @@ Currently, the project is maintained by one person; sometimes it will take a bit
 
 ## How to Build and Test Your Contributions
 
-osc.js depends on npm and Grunt. Make sure you have these installed, and then run the following commands to fetch all necessary dependencies:
+osc.js depends on npm, Grunt, and Testem. Make sure you have these installed, and then run the following commands to fetch all necessary dependencies:
 
     npm install
-    npm run dedupe-infusion
 
 To lint and generate builds from new source code:
 
@@ -724,9 +738,8 @@ To lint and generate builds from new source code:
 
 Running the unit tests:
 
-1. To run the Node.js unit tests, run <code>npm run clean-test</code>
-2. In the browser, open <code>tests/all-tests.html</code>
-3. To run the tests in a Vagrant VM under Node.js 0.10.40, run <code>vagrant up</code>
+1. To run the fully automated tests, run "npm test"
+2. To run the electron tests, run "npm run electron-test"
 
 Contributors
 ------------

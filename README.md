@@ -49,8 +49,58 @@ Status
 
 osc.js supports all OSC 1.0 and 1.1 required and optional types.
 
-How it Works
-------------
+Installing osc.js
+-----------------
+
+osc.js is typically installed via [Bower](https://bower.io), [npm](https://npmjs.com), or [yarn](https://github.com/yarnpkg/yarn). The latter two can be used for both client-side projects as well as Node.js applications, while Bower is typically used only for browser applications.
+
+### Installing with Bower
+
+If you're developing a browser-based project, Bower is probably the simplest way to manage your dependency on osc.js. First, you'll need to [install Bower](https://bower.io/#install-bower), which requires [Node.js](https://nodejs.org/en/).
+
+For a Bower-based project, you'll typically want to make a <code>bower.json</code> configuration file. Something like this:
+
+    {
+        "name": "<your project name>",
+        "version": "<your project version>",
+        "dependencies": {
+            "osc.js": "2.2.0"
+        }
+    }
+
+Don't forget to update the <code>name</code>, <code>version</code>, and [any other bower.json fields](https://github.com/bower/spec/blob/master/json.md) appropriately for your project.
+
+And then, to install all your project's dependencies&mdash;including osc.js&mdash;just run
+
+    bower install
+
+Your dependencies will be located in a directory called <code>bower_components</code> in your project root.
+
+### Installing with npm (or yarn)
+
+npm is a package manager for Node.js and web-based projects. Dependencies are registered in the [npmjs.org registry](https://www.npmjs.com/).
+
+For an npm-based project that depends on osc.js, you'll need a <code>package.json</code> configuration file for it:
+
+    {
+        "name": "<your project name>",
+        "version": "<your project version>",
+        "dependencies": {
+            "osc": "2.2.0"
+        }
+    }
+
+Don't forget to update the <code>name</code>, <code>version</code>, and [other package.json fields](https://docs.npmjs.com/files/package.json) appropriately for your project.
+
+Then, to install osc.js and all your other project dependencies, run:
+
+    npm install
+
+Your dependencies will be located in a directory called <code>node_modules</code> in your project root.
+
+
+How osc.js Works
+----------------
 
 osc.js consists of two distinct layers:
 
@@ -139,6 +189,8 @@ Examples
 --------
 
 In-depth example osc.js applications for the browser, Node.js, and Chrome OS are available in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
+
+These examples assume you are using [Bower to install osc.js](#Installing-with-Bower), but you can of course change the paths to refer to your <code>node_modules</code> if you're using npm.
 
 ### Web Sockets in the Browser
 

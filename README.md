@@ -98,6 +98,23 @@ Then, to install osc.js and all your other project dependencies, run:
 
 Your dependencies will be located in a directory called <code>node_modules</code> in your project root.
 
+### Installing osc.js for use in Electron Applications
+
+[Electron](https://github.com/electron/electron) allows developers to create applications using Web technologies and deploy them as native applications on Mac, Windows, and Linux.
+
+Electron, however, ships with its own version of Node.js, which may be different from the  version you have installed on your computer. osc.js depends on native Node.js modules such as [node-serialport](https://github.com/EmergingTechnologyAdvisors/node-serialport), which need to be compiled against the Electron version of Node.js in order for them to work correctly.
+
+To install osc.js for Electron applications, there are two options:
+
+1. Follow [the instructions provided by the node-serialport project](https://github.com/EmergingTechnologyAdvisors/node-serialport#electron) and use [electron-rebuild](https://github.com/electron/electron-rebuild) to recompile your dependencies after running <code>npm install</code>
+2. Use an <code>.npmrc</code> file to override npm's default compile target and runtime settings for Electron. Here's an example of an <code>.npmrc</code> file. Don't forget to make sure that the <code>target</code> property matches the version of Electron you're using:
+
+```
+    target=1.4.13
+    disturl=https://atom.io/download/atom-shell
+    runtime=electron
+    build_from_source=true
+```
 
 How osc.js Works
 ----------------

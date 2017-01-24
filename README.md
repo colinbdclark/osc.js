@@ -753,7 +753,7 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
 {
   address: "/blob",
   args: [
-    Uint8Aray([0x63, 0x61, 0x74, 0x21])
+    Uint8Array([0x63, 0x61, 0x74, 0x21])
   ]
 }
     <tr>

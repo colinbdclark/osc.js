@@ -263,7 +263,8 @@ _More code examples showing how osc.js can be used in browser-based, Node.js, an
 ##### Creating an OSC Web Socket Port object:
 ```javascript
 var oscPort = new osc.WebSocketPort({
-    url: "ws://localhost:8081" // URL to your Web Socket server.
+    url: "ws://localhost:8081", // URL to your Web Socket server.
+    metadata: true
 });
 ```
 
@@ -285,7 +286,12 @@ oscPort.on("message", function (oscMsg) {
 oscPort.on("ready", function () {
     oscPort.send({
         address: "/carrier/frequency",
-        args: 440
+        args: [
+            {
+                type: "f",
+                value: 440
+            }
+        ]
     });
 });
 ```
@@ -298,11 +304,21 @@ oscPort.on("ready", function () {
         packets: [
             {
                 address: "/carrier/frequency",
-                args: 440
+                args: [
+                    {
+                        type: "f",
+                        value: 440
+                    }
+                ]
             },
             {
                 address: "/carrier/amplitude"
-                args: 0.5
+                args: [
+                    {
+                        type: "f",
+                        value: 0.5
+                    }
+                ]
             }
         ]
     });
@@ -377,7 +393,8 @@ var wss = new WebSocket.Server({
 // Listen for Web Socket connections.
 wss.on("connection", function (socket) {
     var socketPort = new osc.WebSocketPort({
-        socket: socket
+        socket: socket,
+        metadata: true
     });
 
     socketPort.on("message", function (oscMsg) {
@@ -447,7 +464,8 @@ OSC messages over Node.js's UDP sockets. It also supports broadcast and multicas
 // Create an osc.js UDP Port listening on port 57121.
 var udpPort = new osc.UDPPort({
     localAddress: "0.0.0.0",
-    localPort: 57121
+    localPort: 57121,
+    metadata: true
 });
 
 // Listen for incoming OSC bundles.
@@ -464,7 +482,16 @@ udpPort.open();
 udpPort.on("ready", function () {
     udpPort.send({
         address: "/s_new",
-        args: ["default", 100]
+        args: [
+            {
+                type: "s",
+                value: "default"
+            },
+            {
+                type: "i",
+                value: 100
+            }
+        ]
     }, "127.0.0.1", 57110);
 });
 ```
@@ -498,7 +525,8 @@ udpPort.on("ready", function () {
 ```javascript
 // Instantiate a new OSC Serial Port.
 var serialPort = new osc.SerialPort({
-    devicePath: "/dev/cu.usbmodem22131"
+    devicePath: "/dev/cu.usbmodem22131",
+    metadata: true
 });
 
 // Listen for the message event and map the OSC message to the synth.
@@ -722,17 +750,29 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
     <tr>
         <td>"/carrier/freq" ",f" 440.4</td>
         <td><pre><code>{
-  address: "/carrier/freq",
-  args: [440.4]
+    address: "/carrier/freq",
+    args: [
+        {
+            type: "f",
+            value: 440.4
+        }
+    ]
 }</pre></code></td>
     </tr>
     <tr>
         <td>"/float/andArray" ",f[ff]" 440.4 42 47</td>
         <td><pre><code>{
-  address: "/carrier/freq",
-  args: [
-    440.4, [42.0, 47.0]
-  ]
+    address: "/carrier/freq",
+    args: [
+        {
+            type: "f",
+            value: 440.4
+        },
+        {
+            type: "[ff]",
+            value: [42.0, 47.0]
+        }
+    ]
 }</pre></code></td>
     </tr>
     <tr>
@@ -751,31 +791,40 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
         <td>"/blob" ",b" 0x63 0x61 0x74 0x21</td>
         <td><pre><code>
 {
-  address: "/blob",
-  args: [
-    Uint8Array([0x63, 0x61, 0x74, 0x21])
-  ]
+    address: "/blob",
+    args: [
+        {
+            type: "b",
+            value: Uint8Array([0x63, 0x61, 0x74, 0x21])
+        }
+    ]
 }
     <tr>
         <td>"/colour" ",r" "255 255 255 255"</td>
         <td><pre><code>{
   address: "/colour",
-  args: [{
-      r: 255,
-      g: 255,
-      b: 255,
-      a: 1.0
+  args: [
+    {
+        type: "r",
+        value: {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 1.0
+        }
     }
   ]
 }</pre></code</td>
     <tr>
         <td>"/midiMessage" ",m" 0x00 0x90 0x45 0x65</td>
         <td><pre><code>{
-  address: "/midiMessage",
-  args: [
-    // Port ID, Status, Data 1, Data 2
-    Uint8Array([0, 144, 69, 101])
-  ]
+    address: "/midiMessage",
+    args: [
+        {
+            type: "m",
+            value: Uint8Array([0, 144, 69, 101]) // Port ID, Status, Data 1, Data 2
+        }
+    ]
 }</pre></code</td>
 </table>
 

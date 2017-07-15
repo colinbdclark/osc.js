@@ -163,22 +163,22 @@ var osc = osc || {};
         idx = (idx + 3) & ~0x03;
         offsetState.idx = idx;
 
-        if (global.Buffer) {
+        if (Buffer) {
           // Check for Buffer API (Node/Electron)
           if (Buffer.from) {
             // new Buffer() is now deprecated, so we use Buffer.from if available
-            return Buffer.from(charCodes).toString('utf-8');
+            return Buffer.from(charCodes).toString("utf-8");
           } else {
-            return new Buffer(charCodes).toString('utf-8');
+            return new Buffer(charCodes).toString("utf-8");
           }
-        } else if (global.TextDecoder) {
+        } else if (TextDecoder) {
           // Check for TextDecoder API (Browser/WebKit-based)
-          return new TextDecoder('utf-8').decode(charCodes);
+          return new TextDecoder("utf-8").decode(charCodes);
         } else {
           // If no Buffer or TextDecoder, resort to fromCharCode
           // This does not properly decode multi-byte Unicode characters.
 
-          var str = '';
+          var str = "";
           var sliceSize = 10000;
 
           // Processing the array in chunks so as not to exceed argument

@@ -163,7 +163,7 @@ var osc = osc || {};
         idx = (idx + 3) & ~0x03;
         offsetState.idx = idx;
 
-        if (Buffer) {
+        if ((typeof global !== "undefined" ? global : window).hasOwnProperty("Buffer")) {  // jshint ignore:line
           // Check for Buffer API (Node/Electron)
           if (Buffer.from) {
             // new Buffer() is now deprecated, so we use Buffer.from if available
@@ -171,9 +171,9 @@ var osc = osc || {};
           } else {
             return new Buffer(charCodes).toString("utf-8");
           }
-        } else if (TextDecoder) {
+        } else if ((typeof global !== "undefined" ? global : window).hasOwnProperty("TextDecoder")) {  // jshint ignore:line
           // Check for TextDecoder API (Browser/WebKit-based)
-          return new TextDecoder("utf-8").decode(charCodes);
+          return new TextDecoder("utf-8").decode(new Int8Array(charCodes));
         } else {
           // If no Buffer or TextDecoder, resort to fromCharCode
           // This does not properly decode multi-byte Unicode characters.

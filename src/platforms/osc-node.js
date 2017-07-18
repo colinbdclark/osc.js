@@ -179,6 +179,10 @@
             that.emit("open", that.socket);
         }
 
+        this.socket.on("error", function (error) {
+            that.emit("error", error);
+        });
+
         this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
     };
 
@@ -190,10 +194,6 @@
         var that = this;
         this.socket.on("message", function (msg, rinfo) {
             that.emit("data", msg, rinfo);
-        });
-
-        this.socket.on("error", function (error) {
-            that.emit("error", error);
         });
 
         this.socket.on("close", function () {

@@ -86,8 +86,12 @@
             autoOpen: false
         });
 
-        this.serialPort.open(function() {
-            that.emit("open", that.serialPort);
+        this.serialPort.open(function(err) {
+            if (err) {
+              that.emit("error", err);
+            } else {
+              that.emit("open", that.serialPort);
+            }
         });
     };
 

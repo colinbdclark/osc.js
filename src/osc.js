@@ -582,7 +582,7 @@ var osc = osc || {};
      *
      * @param {DataView} dv a DataView instance to read from
      * @param {Object} offsetState the offsetState object that stores the current offset into dv
-     * @param {Oobject} [options] read options
+     * @param {Object} [options] read options
      * @return {Array} an array of the OSC arguments that were read
      */
     osc.readArguments = function (dv, options, offsetState) {

@@ -86,9 +86,15 @@
             autoOpen: false
         });
 
-        this.serialPort.open(function() {
+        this.serialPort.on("error", function (err) {
+            that.emit("error", err);
+        });
+
+        this.serialPort.once("open", function () {
             that.emit("open", that.serialPort);
         });
+
+        this.serialPort.open();
     };
 
     p.listen = function () {
@@ -96,10 +102,6 @@
 
         this.serialPort.on("data", function (data) {
             that.emit("data", data, undefined);
-        });
-
-        this.serialPort.on("error", function (err) {
-            that.emit("error", err);
         });
 
         this.serialPort.on("close", function (err) {

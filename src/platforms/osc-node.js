@@ -90,7 +90,7 @@
             that.emit("error", err);
         });
 
-        this.serialPort.once("open", function () {
+        this.serialPort.on("open", function () {
             that.emit("open", that.serialPort);
         });
 
@@ -104,12 +104,8 @@
             that.emit("data", data, undefined);
         });
 
-        this.serialPort.on("close", function (err) {
-            if (err) {
-                that.emit("error", err);
-            } else {
-                that.emit("close");
-            }
+        this.serialPort.on("close", function () {
+            that.emit("close");
         });
 
         that.emit("ready");
@@ -122,11 +118,7 @@
         }
 
         var that = this;
-        this.serialPort.write(encoded, function (err) {
-            if (err) {
-                that.emit("error", err);
-            }
-        });
+        this.serialPort.write(encoded);
     };
 
     p.close = function () {

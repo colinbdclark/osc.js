@@ -584,7 +584,7 @@ var osc = osc || {};
      *
      * @param {DataView} dv a DataView instance to read from
      * @param {Object} offsetState the offsetState object that stores the current offset into dv
-     * @param {Oobject} [options] read options
+     * @param {Object} [options] read options
      * @return {Array} an array of the OSC arguments that were read
      */
     osc.readArguments = function (dv, options, offsetState) {
@@ -2475,13 +2475,13 @@ var osc = osc || {};
     return slip;
 }));
 ;/*!
- * EventEmitter v5.0.0 - git.io/ee
+ * EventEmitter v5.2.4 - git.io/ee
  * Unlicense - http://unlicense.org/
  * Oliver Caldwell - http://oli.me.uk/
  * @preserve
  */
 
-;(function () {
+;(function (exports) {
     'use strict';
 
     /**
@@ -2494,7 +2494,6 @@ var osc = osc || {};
 
     // Shortcuts to improve speed and size
     var proto = EventEmitter.prototype;
-    var exports = this;
     var originalGlobalValue = exports.EventEmitter;
 
     /**
@@ -2595,6 +2594,16 @@ var osc = osc || {};
         return response || listeners;
     };
 
+    function isValidListener (listener) {
+        if (typeof listener === 'function' || listener instanceof RegExp) {
+            return true
+        } else if (listener && typeof listener === 'object') {
+            return isValidListener(listener.listener)
+        } else {
+            return false
+        }
+    }
+
     /**
      * Adds a listener function to the specified event.
      * The listener will not be added if it is a duplicate.
@@ -2606,6 +2615,10 @@ var osc = osc || {};
      * @return {Object} Current instance of EventEmitter for chaining.
      */
     proto.addListener = function addListener(evt, listener) {
+        if (!isValidListener(listener)) {
+            throw new TypeError('listener must be a function');
+        }
+
         var listeners = this.getListenersAsObject(evt);
         var listenerIsWrapped = typeof listener === 'object';
         var key;
@@ -2705,7 +2718,7 @@ var osc = osc || {};
 
     /**
      * Adds listeners in bulk using the manipulateListeners method.
-     * If you pass an object as the second argument you can add to multiple events at once. The object should contain key value pairs of events and listeners or listener arrays. You can also pass it an event name and an array of listeners to be added.
+     * If you pass an object as the first argument you can add to multiple events at once. The object should contain key value pairs of events and listeners or listener arrays. You can also pass it an event name and an array of listeners to be added.
      * You can also pass it a regular expression to add the array of listeners to all events that match it.
      * Yeah, this function does quite a bit. That's probably a bad thing.
      *
@@ -2720,7 +2733,7 @@ var osc = osc || {};
 
     /**
      * Removes listeners in bulk using the manipulateListeners method.
-     * If you pass an object as the second argument you can remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.
+     * If you pass an object as the first argument you can remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.
      * You can also pass it an event name and an array of listeners to be removed.
      * You can also pass it a regular expression to remove the listeners from all events that match it.
      *
@@ -2946,7 +2959,7 @@ var osc = osc || {};
     else {
         exports.EventEmitter = EventEmitter;
     }
-}.call(this));
+}(this || {}));
 ;/*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
  *

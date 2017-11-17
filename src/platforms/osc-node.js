@@ -169,6 +169,10 @@
 
         this.socket = dgram.createSocket("udp4");
 
+        this.socket.on("error", function (error) {
+            that.emit("error", error);
+        });
+
         function onBound() {
             osc.UDPPort.setupMulticast(that);
 
@@ -178,10 +182,6 @@
 
             that.emit("open", that.socket);
         }
-
-        this.socket.on("error", function (error) {
-            that.emit("error", error);
-        });
 
         this.socket.bind(this.options.localPort, this.options.localAddress, onBound);
     };

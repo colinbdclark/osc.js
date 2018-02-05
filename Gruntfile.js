@@ -53,7 +53,7 @@ module.exports = function(grunt) {
 
         concat: {
             options: {
-                separator: ";",
+                separator: ";\n",
                 banner: "<%= oscjs.banners.short %>"
             },
 

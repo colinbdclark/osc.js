@@ -7,7 +7,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/*global require, dcodeIO*/
+/*global require*/
 
 var fluid = fluid || require("infusion"),
     jqUnit = jqUnit || fluid.require("node-jqunit"),
@@ -17,7 +17,6 @@ var fluid = fluid || require("infusion"),
     "use strict";
 
     var QUnit = fluid.registerNamespace("QUnit");
-    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long : require("long");
 
     var oscjsTests = fluid.registerNamespace("oscjsTests");
 
@@ -134,7 +133,7 @@ var fluid = fluid || require("infusion"),
                 QUnit.equal(actualArg, expectedArg, msgTogo);
             } else if (typeof actualArg === "object" && typeof actualArg.length === "number") {
                 oscjsTests.arrayEqual(actualArg, expectedArg, msgTogo);
-            } else if (expectedArg instanceof Long) {
+            } else if (expectedArg instanceof osc.Long) {
                 QUnit.deepEqual(actualArg, expectedArg, msgTogo + " actual: " +
                     actualArg.toString() + " expected: " + expectedArg.toString());
             } else {
@@ -881,7 +880,7 @@ var fluid = fluid || require("infusion"),
                     a: 1.0
                 },
                 new Uint8Array([1, 144, 69, 101]),
-                new Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
+                new osc.Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
             ],
             roundToDecimals: 3
         }
@@ -1359,7 +1358,7 @@ var fluid = fluid || require("infusion"),
         var msg = {
             address: "/cat/slash",
             args: [
-                new Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
+                new osc.Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
             ]
         };
 

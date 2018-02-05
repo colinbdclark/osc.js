@@ -24,25 +24,26 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "jquery": "3.2.1",
-        "infusion": "3.0.0-dev.20171102T191539Z.c0636b395",
+        "jquery": "3.3.1",
+        "infusion": "3.0.0-dev.20180122T170655Z.350441a9b",
         "requirejs": "2.3.5",
-        "node-jqunit": "1.1.7",
+        "node-jqunit": "1.1.8",
         "grunt": "1.0.1",
         "grunt-contrib-concat": "1.0.1",
-        "grunt-contrib-uglify": "3.1.0",
+        "grunt-contrib-uglify": "3.3.0",
         "grunt-contrib-clean": "1.1.0",
         "grunt-contrib-jshint": "1.1.0"
     },
     "dependencies": {
         "wolfy87-eventemitter": "5.2.4",
-        "long": "3.2.0",
-        "serialport": "6.0.4",
+        "long": "4.0.0",
+        "serialport": "6.0.5",
         "slip": "1.0.2",
         "ws": "3.3.1"
     },
     "scripts": {
-        "test": "node tests/node-all-tests.js && grunt && npm run browser-test",
+        "test": "npm run node-test && grunt && npm run browser-test",
+        "node-test": "node tests/node-all-tests.js",
         "browser-test": "testem ci --file tests/testem.json",
         "electron-test": "cd tests/electron-tests && npm install && node_modules/.bin/electron .",
         "clean-test": "./clean-npm.sh && npm install && npm test"

@@ -186,7 +186,7 @@ function createWSServer(onConnection) {
         });
 
         serverWebSocketPort.on("error", function (err) {
-            console.error("An error occurred while running the Web Socket tests: ");
+            console.error("A server error occurred while running the Web Socket tests: ");
             console.error(err.stack);
         });
 
@@ -203,6 +203,10 @@ function createWSClient(onMessage) {
     });
 
     wsc.on("message", onMessage);
+    wsc.on("error", function (err) {
+        console.error("A client error occurred while running the Web Socket tests: ", err);
+    });
+
     wsc.open();
     return wsc;
 }
@@ -210,8 +214,8 @@ function createWSClient(onMessage) {
 function checkMessageReceived(oscMessage, wss, wsc, assertMessage) {
     QUnit.deepEqual(oscMessage, testOSCMessage, assertMessage);
 
-    wss.close();
     wsc.close();
+    wss.close();
 }
 
 jqUnit.asyncTest("Send OSC messages both directions via a Web Socket", function () {

@@ -39,7 +39,7 @@
         "long": "4.0.0",
         "serialport": "6.0.5",
         "slip": "1.0.2",
-        "ws": "3.3.1"
+        "ws": "4.0.0"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",

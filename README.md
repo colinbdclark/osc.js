@@ -722,7 +722,7 @@ There are two primary functions in osc.js used to read and write OSC data:
         <td><code>osc.writePacket()</code></td>
         <td>Writes an OSC message or bundle object to a binary array.</td>
         <td>
-            <code>packate</code>: An osc.js message or bundle object;<br />
+            <code>packet</code>: An osc.js message or bundle object;<br />
             <code>options</code>: (optional) An options object, described below<br />
         </td>
         <td>A <code>Uint8Array</code></td>
@@ -762,16 +762,22 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
     <tr>
         <td>"/float/andArray" ",f[ff]" 440.4 42 47</td>
         <td><pre><code>{
-    address: "/carrier/freq",
+    address: "/float/andArray",
     args: [
         {
             type: "f",
             value: 440.4
         },
-        {
-            type: "[ff]",
-            value: [42.0, 47.0]
-        }
+        [
+            {
+                type: "f",
+                value: 42.0
+            },
+            {
+                type: "f",
+                value: 47.0
+            }
+        ]
     ]
 }</pre></code></td>
     </tr>

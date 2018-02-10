@@ -1389,4 +1389,55 @@ var fluid = fluid || require("infusion"),
             "The long integer should have been correctly type inferred when writing it" +
             " to a message.");
     });
+
+    QUnit.test("gh-102: Send and receive array-typed arguments (based on example code) with type metadata", function () {
+        var oscMsg = {
+            address: "/float/andArray",
+            args: [
+                {
+                    type: "f",
+                    value: 440.0
+                },
+                [
+                    {
+                        type: "f",
+                        value: 42.0
+                    },
+                    {
+                        type: "f",
+                        value: 47.0
+                    }
+                ]
+            ]
+        };
+
+        var withMetadataOptions = {
+            metadata: true,
+            unpackSingleArgs: false
+        };
+
+        var encoded = osc.writePacket(oscMsg, withMetadataOptions),
+            decoded = osc.readPacket(encoded, withMetadataOptions);
+
+        QUnit.deepEqual(decoded, oscMsg,
+            "Messages with array-typed arguments are successfully decoded.");
+    });
+
+    QUnit.test("gh-102: Send and receive array-typed arguments (based on example code) without type metadata", function () {
+        var oscMsg = {
+            address: "/float/andArray",
+            args: [440.0, [42.0, 47.0]]
+        };
+
+        var withoutMetadataOptions = {
+            metadata: false,
+            unpackSingleArgs: true
+        };
+
+        var encoded = osc.writePacket(oscMsg, withoutMetadataOptions),
+            decoded = osc.readPacket(encoded, withoutMetadataOptions);
+
+        QUnit.deepEqual(decoded, oscMsg,
+            "Messages with array-typed arguments are successfully decoded.");
+    });
 }());

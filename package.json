@@ -25,10 +25,10 @@
     "readmeFilename": "README.md",
     "devDependencies": {
         "jquery": "3.3.1",
-        "infusion": "3.0.0-dev.20180122T170655Z.350441a9b",
+        "infusion": "3.0.0-dev.20180326T173646Z.8c6a109b1",
         "requirejs": "2.3.5",
         "node-jqunit": "1.1.8",
-        "grunt": "1.0.1",
+        "grunt": "1.0.2",
         "grunt-contrib-concat": "1.0.1",
         "grunt-contrib-uglify": "3.3.0",
         "grunt-contrib-clean": "1.1.0",
@@ -39,7 +39,7 @@
         "long": "4.0.0",
         "serialport": "6.0.5",
         "slip": "1.0.2",
-        "ws": "4.0.0"
+        "ws": "5.1.1"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",

@@ -78,6 +78,25 @@ module.exports = function(grunt) {
             }
         },
 
+        replace: {
+            dist: {
+                options: {
+                    patterns: [
+                        {
+                            match: /\.\.\/osc.js/g,
+                            replacement: "./osc.js"
+                        }
+                    ]
+                },
+                files: [
+                    {
+                        src: "dist/*.js",
+                        dest: "./"
+                    }
+                ]
+            }
+        },
+
         uglify: {
             options: {
                 banner: "<%= oscjs.banners.short %>",
@@ -115,9 +134,10 @@ module.exports = function(grunt) {
 
     // Load relevant Grunt plugins.
     grunt.loadNpmTasks("grunt-contrib-concat");
+    grunt.loadNpmTasks("grunt-replace");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-jshint");
 
-    grunt.registerTask("default", ["clean", "jshint", "concat", "uglify"]);
+    grunt.registerTask("default", ["clean", "jshint", "concat", "replace", "uglify"]);
 };

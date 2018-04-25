@@ -30,6 +30,7 @@
         "node-jqunit": "1.1.8",
         "grunt": "1.0.2",
         "grunt-contrib-concat": "1.0.1",
+        "grunt-replace": "^1.0.1",
         "grunt-contrib-uglify": "3.3.0",
         "grunt-contrib-clean": "1.1.0",
         "grunt-contrib-jshint": "1.1.0"

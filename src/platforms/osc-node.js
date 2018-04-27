@@ -82,7 +82,7 @@
         var that = this;
 
         this.serialPort = new SerialPort(this.options.devicePath, {
-            baudrate: this.options.bitrate,
+            baudRate: this.options.bitrate,
             autoOpen: false
         });
 

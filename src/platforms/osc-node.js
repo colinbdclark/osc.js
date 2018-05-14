@@ -82,13 +82,19 @@
         var that = this;
 
         this.serialPort = new SerialPort(this.options.devicePath, {
-            baudrate: this.options.bitrate,
+            baudRate: this.options.bitrate,
             autoOpen: false
         });
 
-        this.serialPort.open(function() {
+        this.serialPort.on("error", function (err) {
+            that.emit("error", err);
+        });
+
+        this.serialPort.on("open", function () {
             that.emit("open", that.serialPort);
         });
+
+        this.serialPort.open();
     };
 
     p.listen = function () {
@@ -98,16 +104,8 @@
             that.emit("data", data, undefined);
         });
 
-        this.serialPort.on("error", function (err) {
-            that.emit("error", err);
-        });
-
-        this.serialPort.on("close", function (err) {
-            if (err) {
-                that.emit("error", err);
-            } else {
-                that.emit("close");
-            }
+        this.serialPort.on("close", function () {
+            that.emit("close");
         });
 
         that.emit("ready");
@@ -120,11 +118,7 @@
         }
 
         var that = this;
-        this.serialPort.write(encoded, function (err) {
-            if (err) {
-                that.emit("error", err);
-            }
-        });
+        this.serialPort.write(encoded);
     };
 
     p.close = function () {
@@ -169,6 +163,10 @@
 
         this.socket = dgram.createSocket("udp4");
 
+        this.socket.on("error", function (error) {
+            that.emit("error", error);
+        });
+
         function onBound() {
             osc.UDPPort.setupMulticast(that);
 
@@ -190,10 +188,6 @@
         var that = this;
         this.socket.on("message", function (msg, rinfo) {
             that.emit("data", msg, rinfo);
-        });
-
-        this.socket.on("error", function (error) {
-            that.emit("error", error);
         });
 
         this.socket.on("close", function () {

@@ -1,4 +1,4 @@
-/*! osc.js 2.2.0, Copyright 2017 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.2.1, Copyright 2018 Colin Clark | github.com/colinbdclark/osc.js */
 
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
@@ -7,7 +7,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global require, module, process, Buffer, dcodeIO */
+/* global require, module, process, Buffer, Long */
 
 var osc = osc || {};
 
@@ -41,19 +41,18 @@ var osc = osc || {};
         return obj && Object.prototype.toString.call(obj) === "[object Array]";
     };
 
-    // Unsupported, non-API function
+    // Unsupported, non-API function.
     osc.isTypedArrayView = function (obj) {
         return obj.buffer && obj.buffer instanceof ArrayBuffer;
     };
 
-    // Unsupported, non-API function
+    // Unsupported, non-API function.
     osc.isBuffer = function (obj) {
         return osc.isBufferEnv && obj instanceof Buffer;
     };
 
-    // Private instance of the optional Long dependency.
-    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long :
-        typeof Long !== "undefined" ? Long :
+    // Unsupported, non-API member.
+    osc.Long = typeof Long !== "undefined" ? Long :
         osc.isNode ? require("long") : undefined;
 
     /**
@@ -270,8 +269,8 @@ var osc = osc || {};
         var high = osc.readPrimitive(dv, "getInt32", 4, offsetState),
             low = osc.readPrimitive(dv, "getInt32", 4, offsetState);
 
-        if (Long) {
-            return new Long(low, high);
+        if (osc.Long) {
+            return new osc.Long(low, high);
         } else {
             return {
                 high: high,
@@ -608,7 +607,7 @@ var osc = osc || {};
      *
      * @param {DataView} dv a DataView instance to read from
      * @param {Object} offsetState the offsetState object that stores the current offset into dv
-     * @param {Oobject} [options] read options
+     * @param {Object} [options] read options
      * @return {Array} an array of the OSC arguments that were read
      */
     osc.readArguments = function (dv, options, offsetState) {

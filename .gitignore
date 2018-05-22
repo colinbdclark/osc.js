@@ -4,3 +4,4 @@ bower_components
 .npm
 .npmrc
 .vagrant
+.idea

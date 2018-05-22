@@ -7,7 +7,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/*global require, dcodeIO*/
+/*global require*/
 
 var fluid = fluid || require("infusion"),
     jqUnit = jqUnit || fluid.require("node-jqunit"),
@@ -17,7 +17,6 @@ var fluid = fluid || require("infusion"),
     "use strict";
 
     var QUnit = fluid.registerNamespace("QUnit");
-    var Long = typeof dcodeIO !== "undefined" ? dcodeIO.Long : require("long");
 
     var oscjsTests = fluid.registerNamespace("oscjsTests");
 
@@ -134,7 +133,7 @@ var fluid = fluid || require("infusion"),
                 QUnit.equal(actualArg, expectedArg, msgTogo);
             } else if (typeof actualArg === "object" && typeof actualArg.length === "number") {
                 oscjsTests.arrayEqual(actualArg, expectedArg, msgTogo);
-            } else if (expectedArg instanceof Long) {
+            } else if (expectedArg instanceof osc.Long) {
                 QUnit.deepEqual(actualArg, expectedArg, msgTogo + " actual: " +
                     actualArg.toString() + " expected: " + expectedArg.toString());
             } else {
@@ -464,33 +463,77 @@ var fluid = fluid || require("infusion"),
     jqUnit.module("Time Tags");
     fluid.registerNamespace("oscjsTests.timeTags");
 
-    oscjsTests.timeTags.equalWithinTolerance = function (actual, expected, tolerance, msg) {
-        var max = expected + tolerance,
-            min = expected - tolerance;
+    fluid.defaults("oscjsTests.nowMock", {
+        gradeNames: "fluid.modelComponent",
 
-        QUnit.ok(actual <= max, "The value should be no greater than " + tolerance + ". " + msg);
-        QUnit.ok(actual >= min, "The value should be no less than " + tolerance + ". " + msg);
+        members: {
+            realNowFn: null
+        },
+
+        model: {
+            nowTime: null,
+            lastNowTime: 0
+        },
+
+        invokers: {
+            now: {
+                funcName: "oscjsTests.nowMock.now",
+                args: ["{that}"]
+            }
+        },
+
+        listeners: {
+            "onCreate.register": {
+                funcName: "oscjsTests.nowMock.register",
+                args: ["{that}"]
+            },
+
+            "onDestroy.deregister": {
+                funcName: "oscjsTests.nowMock.deregister",
+                args: ["{that}"]
+            }
+        }
+    });
+
+    oscjsTests.nowMock.register = function (that) {
+        that.realNowFn = Date.now;
+        Date.now = that.now;
+    };
+
+    oscjsTests.nowMock.deregister = function (that) {
+        Date.now = that.realNowFn;
+    };
+
+    oscjsTests.nowMock.now = function (that) {
+        var injectedNow = that.model.nowTime,
+            now = injectedNow === null || injectedNow === undefined ? that.realNowFn() : injectedNow;
+
+        that.applier.change("lastNowTime", now);
+        return that.model.lastNowTime;
+    };
+
+    oscjsTests.testInMockTime = function (testFn) {
+        var nowMock = oscjsTests.nowMock();
+        testFn(nowMock);
+        nowMock.destroy();
     };
 
     oscjsTests.timeTags.testRead = function (testSpec) {
         jqUnit.test("Read time tag " + testSpec.name, function () {
-            var expected = testSpec.timeTag,
+            oscjsTests.testInMockTime(function (nowMock) {
+                var expected = testSpec.timeTag,
                 dv = new DataView(testSpec.timeTagBytes.buffer);
 
             var actual = osc.readTimeTag(dv, {
                 idx: 0
             });
 
-            if (expected.raw[0] === 0 && expected.raw[1] === 1) {
-                var tolerance = 250;
-                oscjsTests.timeTags.equalWithinTolerance(actual.native, expected.native,
-                    tolerance, "The native time tag should be within " + tolerance +
-                    "ms of expected. Difference was: " + (actual.native - expected.native) + "ms.");
-                QUnit.deepEqual(actual.raw, expected.raw, "The raw time should match identically.");
-            } else {
-                QUnit.deepEqual(actual, expected, "The date should have be read correctly.");
+            if (expected.native === "NOW") {
+                expected.native = nowMock.model.lastNowTime;
             }
 
+            QUnit.deepEqual(actual, expected, "The date should have be read correctly.");
+            });
         });
     };
 
@@ -537,7 +580,7 @@ var fluid = fluid || require("infusion"),
             ]),
             timeTag: {
                 raw: [0, 1],
-                native: Date.now()
+                native: "NOW"
             }
         }
     ];
@@ -564,49 +607,58 @@ var fluid = fluid || require("infusion"),
             "A time tag with no raw value (only a native value) should be written correctly.");
     });
 
-    oscjsTests.timeTags.testTimeTag = function (actual, expectedJSTime, tolerance) {
-        if (tolerance === undefined) {
-            tolerance = 1000; // NTP fractional values.
-        }
+    oscjsTests.timeTags.testTimeTag = function (actual, expectedJSTime) {
         // Convert the JS time to NTP time.
-        var expected = osc.jsToNTPTime(expectedJSTime),
-            max = expected[1] + tolerance,
-            min = expected[1] - tolerance;
+        // TODO: This appears to return inaccurate values
+        // relative to the largely similar implementation it is being used to test against.
+        // TODO: Instead, now that the time mock allows clients to
+        // specify a known "now", the expected value should be specified in tests manually.
+        var expected = osc.jsToNTPTime(expectedJSTime);
 
         QUnit.equal(actual.raw[0], expected[0], "The generated timestamp should be accurate to the second.");
-        QUnit.ok(actual.raw[1] <= max, "The generated timestamp should be no greater than " + tolerance +
-            " NTP fractions of a second from expected.");
-        QUnit.ok(actual.raw[1] >= min, "The generated timestamp should be no less than " + tolerance +
-            " NTP fractions of a second from expected.");
+        QUnit.equal(actual.raw[1], expected[1], "The generated timestamp should be accurate to the NTP fraction");
     };
 
     jqUnit.test("osc.timeTag now", function () {
-        var actual = osc.timeTag();
-        oscjsTests.timeTags.testTimeTag(actual, Date.now());
+        oscjsTests.testInMockTime(function (nowMock) {
+            var actual = osc.timeTag();
+            oscjsTests.timeTags.testTimeTag(actual, nowMock.model.lastNowTime);
 
-        actual = osc.timeTag(0);
-        oscjsTests.timeTags.testTimeTag(actual, Date.now());
+            actual = osc.timeTag(0);
+            oscjsTests.timeTags.testTimeTag(actual, nowMock.model.lastNowTime);
+        });
     });
 
     jqUnit.test("osc.timeTag future", function () {
-        var actual = osc.timeTag(10.5),
-            expected = Date.now() + 10500;
-        oscjsTests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.testInMockTime(function (nowMock) {
+            nowMock.applier.change("nowTime", 1000);
 
-        actual = osc.timeTag(0.1);
-        expected = Date.now() + 100;
-        oscjsTests.timeTags.testTimeTag(actual, expected);
+            var actual = osc.timeTag(10.5),
+                expected = nowMock.model.nowTime + 10500;
 
+            oscjsTests.timeTags.testTimeTag(actual, expected);
+
+            nowMock.applier.change("nowTime", 2000);
+            actual = osc.timeTag(0.1);
+            expected = nowMock.model.nowTime + 100;
+            oscjsTests.timeTags.testTimeTag(actual, expected);
+        });
     });
 
     jqUnit.test("osc.timeTag past", function () {
-        var actual = osc.timeTag(-1000),
-            expected = Date.now() - 1000000;
-        oscjsTests.timeTags.testTimeTag(actual, expected);
+        oscjsTests.testInMockTime(function (nowMock) {
+            nowMock.applier.change("nowTime", 9000);
 
-        actual = osc.timeTag(-0.01);
-        expected = Date.now() - 10;
-        oscjsTests.timeTags.testTimeTag(actual, expected);
+            var actual = osc.timeTag(-1000),
+                expected = nowMock.model.nowTime - 1000000;
+
+            oscjsTests.timeTags.testTimeTag(actual, expected);
+
+            nowMock.applier.change("nowTime", 222);
+            actual = osc.timeTag(-0.01);
+            expected = nowMock.model.nowTime - 10;
+            oscjsTests.timeTags.testTimeTag(actual, expected);
+        });
     });
 
     jqUnit.test("osc.timeTag relative to provided time", function () {
@@ -881,7 +933,7 @@ var fluid = fluid || require("infusion"),
                     a: 1.0
                 },
                 new Uint8Array([1, 144, 69, 101]),
-                new Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
+                new osc.Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
             ],
             roundToDecimals: 3
         }
@@ -1359,7 +1411,7 @@ var fluid = fluid || require("infusion"),
         var msg = {
             address: "/cat/slash",
             args: [
-                new Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
+                new osc.Long(0xFFFFFFFF, 0x7FFFFFFF) // 9223372036854775807
             ]
         };
 
@@ -1389,5 +1441,56 @@ var fluid = fluid || require("infusion"),
         QUnit.ok(actualRead.args[0].value.equals(expected.args[0].value),
             "The long integer should have been correctly type inferred when writing it" +
             " to a message.");
+    });
+
+    QUnit.test("gh-102: Send and receive array-typed arguments (based on example code) with type metadata", function () {
+        var oscMsg = {
+            address: "/float/andArray",
+            args: [
+                {
+                    type: "f",
+                    value: 440.0
+                },
+                [
+                    {
+                        type: "f",
+                        value: 42.0
+                    },
+                    {
+                        type: "f",
+                        value: 47.0
+                    }
+                ]
+            ]
+        };
+
+        var withMetadataOptions = {
+            metadata: true,
+            unpackSingleArgs: false
+        };
+
+        var encoded = osc.writePacket(oscMsg, withMetadataOptions),
+            decoded = osc.readPacket(encoded, withMetadataOptions);
+
+        QUnit.deepEqual(decoded, oscMsg,
+            "Messages with array-typed arguments are successfully decoded.");
+    });
+
+    QUnit.test("gh-102: Send and receive array-typed arguments (based on example code) without type metadata", function () {
+        var oscMsg = {
+            address: "/float/andArray",
+            args: [440.0, [42.0, 47.0]]
+        };
+
+        var withoutMetadataOptions = {
+            metadata: false,
+            unpackSingleArgs: true
+        };
+
+        var encoded = osc.writePacket(oscMsg, withoutMetadataOptions),
+            decoded = osc.readPacket(encoded, withoutMetadataOptions);
+
+        QUnit.deepEqual(decoded, oscMsg,
+            "Messages with array-typed arguments are successfully decoded.");
     });
 }());

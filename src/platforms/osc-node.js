@@ -292,12 +292,8 @@
             that.emit("error", err);
         });
 
-        this.socket.on("close", function (err) {
-            if (err) {
-                that.emit("error", err);
-            } else {
-                that.emit("close");
-            }
+        this.socket.on("close", function (hadError) {
+            that.emit("close", hadError);
         });
 
         this.socket.on("connect", function () {

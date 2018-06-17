@@ -112,7 +112,7 @@
     };
 
     p.sendRaw = function (encoded) {
-        if (!this.serialPort || !this.serialPort.isOpen()) {
+        if (!this.serialPort || !this.serialPort.isOpen) {
             osc.fireClosedPortSendError(this);
             return;
         }

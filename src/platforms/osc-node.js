@@ -13,20 +13,6 @@
 (function () {
     "use strict";
 
-    var requireModules = function (paths) {
-        if (paths.forEach === undefined) {
-            paths = [paths];
-        }
-
-        var modules = [];
-        paths.forEach(function (path) {
-            var module = require(path);
-            modules.push(module);
-        });
-
-        return modules;
-    };
-
     var shallowMerge = function (target, toMerge) {
         target = target || {};
         if (toMerge.forEach === undefined) {
@@ -46,11 +32,11 @@
         SerialPort = require("serialport"),
         net = require("net"),
         WebSocket = require("ws"),
-        modules = requireModules([
-            "../osc.js",
-            "../osc-transports.js",
-            "./osc-websocket-client.js"
-        ]),
+        modules = [
+            require("../osc.js"),
+            require("../osc-transports.js"),
+            require("./osc-websocket-client.js")
+        ],
         osc = shallowMerge({}, modules);
 
     /**********

@@ -13,20 +13,6 @@
 (function () {
     "use strict";
 
-    var requireModules = function (paths) {
-        if (paths.forEach === undefined) {
-            paths = [paths];
-        }
-
-        var modules = [];
-        paths.forEach(function (path) {
-            var module = require(path);
-            modules.push(module);
-        });
-
-        return modules;
-    };
-
     var shallowMerge = function (target, toMerge) {
         target = target || {};
         if (toMerge.forEach === undefined) {
@@ -46,11 +32,11 @@
         SerialPort = require("serialport"),
         net = require("net"),
         WebSocket = require("ws"),
-        modules = requireModules([
-            "../osc.js",
-            "../osc-transports.js",
-            "./osc-websocket-client.js"
-        ]),
+        modules = [
+            require("../osc.js"),
+            require("../osc-transports.js"),
+            require("./osc-websocket-client.js")
+        ],
         osc = shallowMerge({}, modules);
 
     /**********
@@ -82,7 +68,7 @@
         var that = this;
 
         this.serialPort = new SerialPort(this.options.devicePath, {
-            baudrate: this.options.bitrate,
+            baudRate: this.options.bitrate,
             autoOpen: false
         });
 
@@ -112,7 +98,7 @@
     };
 
     p.sendRaw = function (encoded) {
-        if (!this.serialPort || !this.serialPort.isOpen()) {
+        if (!this.serialPort || !this.serialPort.isOpen) {
             osc.fireClosedPortSendError(this);
             return;
         }
@@ -292,12 +278,8 @@
             that.emit("error", err);
         });
 
-        this.socket.on("close", function (err) {
-            if (err) {
-                that.emit("error", err);
-            } else {
-                that.emit("close");
-            }
+        this.socket.on("close", function (hadError) {
+            that.emit("close", hadError);
         });
 
         this.socket.on("connect", function () {

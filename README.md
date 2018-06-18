@@ -110,8 +110,8 @@ To install osc.js for Electron applications, there are two options:
 2. Use an <code>.npmrc</code> file to override npm's default compile target and runtime settings for Electron. Here's an example of an <code>.npmrc</code> file. Don't forget to make sure that the <code>target</code> property matches the version of Electron you're using:
 
 ```
-    target=1.4.13
-    disturl=https://atom.io/download/atom-shell
+    target=1.8.4
+    disturl=https://atom.io/download/electron
     runtime=electron
     build_from_source=true
 ```
@@ -854,7 +854,7 @@ osc.js releases are tested and supported in the following environments:
         <tr><td>Safari</td><td>Mac OS X</td><td>Latest</td></tr>
         <tr><td>Edge</td><td>Windows</td><td>Latest</td></tr>
         <tr><td>Node.js</td><td>Mac OS X, Windows</td><td>LTS</td></tr>
-        <tr><td>Electron</td><td>Mac OS X, Windows</td><td>1.4.x</td></tr>
+        <tr><td>Electron</td><td>Mac OS X, Windows</td><td>1.8.x</td></tr>
     </tbody>
 </table>
 

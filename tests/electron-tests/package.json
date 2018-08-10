@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "author": "Colin Clark",
     "dependencies": {
-        "electron": "1.8.4",
+        "electron": "2.0.7",
         "infusion-electron": "0.4.1",
         "osc": "../.."
     }

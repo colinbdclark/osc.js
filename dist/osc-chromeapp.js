@@ -1269,7 +1269,7 @@ var osc = osc || {};
 }));
 ;
 /*!
- * EventEmitter v5.2.4 - git.io/ee
+ * EventEmitter v5.2.5 - git.io/ee
  * Unlicense - http://unlicense.org/
  * Oliver Caldwell - http://oli.me.uk/
  * @preserve
@@ -1753,7 +1753,7 @@ var osc = osc || {};
     else {
         exports.EventEmitter = EventEmitter;
     }
-}(this || {}));
+}(typeof window !== 'undefined' ? window : this || {}));
 ;
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js

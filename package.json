@@ -25,22 +25,22 @@
     "readmeFilename": "README.md",
     "devDependencies": {
         "grunt": "1.0.3",
-        "grunt-contrib-clean": "1.1.0",
+        "grunt-contrib-clean": "2.0.0",
         "grunt-contrib-concat": "1.0.1",
-        "grunt-contrib-jshint": "1.1.0",
-        "grunt-contrib-uglify": "3.3.0",
-        "infusion": "3.0.0-dev.20180326T173646Z.8c6a109b1",
+        "grunt-contrib-jshint": "2.0.0",
+        "grunt-contrib-uglify": "4.0.0",
+        "infusion": "3.0.0-dev.20181030T133624Z.f977b0fa9",
         "jquery": "3.3.1",
         "node-jqunit": "1.1.8",
-        "requirejs": "2.3.5",
-        "testem": "2.9.2"
+        "requirejs": "2.3.6",
+        "testem": "2.13.0"
     },
     "dependencies": {
         "long": "4.0.0",
-        "serialport": "6.2.2",
+        "serialport": "7.0.2",
         "slip": "1.0.2",
         "wolfy87-eventemitter": "5.2.5",
-        "ws": "6.0.0"
+        "ws": "6.1.0"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",

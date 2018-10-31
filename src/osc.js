@@ -162,30 +162,39 @@ var osc = osc || {};
         idx = (idx + 3) & ~0x03;
         offsetState.idx = idx;
 
-        if ((typeof global !== "undefined" ? global : window).hasOwnProperty("Buffer")) {  // jshint ignore:line
-          // Check for Buffer API (Node/Electron)
-          if (Buffer.from) {
-            // new Buffer() is now deprecated, so we use Buffer.from if available
-            return Buffer.from(charCodes).toString("utf-8");
-          } else {
-            return new Buffer(charCodes).toString("utf-8");
-          }
-        } else if ((typeof global !== "undefined" ? global : window).hasOwnProperty("TextDecoder")) {  // jshint ignore:line
-          // Check for TextDecoder API (Browser/WebKit-based)
-          return new TextDecoder("utf-8").decode(new Int8Array(charCodes));
-        } else {
-          // If no Buffer or TextDecoder, resort to fromCharCode
-          // This does not properly decode multi-byte Unicode characters.
+        var decoder = osc.isBufferEnv ? osc.readString.withBuffer :
+            typeof TextDecoder !== "undefined" ? osc.readString.withTextDecoder : osc.readString.raw;
 
-          var str = "";
-          var sliceSize = 10000;
+        return decoder(charCodes);
+    };
 
-          // Processing the array in chunks so as not to exceed argument
-          // limit, see https://bugs.webkit.org/show_bug.cgi?id=80797
-          for (var i = 0; i < charCodes.length; i += sliceSize) {
+    osc.readString.raw = function (charCodes) {
+        // If no Buffer or TextDecoder, resort to fromCharCode
+        // This does not properly decode multi-byte Unicode characters.
+        var str = "";
+        var sliceSize = 10000;
+
+        // Processing the array in chunks so as not to exceed argument
+        // limit, see https://bugs.webkit.org/show_bug.cgi?id=80797
+        for (var i = 0; i < charCodes.length; i += sliceSize) {
             str += String.fromCharCode.apply(null, charCodes.slice(i, i + sliceSize));
-          }
-          return str;
+        }
+
+        return str;
+    };
+
+    osc.readString.withTextDecoder = function (charCodes) {
+        var data = new Int8Array(charCodes);
+        return new TextDecoder("utf-8").decode(data);
+    };
+
+    osc.readString.withBuffer = function (charCodes) {
+        // new Buffer() is now deprecated,
+        // so we use Buffer.from if available
+        if (Buffer.from) {
+            return Buffer.from(charCodes).toString("utf-8");
+        } else {
+            return new Buffer(charCodes).toString("utf-8");
         }
     };
 

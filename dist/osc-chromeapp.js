@@ -1988,7 +1988,7 @@ var osc = osc || require("./osc.js"),
 
 /*global WebSocket, require*/
 
-var osc = osc || require("../osc.js");
+var osc = osc || require("./osc.js");
 
 (function () {
 

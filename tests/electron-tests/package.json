@@ -5,8 +5,11 @@
     "version": "1.0.0",
     "author": "Colin Clark",
     "dependencies": {
-        "electron": "1.8.4",
-        "infusion-electron": "0.4.1",
+        "electron": "5.0.1",
+        "infusion-electron": "0.6.0",
         "osc": "../.."
+    },
+    "scripts": {
+        "test": "node_modules/.bin/electron ."
     }
 }

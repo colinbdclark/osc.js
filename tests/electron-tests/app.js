@@ -23,7 +23,14 @@ fluid.defaults("oscjs.tests.electron.app", {
         // Electron Node.js API (e.g. require()).
         electronTestWindow: {
             createOnEvent: "onReady",
-            type: "oscjs.tests.electron.electronTestWindow"
+            type: "oscjs.tests.electron.electronTestWindow",
+            options: {
+                windowOptions: {
+                    webPreferences: {
+                        nodeIntegration: true
+                    }
+                }
+            }
         },
 
         udpServer: {

@@ -1,4 +1,4 @@
-/*! osc.js 2.2.3, Copyright 2018 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.3.0, Copyright 2019 Colin Clark | github.com/colinbdclark/osc.js */
 
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
@@ -117,7 +117,7 @@ var osc = osc || {};
     osc.nativeBuffer = function (obj) {
         if (osc.isBufferEnv) {
             return osc.isBuffer(obj) ? obj :
-                new Buffer(obj.buffer ? obj : new Uint8Array(obj));
+                Buffer.from(obj.buffer ? obj : new Uint8Array(obj));
         }
 
         return osc.isTypedArrayView(obj) ? obj : new Uint8Array(obj);
@@ -1269,9 +1269,9 @@ var osc = osc || {};
 }));
 ;
 /*!
- * EventEmitter v5.2.4 - git.io/ee
+ * EventEmitter v5.2.6 - git.io/ee
  * Unlicense - http://unlicense.org/
- * Oliver Caldwell - http://oli.me.uk/
+ * Oliver Caldwell - https://oli.me.uk/
  * @preserve
  */
 
@@ -1753,7 +1753,7 @@ var osc = osc || {};
     else {
         exports.EventEmitter = EventEmitter;
     }
-}(this || {}));
+}(typeof window !== 'undefined' ? window : this || {}));
 ;
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js

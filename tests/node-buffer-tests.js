@@ -21,7 +21,7 @@ var QUnit = fluid.registerNamespace("QUnit");
 jqUnit.module("Node.js buffer tests");
 
 // "/oscillator/4/frequency" | ",f" | 440
-var oscMessageBuffer = new Buffer([
+var oscMessageBuffer = Buffer.from([
     0x2f, 0x6f, 0x73, 0x63,
     0x69, 0x6c, 0x6c, 0x61,
     0x74, 0x6f, 0x72, 0x2f,
@@ -57,7 +57,7 @@ var testOSCBlobMessage = {
     args: [
         {
             type: "b",
-            value: new Buffer([
+            value: Buffer.from([
                 0, 0, 0, 3,            // Length 3
                 0x63, 0x61, 0x74, 0   // raw bytes
             ])

@@ -25,7 +25,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global require, module, process, Buffer, Long */
+/* global require, module, process, Buffer, Long, util */
 
 var osc = osc || {};
 
@@ -72,6 +72,11 @@ var osc = osc || {};
     // Unsupported, non-API member.
     osc.Long = typeof Long !== "undefined" ? Long :
         osc.isNode ? require("long") : undefined;
+
+    // Unsupported, non-API member. Can be removed when supported versions
+    // of Node.js expose TextDecoder as a global, as in the browser.
+    osc.TextDecoder = typeof TextDecoder !== "undefined" ? TextDecoder :
+        typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? util.TextDecoder : undefined;
 
     /**
      * Wraps the specified object in a DataView.
@@ -182,7 +187,34 @@ var osc = osc || {};
         idx = (idx + 3) & ~0x03;
         offsetState.idx = idx;
 
-        return String.fromCharCode.apply(null, charCodes);
+        var decoder = osc.isBufferEnv ? osc.readString.withBuffer :
+            osc.TextDecoder ? osc.readString.withTextDecoder : osc.readString.raw;
+
+        return decoder(charCodes);
+    };
+
+    osc.readString.raw = function (charCodes) {
+        // If no Buffer or TextDecoder, resort to fromCharCode
+        // This does not properly decode multi-byte Unicode characters.
+        var str = "";
+        var sliceSize = 10000;
+
+        // Processing the array in chunks so as not to exceed argument
+        // limit, see https://bugs.webkit.org/show_bug.cgi?id=80797
+        for (var i = 0; i < charCodes.length; i += sliceSize) {
+            str += String.fromCharCode.apply(null, charCodes.slice(i, i + sliceSize));
+        }
+
+        return str;
+    };
+
+    osc.readString.withTextDecoder = function (charCodes) {
+        var data = new Int8Array(charCodes);
+        return new osc.TextDecoder("utf-8").decode(data);
+    };
+
+    osc.readString.withBuffer = function (charCodes) {
+        return Buffer.from(charCodes).toString("utf-8");
     };
 
     /**

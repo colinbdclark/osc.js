@@ -246,6 +246,18 @@ var fluid = fluid || require("infusion"),
         });
     });
 
+    QUnit.test("readString very long string argument", function () {
+      var expectedChars = new Array(400000);
+        for (var i = 0; i < expectedChars.length; i++) {
+            expectedChars[i] = "A";
+        }
+        var expected = expectedChars.join(""),
+            dv = oscjsTests.stringToDataView(expected),
+            actual = osc.readString(dv, {idx: 0});
+
+        QUnit.equal(actual, expected, "The string should have been read correctly.");
+    });
+
 
     /***********
      * Numbers *

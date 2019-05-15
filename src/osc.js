@@ -115,7 +115,7 @@ var osc = osc || {};
     osc.nativeBuffer = function (obj) {
         if (osc.isBufferEnv) {
             return osc.isBuffer(obj) ? obj :
-                new Buffer(obj.buffer ? obj : new Uint8Array(obj));
+                Buffer.from(obj.buffer ? obj : new Uint8Array(obj));
         }
 
         return osc.isTypedArrayView(obj) ? obj : new Uint8Array(obj);

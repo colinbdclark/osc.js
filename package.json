@@ -37,10 +37,12 @@
     },
     "dependencies": {
         "long": "4.0.0",
-        "serialport": "6.2.2",
         "slip": "1.0.2",
         "wolfy87-eventemitter": "5.2.5",
         "ws": "6.0.0"
+    },
+    "optionalDependencies": {
+        "serialport": "6.2.2"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",

@@ -1,7 +1,7 @@
 {
     "name": "osc",
     "main": "src/platforms/osc-node.js",
-    "version": "2.2.4",
+    "version": "2.3.0",
     "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
     "author": "Colin Clark",
     "homepage": "https://github.com/colinbdclark/osc.js",
@@ -24,23 +24,26 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "grunt": "1.0.3",
-        "grunt-contrib-clean": "1.1.0",
+        "grunt": "1.0.4",
+        "grunt-contrib-clean": "2.0.0",
         "grunt-contrib-concat": "1.0.1",
-        "grunt-contrib-jshint": "1.1.0",
-        "grunt-contrib-uglify": "3.3.0",
-        "infusion": "3.0.0-dev.20180326T173646Z.8c6a109b1",
-        "jquery": "3.3.1",
+        "grunt-replace": "1.0.1",
+        "grunt-contrib-jshint": "2.1.0",
+        "grunt-contrib-uglify": "4.0.1",
+        "infusion": "3.0.0-dev.20190328T144119Z.ec44dbfab",
+        "jquery": "3.4.1",
         "node-jqunit": "1.1.8",
-        "requirejs": "2.3.5",
-        "testem": "2.9.2"
+        "requirejs": "2.3.6",
+        "testem": "2.16.0"
     },
     "dependencies": {
         "long": "4.0.0",
-        "serialport": "6.2.2",
         "slip": "1.0.2",
-        "wolfy87-eventemitter": "5.2.5",
-        "ws": "6.0.0"
+        "wolfy87-eventemitter": "5.2.6",
+        "ws": "7.0.0"
+    },
+    "optionalDependencies": {
+        "serialport": "7.1.5"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",

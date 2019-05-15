@@ -1,4 +1,4 @@
-/*! osc.js 2.2.4, Copyright 2018 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.3.0, Copyright 2019 Colin Clark | github.com/colinbdclark/osc.js */
 
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
@@ -117,7 +117,7 @@ var osc = osc || {};
     osc.nativeBuffer = function (obj) {
         if (osc.isBufferEnv) {
             return osc.isBuffer(obj) ? obj :
-                new Buffer(obj.buffer ? obj : new Uint8Array(obj));
+                Buffer.from(obj.buffer ? obj : new Uint8Array(obj));
         }
 
         return osc.isTypedArrayView(obj) ? obj : new Uint8Array(obj);

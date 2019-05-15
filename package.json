@@ -1,7 +1,7 @@
 {
     "name": "osc",
     "main": "src/platforms/osc-node.js",
-    "version": "2.2.4",
+    "version": "2.2.5",
     "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
     "author": "Colin Clark",
     "homepage": "https://github.com/colinbdclark/osc.js",
@@ -37,10 +37,12 @@
     },
     "dependencies": {
         "long": "4.0.0",
-        "serialport": "7.1.5",
         "slip": "1.0.2",
         "wolfy87-eventemitter": "5.2.6",
         "ws": "7.0.0"
+    },
+    "optionalDependencies": {
+        "serialport": "7.1.5"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",

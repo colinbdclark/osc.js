@@ -7,7 +7,7 @@
  * Licensed under the MIT and GPL 3 licenses.
  */
 
-/* global require, module, process, Buffer, Long */
+/* global require, module, process, Buffer, Long, util */
 
 var osc = osc || {};
 
@@ -54,6 +54,11 @@ var osc = osc || {};
     // Unsupported, non-API member.
     osc.Long = typeof Long !== "undefined" ? Long :
         osc.isNode ? require("long") : undefined;
+
+    // Unsupported, non-API member. Can be removed when supported versions
+    // of Node.js expose TextDecoder as a global, as in the browser.
+    osc.TextDecoder = typeof TextDecoder !== "undefined" ? TextDecoder :
+        typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? util.TextDecoder : undefined;
 
     /**
      * Wraps the specified object in a DataView.
@@ -165,7 +170,7 @@ var osc = osc || {};
         offsetState.idx = idx;
 
         var decoder = osc.isBufferEnv ? osc.readString.withBuffer :
-            typeof TextDecoder !== "undefined" ? osc.readString.withTextDecoder : osc.readString.raw;
+            osc.TextDecoder ? osc.readString.withTextDecoder : osc.readString.raw;
 
         return decoder(charCodes);
     };
@@ -187,7 +192,7 @@ var osc = osc || {};
 
     osc.readString.withTextDecoder = function (charCodes) {
         var data = new Int8Array(charCodes);
-        return new TextDecoder("utf-8").decode(data);
+        return new osc.TextDecoder("utf-8").decode(data);
     };
 
     osc.readString.withBuffer = function (charCodes) {

@@ -196,13 +196,7 @@ var osc = osc || {};
     };
 
     osc.readString.withBuffer = function (charCodes) {
-        // new Buffer() is now deprecated,
-        // so we use Buffer.from if available
-        if (Buffer.from) {
-            return Buffer.from(charCodes).toString("utf-8");
-        } else {
-            return new Buffer(charCodes).toString("utf-8");
-        }
+        return Buffer.from(charCodes).toString("utf-8");
     };
 
     /**

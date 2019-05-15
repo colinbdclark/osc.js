@@ -1,4 +1,4 @@
-/*! osc.js 2.2.4, Copyright 2018 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.2.4, Copyright 2019 Colin Clark | github.com/colinbdclark/osc.js */
 
 /*
  * osc.js: An Open Sound Control library for JavaScript that works in both the browser and Node.js
@@ -1269,9 +1269,9 @@ var osc = osc || {};
 }));
 ;
 /*!
- * EventEmitter v5.2.5 - git.io/ee
+ * EventEmitter v5.2.6 - git.io/ee
  * Unlicense - http://unlicense.org/
- * Oliver Caldwell - http://oli.me.uk/
+ * Oliver Caldwell - https://oli.me.uk/
  * @preserve
  */
 

@@ -59,10 +59,6 @@ var osc = osc || require("../osc.js");
             that.emit("data", e.data, e);
         };
 
-        this.socket.onerror = function (err) {
-            that.emit("error", err);
-        };
-
         this.socket.onclose = function (e) {
             that.emit("close", e);
         };

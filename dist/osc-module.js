@@ -1135,6 +1135,8 @@ var osc = osc || require("./osc.js"),
 
     "use strict";
 
+    osc.supportsSerial = false;
+
     // Unsupported, non-API function.
     osc.firePacketEvents = function (port, packet, timeTag, packetInfo) {
         if (packet.address) {

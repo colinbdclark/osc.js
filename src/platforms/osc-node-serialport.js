@@ -9,17 +9,10 @@
 
 /*jshint node:true*/
 
-var osc = osc || require("../osc.js");
+var osc = osc || require("../osc.js"),
+    SerialPort = require("serialport");
 
-try {
-    var SerialPort = require("serialport");
-} catch (err) {
-    osc.SerialPort = function () {
-        throw new Error("The Node.js SerialPort library is not installed. osc.js' serial transport is unavailable.");
-    };
-
-    return;
-}
+osc.supportsSerial = true;
 
 osc.SerialPort = function (options) {
     this.on("open", this.listen.bind(this));

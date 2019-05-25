@@ -22,6 +22,11 @@ QUnit.test("osc.js' Node module is correctly loaded within an Electron renderer 
     QUnit.ok(typeof osc.TCPSocketPort === "function", "osc.TCPSocketPort constructor is defined");
 });
 
+QUnit.test("Serial port support has been loaded.", function () {
+    QUnit.expect(1);
+    QUnit.ok(osc.supportsSerial);
+});
+
 oscjsTests.electron.testSuccessfulUDPSend = function (udpPort) {
     var sentMessage = {
         address: "/hello",

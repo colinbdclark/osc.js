@@ -52,31 +52,10 @@ osc.js supports all OSC 1.0 and 1.1 required and optional types.
 Installing osc.js
 -----------------
 
-osc.js is typically installed via [Bower](https://bower.io), [npm](https://npmjs.com), or [yarn](https://github.com/yarnpkg/yarn). The latter two can be used for both client-side projects as well as Node.js applications, while Bower is typically used only for browser applications.
+osc.js is typically installed via [npm](https://npmjs.com). [Bower](https://bower.io) support is available, but is deprecated.
 
-### Installing with Bower
 
-If you're developing a browser-based project, Bower is probably the simplest way to manage your dependency on osc.js. First, you'll need to [install Bower](https://bower.io/#install-bower), which requires [Node.js](https://nodejs.org/en/).
-
-For a Bower-based project, you'll typically want to make a <code>bower.json</code> configuration file. Something like this:
-
-    {
-        "name": "<your project name>",
-        "version": "<your project version>",
-        "dependencies": {
-            "osc.js": "2.2.0"
-        }
-    }
-
-Don't forget to update the <code>name</code>, <code>version</code>, and [any other bower.json fields](https://github.com/bower/spec/blob/master/json.md) appropriately for your project.
-
-And then, to install all your project's dependencies&mdash;including osc.js&mdash;just run
-
-    bower install
-
-Your dependencies will be located in a directory called <code>bower_components</code> in your project root.
-
-### Installing with npm (or yarn)
+### Installing with npm
 
 npm is a package manager for Node.js and web-based projects. Dependencies are registered in the [npmjs.org registry](https://www.npmjs.com/).
 
@@ -110,7 +89,7 @@ To install osc.js for Electron applications, there are two options:
 2. Use an <code>.npmrc</code> file to override npm's default compile target and runtime settings for Electron. Here's an example of an <code>.npmrc</code> file. Don't forget to make sure that the <code>target</code> property matches the version of Electron you're using:
 
 ```
-    target=1.8.4
+    target=5.0.1
     disturl=https://atom.io/download/electron
     runtime=electron
     build_from_source=true
@@ -345,6 +324,16 @@ require(["osc"], function (osc) {
     // Do something with osc.js when it has fully loaded.
 });
 ```
+
+##### Using osc.js with WebPack, etc. - help wanted!
+Users have reported that osc.js can be used in browser-based applications with WebPack by loading the pre-built <code>osc-browser.js</code> package in their code:
+
+```javascript
+require("osc/dist/osc-browser");
+```
+
+osc.js is not currently tested using WebPack due to limited support resources. Nonetheless, contributions are very much welcomed from the community to help make osc.js more idiomatic when using WebPack or similar technologies, particularly if such changes enable continued support of simpler toolchains (or none) and the use of long-standing browser idioms such as plain old <code>script</code> tags.
+
 
 ### Web Sockets in Node.js
 

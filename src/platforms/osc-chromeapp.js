@@ -47,6 +47,7 @@ var osc = osc || {};
 
     var p = osc.SerialPort.prototype = Object.create(osc.SLIPPort.prototype);
     p.constructor = osc.SerialPort;
+    osc.supportsSerial = true;
 
     p.open = function () {
         var that = this,

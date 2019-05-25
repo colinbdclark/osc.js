@@ -46,16 +46,16 @@ var osc = osc || require("../osc.js");
         this.socket.onopen = function () {
             that.emit("open", that.socket);
         };
+
+        this.socket.onerror = function (err) {
+            that.emit("error", err);
+        };
     };
 
     p.listen = function () {
         var that = this;
         this.socket.onmessage = function (e) {
             that.emit("data", e.data, e);
-        };
-
-        this.socket.onerror = function (err) {
-            that.emit("error", err);
         };
 
         this.socket.onclose = function (e) {

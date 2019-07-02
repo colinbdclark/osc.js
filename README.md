@@ -457,9 +457,9 @@ var udpPort = new osc.UDPPort({
     metadata: true
 });
 
-// Listen for incoming OSC bundles.
-udpPort.on("bundle", function (oscBundle, timeTag, info) {
-    console.log("An OSC bundle just arrived for time tag", timeTag, ":", oscBundle);
+// Listen for incoming OSC messages.
+udpPort.on("message", function (oscMsg, timeTag, info) {
+    console.log("An OSC message just arrived!", oscMsg);
     console.log("Remote info is: ", info);
 });
 

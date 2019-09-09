@@ -790,7 +790,7 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
     args: [
         {
             type: "b",
-            value: Uint8Array([0x63, 0x61, 0x74, 0x21])
+            value: new Uint8Array([0x63, 0x61, 0x74, 0x21])
         }
     ]
 }
@@ -817,7 +817,7 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
     args: [
         {
             type: "m",
-            value: Uint8Array([0, 144, 69, 101]) // Port ID, Status, Data 1, Data 2
+            value: new Uint8Array([0, 144, 69, 101]) // Port ID, Status, Data 1, Data 2
         }
     ]
 }</pre></code</td>

@@ -42,9 +42,6 @@
         "wolfy87-eventemitter": "5.2.6",
         "ws": "7.0.0"
     },
-    "optionalDependencies": {
-        "serialport": "7.1.5"
-    },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",
         "node-test": "node tests/node-all-tests.js",

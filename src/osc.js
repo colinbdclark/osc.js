@@ -204,16 +204,14 @@ var osc = osc || {};
      * @return {Uint8Array} a buffer containing the OSC-formatted string
      */
     osc.writeString = function (str) {
-        var textEncoder = new TextEncoder()
-        var strEnc = textEncoder.encode(str)
-
         var terminated = str + "\u0000",
             len = terminated.length,
             paddedLen = (len + 3) & ~0x03,
             arr = new Uint8Array(paddedLen);
 
         for (var i = 0; i < terminated.length; i++) {
-            arr[i] = strEnc[i];
+            var charCode = terminated.charCodeAt(i);
+            arr[i] = charCode;
         }
 
         return arr;

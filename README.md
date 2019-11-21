@@ -291,7 +291,7 @@ oscPort.on("ready", function () {
                 ]
             },
             {
-                address: "/carrier/amplitude"
+                address: "/carrier/amplitude",
                 args: [
                     {
                         type: "f",

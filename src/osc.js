@@ -55,11 +55,11 @@ var osc = osc || {};
 
     // Unsupported, non-API member. Can be removed when supported versions
     // of Node.js expose TextDecoder as a global, as in the browser.
-    osc.TextDecoder = typeof TextDecoder !== "undefined" ? TextDecoder :
-        typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? util.TextDecoder : undefined;
+    osc.TextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8") :
+        typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? new util.TextDecoder("utf-8") : undefined;
 
-    osc.TextEncoder = typeof TextEncoder !== "undefined" ? TextEncoder :
-        typeof util !== "undefined" && typeof (util.TextEncoder !== "undefined") ? util.TextEncoder : undefined;
+    osc.TextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") :
+        typeof util !== "undefined" && typeof (util.TextEncoder !== "undefined") ? new util.TextEncoder("utf-8") : undefined;
 
     /**
      * Wraps the specified object in a DataView.
@@ -193,7 +193,7 @@ var osc = osc || {};
 
     osc.readString.withTextDecoder = function (charCodes) {
         var data = new Int8Array(charCodes);
-        return new osc.TextDecoder("utf-8").decode(data);
+        return osc.TextDecoder.decode(data);
     };
 
     osc.readString.withBuffer = function (charCodes) {
@@ -229,7 +229,7 @@ var osc = osc || {};
     };
 
     osc.writeString.withTextEncoder = function (str) {
-        return new osc.TextEncoder("utf-8").encode(str);
+        return osc.TextEncoder.encode(str);
     };
 
     osc.writeString.withBuffer = function (str) {

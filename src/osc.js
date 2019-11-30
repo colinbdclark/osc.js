@@ -58,6 +58,9 @@ var osc = osc || {};
     osc.TextDecoder = typeof TextDecoder !== "undefined" ? TextDecoder :
         typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? util.TextDecoder : undefined;
 
+    osc.TextEncoder = typeof TextEncoder !== "undefined" ? TextEncoder :
+        typeof util !== "undefined" && typeof (util.TextEncoder !== "undefined") ? util.TextEncoder : undefined;
+
     /**
      * Wraps the specified object in a DataView.
      *
@@ -209,12 +212,28 @@ var osc = osc || {};
             paddedLen = (len + 3) & ~0x03,
             arr = new Uint8Array(paddedLen);
 
+        var encoder = osc.isBufferEnv ? osc.writeString.withBuffer :
+            osc.TextEncoder ? osc.writeString.withTextEncoder : null,
+            encodedStr;
+
+        if (encoder) {
+            encodedStr = encoder(terminated);
+        }
+
         for (var i = 0; i < terminated.length; i++) {
-            var charCode = terminated.charCodeAt(i);
+            var charCode = encoder ? encodedStr[i] : terminated.charCodeAt(i);
             arr[i] = charCode;
         }
 
         return arr;
+    };
+
+    osc.writeString.withTextEncoder = function (str) {
+        return new osc.TextEncoder("utf-8").encode(str);
+    };
+
+    osc.writeString.withBuffer = function (str) {
+        return Buffer.from(str);
     };
 
     // Unsupported, non-API function.

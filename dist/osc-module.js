@@ -1,4 +1,4 @@
-/*! osc.js 2.3.1, Copyright 2020 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.3.2, Copyright 2020 Colin Clark | github.com/colinbdclark/osc.js */
 
 (function (root, factory) {
     if (typeof exports === "object") {
@@ -75,8 +75,11 @@ var osc = osc || {};
 
     // Unsupported, non-API member. Can be removed when supported versions
     // of Node.js expose TextDecoder as a global, as in the browser.
-    osc.TextDecoder = typeof TextDecoder !== "undefined" ? TextDecoder :
-        typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? util.TextDecoder : undefined;
+    osc.TextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8") :
+        typeof util !== "undefined" && typeof (util.TextDecoder !== "undefined") ? new util.TextDecoder("utf-8") : undefined;
+
+    osc.TextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") :
+        typeof util !== "undefined" && typeof (util.TextEncoder !== "undefined") ? new util.TextEncoder("utf-8") : undefined;
 
     /**
      * Wraps the specified object in a DataView.
@@ -210,7 +213,7 @@ var osc = osc || {};
 
     osc.readString.withTextDecoder = function (charCodes) {
         var data = new Int8Array(charCodes);
-        return new osc.TextDecoder("utf-8").decode(data);
+        return osc.TextDecoder.decode(data);
     };
 
     osc.readString.withBuffer = function (charCodes) {
@@ -229,12 +232,28 @@ var osc = osc || {};
             paddedLen = (len + 3) & ~0x03,
             arr = new Uint8Array(paddedLen);
 
+        var encoder = osc.isBufferEnv ? osc.writeString.withBuffer :
+            osc.TextEncoder ? osc.writeString.withTextEncoder : null,
+            encodedStr;
+
+        if (encoder) {
+            encodedStr = encoder(terminated);
+        }
+
         for (var i = 0; i < terminated.length; i++) {
-            var charCode = terminated.charCodeAt(i);
+            var charCode = encoder ? encodedStr[i] : terminated.charCodeAt(i);
             arr[i] = charCode;
         }
 
         return arr;
+    };
+
+    osc.writeString.withTextEncoder = function (str) {
+        return osc.TextEncoder.encode(str);
+    };
+
+    osc.writeString.withBuffer = function (str) {
+        return Buffer.from(str);
     };
 
     // Unsupported, non-API function.

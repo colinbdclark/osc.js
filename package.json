@@ -34,7 +34,7 @@
         "jquery": "3.4.1",
         "node-jqunit": "1.1.8",
         "requirejs": "2.3.6",
-        "testem": "2.16.0"
+        "testem": "3.0.2"
     },
     "dependencies": {
         "long": "4.0.0",

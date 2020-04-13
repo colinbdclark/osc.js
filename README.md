@@ -65,7 +65,7 @@ For an npm-based project that depends on osc.js, you'll need a <code>package.jso
         "name": "<your project name>",
         "version": "<your project version>",
         "dependencies": {
-            "osc": "2.2.0"
+            "osc": "2.4.0"
         }
     }
 

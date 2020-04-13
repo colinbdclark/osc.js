@@ -163,8 +163,13 @@
         osc.SLIPPort.call(this, options);
 
         var o = this.options;
-        o.localAddress = o.localAddress || "127.0.0.1";
-        o.localPort = o.localPort !== undefined ? o.localPort : 57121;
+
+        // Aliases "localAddress" and "localPort" to
+        // "address" and "port", respectively, for consistency
+        // with osc.UDPSocket.
+        o.address = o.address || o.localAddress || "127.0.0.1";
+        o.port = o.port !== undefined ? o.port :
+            o.localPort !== undefined ? o.localPort : 57121;
 
         this.on("open", this.listen.bind(this));
         this.socket = options.socket;

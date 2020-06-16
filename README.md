@@ -279,7 +279,12 @@ oscPort.on("ready", function () {
 ```javascript
 oscPort.on("ready", function () {
     oscPort.send({
-        timeTag: osc.timeTag(60), // Schedules this bundle 60 seconds from now.
+        // Tags this bundle with a timestamp that is 60 seconds from now.
+        // Note that the message will be sent immediately;
+        // the receiver should use the time tag to determine
+        // when to act upon the received message.
+        timeTag: osc.timeTag(60),
+
         packets: [
             {
                 address: "/carrier/frequency",

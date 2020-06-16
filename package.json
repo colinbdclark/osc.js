@@ -31,7 +31,7 @@
         "grunt-contrib-jshint": "2.1.0",
         "grunt-contrib-uglify": "4.0.1",
         "infusion": "3.0.0-dev.20190905T163833Z.b024bff87",
-        "jquery": "3.4.1",
+        "jquery": "3.5.0",
         "node-jqunit": "1.1.8",
         "requirejs": "2.3.6",
         "testem": "3.0.2"

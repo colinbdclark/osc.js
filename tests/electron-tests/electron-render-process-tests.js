@@ -1,10 +1,10 @@
 /*jshint node:true*/
+/*global fluid*/
 
 "use strict";
+window.require = window.electron.nodeIntegration.require;
 
-var fluid = fluid || require("infusion"),
-    jqUnit = jqUnit || fluid.require("node-jqunit"),
-    osc = osc || require("osc"),
+var osc = window.electron.nodeIntegration.require("osc"),
     QUnit = fluid.registerNamespace("QUnit"),
     oscjsTests = fluid.registerNamespace("oscjsTests");
 
@@ -24,7 +24,7 @@ QUnit.test("osc.js' Node module is correctly loaded within an Electron renderer 
 
 QUnit.test("Serial port support has been loaded.", function () {
     QUnit.expect(1);
-    QUnit.ok(osc.supportsSerial);
+    QUnit.ok(osc.supportsSerial, "The SerialPort library has been loaded.");
 });
 
 oscjsTests.electron.testSuccessfulUDPSend = function (udpPort) {

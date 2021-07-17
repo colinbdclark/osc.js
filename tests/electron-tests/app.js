@@ -27,7 +27,8 @@ fluid.defaults("oscjs.tests.electron.app", {
             options: {
                 windowOptions: {
                     webPreferences: {
-                        nodeIntegration: true
+                        nodeIntegration: true,
+                        contextIsolation: false
                     }
                 }
             }
@@ -36,8 +37,22 @@ fluid.defaults("oscjs.tests.electron.app", {
         udpServer: {
             type: "oscjs.tests.electron.echoUDPServer"
         }
+    },
+
+    listeners: {
+        "onCreate.setRendererProcessReuse": {
+            funcName: "oscjs.tests.electron.app.setRendererProcessReuse",
+            args: ["{that}.app"]
+        }
     }
 });
+
+// Note: This has been deprecated and will likely fail to work
+// in future Electron versions. The SerialPort depedendency
+// will need to be updated to be Electron context aware.
+oscjs.tests.electron.app.setRendererProcessReuse = function (app) {
+    app.allowRendererProcessReuse = false;
+};
 
 // TODO: infusion-electron's API needs to be fixed;
 // it's very inconvenient to specify a window's URL.
@@ -67,7 +82,9 @@ fluid.defaults("oscjs.tests.electron.browserTestWindow", {
     windowOptions: {
         title: "osc.js Browser Unit Tests in Electron",
         x: 0,
-        y: 0
+        y: 0,
+        width: 1024,
+        height: 768
     },
 
     url: "%url/../all-tests.html"
@@ -77,7 +94,11 @@ fluid.defaults("oscjs.tests.electron.electronTestWindow", {
     gradeNames: "oscjs.tests.electron.window",
 
     windowOptions: {
-        title: "osc.js Electron Unit Tests"
+        title: "osc.js Electron Unit Tests",
+        width: 1024,
+        height: 768,
+        x: 320,
+        y: 320
     },
 
     url: "%url/electron-render-process-tests.html"

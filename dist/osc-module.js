@@ -1,4 +1,4 @@
-/*! osc.js 2.4.1, Copyright 2020 Colin Clark | github.com/colinbdclark/osc.js */
+/*! osc.js 2.4.1, Copyright 2021 Colin Clark | github.com/colinbdclark/osc.js */
 
 (function (root, factory) {
     if (typeof exports === "object") {

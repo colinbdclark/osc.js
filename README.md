@@ -101,7 +101,7 @@ How osc.js Works
 osc.js consists of two distinct layers:
 
 1. The low-level functional API, which provides simple stateless functions for reading and writing OSC packets.
-2. The transport layer, which provide a simple EventEmitter-style API for sending and receiving OSC packets using a variety of transports such as UDP and Web Sockets.
+2. The transport layer, which provides a simple EventEmitter-style API for sending and receiving OSC packets using a variety of transports such as UDP and Web Sockets.
 
 Typically, you'll use the Port API for sending and receiving OSC packets over a particular transport, but if you want to write your own transports or want a lower-level interface, you can use the functional API directly.
 

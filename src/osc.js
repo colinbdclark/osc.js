@@ -208,20 +208,20 @@ var osc = osc || {};
      */
     osc.writeString = function (str) {
         var terminated = str + "\u0000",
-            len = terminated.length,
-            paddedLen = (len + 3) & ~0x03,
-            arr = new Uint8Array(paddedLen);
-
         var encoder = osc.isBufferEnv ? osc.writeString.withBuffer :
             osc.TextEncoder ? osc.writeString.withTextEncoder : null,
             encodedStr;
 
         if (encoder) {
-            encodedStr = encoder(terminated);
+            terminated = encoder(terminated);
         }
 
+        len = terminated.length,
+        paddedLen = (len + 3) & ~0x03,
+        arr = new Uint8Array(paddedLen);
+
         for (var i = 0; i < terminated.length; i++) {
-            var charCode = encoder ? encodedStr[i] : terminated.charCodeAt(i);
+            var charCode = encoder ? terminated[i] : terminated.charCodeAt(i);
             arr[i] = charCode;
         }
 

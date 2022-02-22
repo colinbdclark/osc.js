@@ -43,29 +43,29 @@ export interface PortConstructor<Additional = never, Options = never> {
   new (options?: { unpackSingleArgs?: false; metadata?: false } & Options): Port<
     Argument,
     Message<Argument>,
-    Argument,
-    Message<Argument>
+    Argument | WriteArgumentWithMetadata,
+    Message<Argument> | Message<WriteArgumentWithMetadata> | SingleByteMessage<Argument> | SingleByteMessage<WriteArgumentWithMetadata>
   > &
     Additional;
   new (options: { unpackSingleArgs?: false; metadata: true } & Options): Port<
     ReadArgumentWithMetadata,
     Message<ReadArgumentWithMetadata>,
     WriteArgumentWithMetadata,
-    Message<WriteArgumentWithMetadata>
+    Message<WriteArgumentWithMetadata> | SingleByteMessage<WriteArgumentWithMetadata>
   > &
     Additional;
   new (options: { unpackSingleArgs: true; metadata?: false } & Options): Port<
     Argument,
     SingleByteMessage<Argument>,
-    Argument,
-    SingleByteMessage<Argument>
+    Argument | WriteArgumentWithMetadata,
+    Message<Argument> | Message<WriteArgumentWithMetadata> | SingleByteMessage<Argument> | SingleByteMessage<WriteArgumentWithMetadata>
   > &
     Additional;
   new (options: { unpackSingleArgs: true; metadata: true } & Options): Port<
     ReadArgumentWithMetadata,
     SingleByteMessage<ReadArgumentWithMetadata>,
     WriteArgumentWithMetadata,
-    SingleByteMessage<WriteArgumentWithMetadata>
+    Message<WriteArgumentWithMetadata> | SingleByteMessage<WriteArgumentWithMetadata>
   > &
     Additional;
 }

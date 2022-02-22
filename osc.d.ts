@@ -404,7 +404,7 @@ export interface OSC {
    * @param {Object} options options for writing
    * @return {Uint8Array} a buffer containing the OSC-formatted argument type tag and values
    */
-  writeArguments(args: ReadonlyArray<Argument>, options: { metadata?: false }): Uint8Array;
+  writeArguments(args: ReadonlyArray<Argument | WriteArgumentWithMetadata>, options: { metadata?: false }): Uint8Array;
   writeArguments(args: ReadonlyArray<WriteArgumentWithMetadata>, options: { metadata: true }): Uint8Array;
 
   /**
@@ -443,7 +443,7 @@ export interface OSC {
    * @param {Object} [options] write options
    * @return {Uint8Array} an array of bytes containing the OSC message
    */
-  writeMessage(msg: Message<Argument> | SingleByteMessage<Argument>, options?: { metadata?: false }): Uint8Array;
+  writeMessage(msg: Message<Argument | WriteArgumentWithMetadata> | SingleByteMessage<Argument | WriteArgumentWithMetadata>, options?: { metadata?: false }): Uint8Array;
   writeMessage(
     msg: Message<WriteArgumentWithMetadata> | SingleByteMessage<WriteArgumentWithMetadata>,
     options: { metadata: true }
@@ -486,23 +486,13 @@ export interface OSC {
    * @return {Uint8Array} an array of bytes containing the message
    */
   writeBundle(
-    bundle: WriteBundle<Argument, Message<Argument>>,
-    options?: { unpackSingleArgs?: false; metadata?: false },
+    bundle: WriteBundle<Argument | WriteArgumentWithMetadata, Message<Argument | WriteArgumentWithMetadata> | SingleByteMessage<Argument | WriteArgumentWithMetadata>>,
+    options?: { metadata?: false },
     offsetState?: OffsetState
   ): Uint8Array;
   writeBundle(
-    bundle: WriteBundle<WriteArgumentWithMetadata, Message<WriteArgumentWithMetadata>>,
-    options: { unpackSingleArgs?: false; metadata: true },
-    offsetState?: OffsetState
-  ): Uint8Array;
-  writeBundle(
-    bundle: WriteBundle<Argument, SingleByteMessage<Argument>>,
-    options: { unpackSingleArgs: true; metadata?: false },
-    offsetState?: OffsetState
-  ): Uint8Array;
-  writeBundle(
-    bundle: WriteBundle<WriteArgumentWithMetadata, SingleByteMessage<WriteArgumentWithMetadata>>,
-    options: { unpackSingleArgs: true; metadata: true },
+    bundle: WriteBundle<WriteArgumentWithMetadata, Message<WriteArgumentWithMetadata> | SingleByteMessage<WriteArgumentWithMetadata>>,
+    options: { metadata: true },
     offsetState?: OffsetState
   ): Uint8Array;
 
@@ -546,23 +536,13 @@ export interface OSC {
    * @return {Uint8Array} an array of bytes containing the message
    */
   writePacket(
-    bundle: WritePacket<Argument, Message<Argument>>,
-    options?: { unpackSingleArgs?: false; metadata?: false },
+    bundle: WritePacket<Argument | WriteArgumentWithMetadata, Message<Argument | WriteArgumentWithMetadata> | SingleByteMessage<Argument | WriteArgumentWithMetadata>>,
+    options?: { metadata?: false },
     offsetState?: OffsetState
   ): Uint8Array;
   writePacket(
-    bundle: WritePacket<WriteArgumentWithMetadata, Message<WriteArgumentWithMetadata>>,
-    options: { unpackSingleArgs?: false; metadata: true },
-    offsetState?: OffsetState
-  ): Uint8Array;
-  writePacket(
-    bundle: WritePacket<Argument, SingleByteMessage<Argument>>,
-    options: { unpackSingleArgs: true; metadata?: false },
-    offsetState?: OffsetState
-  ): Uint8Array;
-  writePacket(
-    bundle: WritePacket<WriteArgumentWithMetadata, SingleByteMessage<WriteArgumentWithMetadata>>,
-    options: { unpackSingleArgs: true; metadata: true },
+    bundle: WritePacket<WriteArgumentWithMetadata, Message<WriteArgumentWithMetadata> | SingleByteMessage<WriteArgumentWithMetadata>>,
+    options: { metadata: true },
     offsetState?: OffsetState
   ): Uint8Array;
 }

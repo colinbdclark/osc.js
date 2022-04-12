@@ -43,10 +43,11 @@
         "ws": "7.5.3"
     },
     "optionalDependencies": {
-        "serialport": "9.2.0"
+        "serialport": "10.4.0"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",
+        "build": "grunt",
         "node-test": "node tests/node-all-tests.js",
         "browser-test": "testem ci --file tests/testem.json",
         "clean-test": "./clean-npm.sh && npm install && npm test"

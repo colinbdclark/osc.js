@@ -258,6 +258,35 @@ var fluid = fluid || require("infusion"),
         QUnit.equal(actual, expected, "The string should have been read correctly.");
     });
 
+    QUnit.test("writeString encode utf-8 address", function () {
+
+        var msg = {
+            address: "/éé",
+            args: []
+        };
+
+        var encoded = osc.writeMessage(msg),
+            decoded = osc.readMessage(encoded);
+
+        QUnit.deepEqual(decoded, msg,
+            "The message object should have been correctly decoded.");
+
+    });
+
+    QUnit.test("writeString encode utf-8 string argument", function () {
+
+        var msg = {
+            address: "/test",
+            args: "éé"
+        };
+
+        var encoded = osc.writeMessage(msg),
+            decoded = osc.readMessage(encoded);
+
+        QUnit.deepEqual(decoded, msg,
+            "The message object should have been correctly decoded.");
+
+    });
 
     /***********
      * Numbers *

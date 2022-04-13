@@ -5,11 +5,12 @@
     "version": "1.0.0",
     "author": "Colin Clark",
     "dependencies": {
-        "electron": "13.1.7",
-        "infusion-electron": "0.8.0",
+        "electron": "18.0.3",
+        "infusion-electron": "0.8.1",
         "osc": "../.."
     },
     "scripts": {
-        "test": "npm rebuild && node_modules/.bin/electron ."
+        "test": "node_modules/.bin/electron .",
+        "test-rebuild": "npm rebuild && npm test"
     }
 }

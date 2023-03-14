@@ -10,7 +10,7 @@
 /*jshint node:true*/
 
 var osc = osc || require("../osc.js"),
-    SerialPort = require("serialport");
+    SerialPort = require("serialport").SerialPort;
 
 osc.supportsSerial = true;
 
@@ -38,7 +38,8 @@ p.open = function () {
 
     var that = this;
 
-    this.serialPort = new SerialPort(this.options.devicePath, {
+    this.serialPort = new SerialPort({
+        path: this.options.devicePath,
         baudRate: this.options.bitrate,
         autoOpen: false
     });

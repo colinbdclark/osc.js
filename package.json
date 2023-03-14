@@ -1,7 +1,7 @@
 {
     "name": "osc",
     "main": "src/platforms/osc-node.js",
-    "version": "2.4.3",
+    "version": "2.4.4",
     "description": "A JavaScript Open Sound Control (OSC) library that works in Node.js and the browser.",
     "author": "Colin Clark",
     "homepage": "https://github.com/colinbdclark/osc.js",
@@ -24,33 +24,33 @@
     ],
     "readmeFilename": "README.md",
     "devDependencies": {
-        "grunt": "1.5.2",
-        "grunt-contrib-clean": "2.0.0",
+        "grunt": "1.6.1",
+        "grunt-contrib-clean": "2.0.1",
         "grunt-contrib-concat": "2.1.0",
         "grunt-replace": "2.0.2",
         "grunt-contrib-jshint": "3.2.0",
-        "grunt-contrib-uglify": "5.1.0",
-        "infusion": "3.0.0",
-        "jquery": "3.6.0",
+        "grunt-contrib-uglify": "5.2.2",
+        "infusion": "3.0.1",
+        "jquery": "3.6.4",
         "node-jqunit": "1.1.9",
         "requirejs": "2.3.6",
-        "testem": "3.6.0"
+        "testem": "3.10.1"
     },
     "dependencies": {
         "long": "4.0.0",
         "slip": "1.0.2",
         "wolfy87-eventemitter": "5.2.9",
-        "ws": "8.5.0"
+        "ws": "8.13.0"
     },
     "optionalDependencies": {
-        "serialport": "10.4.0"
+        "serialport": "10.5.0"
     },
     "scripts": {
         "test": "npm run node-test && grunt && npm run browser-test",
         "prepublishOnly": "npm run build",
-        "build": "node_modules/.bin/grunt",
+        "build": "npx grunt",
         "node-test": "node tests/node-all-tests.js",
-        "browser-test": "testem ci --file tests/testem.json",
+        "browser-test": "npx testem ci --file tests/testem.json",
         "clean-test": "./clean-npm.sh && npm install && npm test"
     }
 }

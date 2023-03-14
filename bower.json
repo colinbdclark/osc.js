@@ -1,6 +1,6 @@
 {
     "name": "osc.js",
-    "version": "2.3.0",
+    "version": "2.4.4",
     "main": "dist/osc-browser.js",
     "ignore": [
         ".jshintrc",
@@ -12,7 +12,7 @@
     ],
     "dependencies": {
         "slip.js": "1.0.2",
-        "eventEmitter": "5.2.6",
+        "eventEmitter": "5.2.8",
         "long": "4.0.0"
     },
     "devDependencies": {

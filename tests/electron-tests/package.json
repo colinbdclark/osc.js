@@ -5,8 +5,8 @@
     "version": "1.0.0",
     "author": "Colin Clark",
     "dependencies": {
-        "electron": "18.0.3",
-        "infusion-electron": "0.8.1",
+        "electron": "23.1.3",
+        "infusion-electron": "0.9.0",
         "osc": "../.."
     },
     "scripts": {

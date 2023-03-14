@@ -140,8 +140,17 @@ var osc = osc || require("./osc.js"),
         var listener = function (data) {
             sendArgs[0] = data;
             data = transformFn(data);
-            to[sendFnName].apply(to, sendArgs);
+            
+            try {
+              to[sendFnName].apply(to, sendArgs);
+            } catch(e) {
+              // stop relaying on errors; without this case, the script just crashes
+              osc.stopRelaying( from, {eventName: eventName, listener: listener} );
+            }            
         };
+        
+        //sometimes not working
+        //to.on("close", function() { osc.stopRelaying( from, {eventName: eventName, listener: listener} ) } );
 
         from.on(eventName, listener);
 

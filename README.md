@@ -3,6 +3,8 @@ osc.js
 
 osc.js is a library for reading and writing [Open Sound Control](http://opensoundcontrol.org) messages in JavaScript. It works in both Node.js and in a web browser.
 
+osc.js is maintained by [Colin Clark](https://colinclark.org). Please respect his unpaid labour (and that of other open source contributors), be kind, share projects you're working on, and consider contributing your own time to help improve the library.
+
 Why osc.js?
 -----------
 
@@ -52,8 +54,7 @@ osc.js supports all OSC 1.0 and 1.1 required and optional types.
 Installing osc.js
 -----------------
 
-osc.js is typically installed via [npm](https://npmjs.com). [Bower](https://bower.io) support is available, but is deprecated.
-
+osc.js is typically installed via [npm](https://npmjs.com). [Bower](https://bower.io) support is available, but is deprecated and untested.
 
 ### Installing with npm
 
@@ -89,10 +90,10 @@ To install osc.js for Electron applications, there are two options:
 2. Use an <code>.npmrc</code> file to override npm's default compile target and runtime settings for Electron. Here's an example of an <code>.npmrc</code> file. Don't forget to make sure that the <code>target</code> property matches the version of Electron you're using:
 
 ```
-    target=5.0.1
-    disturl=https://atom.io/download/electron
-    runtime=electron
-    build_from_source=true
+target=23.1.3
+disturl=https://electronjs.org/headers
+runtime=electron
+build_from_source=true
 ```
 
 How osc.js Works
@@ -195,7 +196,6 @@ Examples
 
 In-depth example osc.js applications for the browser, Node.js, and Chrome OS are available in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
 
-These examples assume you are using [Bower to install osc.js](#Installing-with-Bower), but you can of course change the paths to refer to your <code>node_modules</code> if you're using npm.
 
 ### Web Sockets in the Browser
 
@@ -233,7 +233,7 @@ _More code examples showing how osc.js can be used in browser-based, Node.js, an
     <head>
         <title>osc.js Web Sockets</title>
         <meta charset="UTF-8" />
-        <script src="bower_components/osc.js/dist/osc-browser.min.js"></script>
+        <script src="node_modules/osc.js/dist/osc-browser.min.js"></script>
     </head>
     <body></body>
 </html>
@@ -317,10 +317,10 @@ oscPort.on("ready", function () {
 // osc.js, slip.js, and eventEmitter in your project.
 require.config({
     paths: {
-        slip: "../bower_components/slip.js/dist/slip.min",
-        EventEmitter: "../bower_components/eventEmitter/EventEmitter.min",
-        long: "../bower_components/long/dist/Long.min",
-        osc: "../bower_components/osc.js/osc-module.min"
+        slip: "../node_modules/slip.js/dist/slip.min",
+        EventEmitter: "../node_modules/eventEmitter/EventEmitter.min",
+        long: "../node_modules/long/dist/Long.min",
+        osc: "../node_modules/osc.js/osc-module.min"
     }
 });
 
@@ -339,6 +339,7 @@ require("osc/dist/osc-browser");
 
 osc.js is not currently tested using WebPack due to limited support resources. Nonetheless, contributions are very much welcomed from the community to help make osc.js more idiomatic when using WebPack or similar technologies, particularly if such changes enable continued support of simpler toolchains (or none) and the use of long-standing browser idioms such as plain old <code>script</code> tags.
 
+osc.js also does not currently support being loaded as an ES6 module. Contributions for this are also welcome, but any solution should support full compatibility with simpler and long-standing web idioms as above (hint: a new built file will be required that contains suitable ES6 export boilerplate).
 
 ### Web Sockets in Node.js
 
@@ -836,7 +837,7 @@ osc.js is maintained by Colin Clark and distributed under the MIT and GPL 3 lice
 Supported Environments
 ----------------------
 
-osc.js releases are tested and supported in the following environments:
+osc.js releases are tested and supported on a best-effort basis in the following environments:
 
 <table>
     <thead>
@@ -848,7 +849,7 @@ osc.js releases are tested and supported in the following environments:
         <tr><td>Safari</td><td>Mac OS X</td><td>Latest</td></tr>
         <tr><td>Edge</td><td>Windows</td><td>Latest</td></tr>
         <tr><td>Node.js</td><td>Mac OS X, Windows</td><td>LTS</td></tr>
-        <tr><td>Electron</td><td>Mac OS X, Windows</td><td>1.8.x</td></tr>
+        <tr><td>Electron</td><td>Mac OS X, Windows</td><td>Latest</td></tr>
     </tbody>
 </table>
 

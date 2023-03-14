@@ -3,7 +3,7 @@ osc.js
 
 osc.js is a library for reading and writing [Open Sound Control](http://opensoundcontrol.org) messages in JavaScript. It works in both Node.js and in a web browser.
 
-osc.js is maintained by [Colin Clark](https://colinclark.org). Please respect his unpaid labour (and that of other open source contributors), be kind, share projects you're working on, and consider contributing your own time to help improve the library.
+osc.js is maintained by [Colin Clark](https://colinclark.org). Please respect his unpaid labour (and that of other open source contributors), be kind, share projects you're working on, and consider contributing your own time to help improve the library. :heart:
 
 Why osc.js?
 -----------

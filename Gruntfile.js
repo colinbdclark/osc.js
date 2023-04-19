@@ -9,135 +9,142 @@
 
 /*global module*/
 /*jshint strict:false*/
+module.exports = function (grunt) {
+  var files = {
+    moduleDeps: [
+      "node_modules/long/dist/long.js",
+      "node_modules/slip/src/slip.js",
+      "node_modules/wolfy87-eventemitter/EventEmitter.js",
+    ],
 
-module.exports = function(grunt) {
+    osc: ["src/osc.js"],
 
-    var files = {
-        moduleDeps: [
-            "node_modules/long/dist/long.js",
-            "node_modules/slip/src/slip.js",
-            "node_modules/wolfy87-eventemitter/EventEmitter.js"
-        ],
+    oscWeb: [
+      "src/osc-transports.js",
+      "src/platforms/osc-websocket-client.js",
+      "src/platforms/osc-web-serialport.js",
+    ],
 
-        osc: [
-            "src/osc.js"
-        ],
+    oscChrome: ["src/platforms/osc-chromeapp.js"],
 
-        oscWeb: [
-            "src/osc-transports.js",
-            "src/platforms/osc-websocket-client.js"
-        ],
+    moduleHeader: ["build-support/js/module-header.js"],
 
-        oscChrome: [
-            "src/platforms/osc-chromeapp.js"
-        ],
+    moduleFooter: ["build-support/js/module-footer.js"],
+  };
 
-        moduleHeader: [
-            "build-support/js/module-header.js"
-        ],
+  grunt.initConfig({
+    pkg: grunt.file.readJSON("package.json"),
 
-        moduleFooter: [
-            "build-support/js/module-footer.js"
-        ]
-    };
+    jshint: {
+      all: ["src/*.js", "tests/**/*.js", "!**/node_modules/**"],
+      options: {
+        jshintrc: true,
+      },
+    },
 
-    grunt.initConfig({
-        pkg: grunt.file.readJSON("package.json"),
+    concat: {
+      options: {
+        separator: ";\n",
+        banner: "<%= oscjs.banners.short %>",
+      },
 
-        jshint: {
-            all: ["src/*.js", "tests/**/*.js", "!**/node_modules/**"],
-            options: {
-                jshintrc: true
-            }
-        },
+      base: {
+        src: [].concat(files.osc),
+        dest: "dist/<%= pkg.name %>.js",
+      },
 
-        concat: {
-            options: {
-                separator: ";\n",
-                banner: "<%= oscjs.banners.short %>"
+      browser: {
+        src: [].concat(files.osc, files.moduleDeps, files.oscWeb),
+        dest: "dist/<%= pkg.name %>-browser.js",
+      },
+
+      chromeapp: {
+        src: [].concat(
+          files.osc,
+          files.moduleDeps,
+          files.oscWeb,
+          files.oscChrome
+        ),
+        dest: "dist/<%= pkg.name %>-chromeapp.js",
+      },
+
+      module: {
+        src: [].concat(
+          files.moduleHeader,
+          files.osc,
+          files.oscWeb,
+          files.moduleFooter
+        ),
+        dest: "dist/<%= pkg.name %>-module.js",
+      },
+    },
+
+    replace: {
+      dist: {
+        options: {
+          patterns: [
+            {
+              match: /\.\.\/osc.js/g,
+              replacement: "./osc.js",
             },
-
-            base: {
-                src: [].concat(files.osc),
-                dest: "dist/<%= pkg.name %>.js"
-            },
-
-            browser: {
-                src: [].concat(files.osc, files.moduleDeps, files.oscWeb),
-                dest: "dist/<%= pkg.name %>-browser.js"
-            },
-
-            chromeapp: {
-                src: [].concat(files.osc, files.moduleDeps, files.oscWeb, files.oscChrome),
-                dest: "dist/<%= pkg.name %>-chromeapp.js"
-            },
-
-            module: {
-                src: [].concat(files.moduleHeader, files.osc, files.oscWeb, files.moduleFooter),
-                dest: "dist/<%= pkg.name %>-module.js"
-            }
+          ],
         },
+        files: [
+          {
+            src: "dist/*.js",
+            dest: "./",
+          },
+        ],
+      },
+    },
 
-        replace: {
-            dist: {
-                options: {
-                    patterns: [
-                        {
-                            match: /\.\.\/osc.js/g,
-                            replacement: "./osc.js"
-                        }
-                    ]
-                },
-                files: [
-                    {
-                        src: "dist/*.js",
-                        dest: "./"
-                    }
-                ]
-            }
+    uglify: {
+      options: {
+        banner: "<%= oscjs.banners.short %>",
+        beautify: {
+          ascii_only: true,
         },
+      },
+      all: {
+        files: [
+          {
+            expand: true,
+            cwd: "dist/",
+            src: ["*.js"],
+            dest: "dist/",
+            ext: ".min.js",
+          },
+        ],
+      },
+    },
 
-        uglify: {
-            options: {
-                banner: "<%= oscjs.banners.short %>",
-                beautify: {
-                    ascii_only: true
-                }
-            },
-            all: {
-                files: [
-                    {
-                        expand: true,
-                        cwd: "dist/",
-                        src: ["*.js"],
-                        dest: "dist/",
-                        ext: ".min.js",
-                    }
-                ]
-            }
-        },
+    clean: {
+      all: {
+        src: ["dist/", "input/"],
+      },
+    },
 
-        clean: {
-            all: {
-                src: ["dist/"]
-            }
-        },
+    oscjs: {
+      banners: {
+        short:
+          "/*! osc.js <%= pkg.version %>, " +
+          "Copyright <%= grunt.template.today('yyyy') %> Colin Clark | " +
+          "github.com/colinbdclark/osc.js */\n\n",
+      },
+    },
+  });
 
-        oscjs: {
-            banners: {
-                short: "/*! osc.js <%= pkg.version %>, " +
-                    "Copyright <%= grunt.template.today('yyyy') %> Colin Clark | " +
-                    "github.com/colinbdclark/osc.js */\n\n"
-            }
-        }
-    });
-
-    // Load relevant Grunt plugins.
-    grunt.loadNpmTasks("grunt-contrib-concat");
-    grunt.loadNpmTasks("grunt-replace");
-    grunt.loadNpmTasks("grunt-contrib-uglify");
-    grunt.loadNpmTasks("grunt-contrib-clean");
-    grunt.loadNpmTasks("grunt-contrib-jshint");
-
-    grunt.registerTask("default", ["clean", "jshint", "concat", "replace", "uglify"]);
+  // Load relevant Grunt plugins.
+  grunt.loadNpmTasks("grunt-contrib-concat");
+  grunt.loadNpmTasks("grunt-replace");
+  grunt.loadNpmTasks("grunt-contrib-uglify");
+  grunt.loadNpmTasks("grunt-contrib-clean");
+  grunt.loadNpmTasks("grunt-contrib-jshint");
+  grunt.registerTask("default", [
+    "clean",
+    "jshint",
+    "concat",
+    "replace",
+    "uglify",
+  ]);
 };

@@ -25,7 +25,8 @@ module.exports = function(grunt) {
 
         oscWeb: [
             "src/osc-transports.js",
-            "src/platforms/osc-websocket-client.js"
+            "src/platforms/osc-websocket-client.js",
+            "src/platforms/osc-web-serialport.js"
         ],
 
         oscChrome: [
@@ -111,7 +112,7 @@ module.exports = function(grunt) {
                         cwd: "dist/",
                         src: ["*.js"],
                         dest: "dist/",
-                        ext: ".min.js",
+                        ext: ".min.js"
                     }
                 ]
             }

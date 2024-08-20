@@ -10,12 +10,12 @@
 /*global osc, QUnit*/
 
 (function () {
-    "use strict";
+  "use strict";
 
-    QUnit.module("osc.js Web Tests");
+  QUnit.module("osc.js Web Tests");
 
-    QUnit.test("Serial port support is not loaded", function () {
-        QUnit.expect(1);
-        QUnit.ok(!osc.supportsSerial);
-    });
-}());
+  QUnit.test("Serial port support is not loaded", function () {
+    QUnit.expect(1);
+    QUnit.ok(osc.supportsSerial);
+  });
+})();

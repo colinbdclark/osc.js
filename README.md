@@ -1,19 +1,16 @@
-osc.js
-======
+# osc.js
 
 osc.js is a library for reading and writing [Open Sound Control](http://opensoundcontrol.org) messages in JavaScript. It works in both Node.js and in a web browser.
 
 osc.js is maintained by [Colin Clark](https://colinclark.org). Please respect his unpaid labour (and that of other open source contributors), be kind, share projects you're working on, and consider contributing your own time to help improve the library. :heart:
 
-Why osc.js?
------------
+## Why osc.js?
 
 There are several other OSC libraries available for JavaScript. However, most depend on Node.js-specific APIs. This means that they can't be run in a browser or on web-only platforms such as Chrome OS. osc.js uses only cross-platform APIs (`TypedArrays` and `DataView`), ensuring that it can run in any modern JavaScript environment.
 
 osc.js is fast, comprehensive, fully spec-compliant, tested, modular, and provides a wide variety of optional transports for sending and receiving OSC data.
 
-What Does it Do?
-----------------
+## What Does it Do?
 
 osc.js reads and writes OSC-formatted binary data into plain JavaScript objects. It provides adaptors for Node.js Buffer objects as well as standard ArrayBuffers.
 
@@ -46,13 +43,11 @@ In addition to the low-level encoder/decoder functions, osc.js also provides a c
 
 For stream-based protocols such as serial and TCP, osc.js will take care of SLIP framing for you.
 
-Status
-------
+## Status
 
 osc.js supports all OSC 1.0 and 1.1 required and optional types.
 
-Installing osc.js
------------------
+## Installing osc.js
 
 osc.js is typically installed via [npm](https://npmjs.com). [Bower](https://bower.io) support is available, but is deprecated and untested.
 
@@ -82,7 +77,7 @@ Your dependencies will be located in a directory called <code>node_modules</code
 
 [Electron](https://github.com/electron/electron) allows developers to create applications using Web technologies and deploy them as native applications on Mac, Windows, and Linux.
 
-Electron, however, ships with its own version of Node.js, which may be different from the  version you have installed on your computer. osc.js depends on native Node.js modules such as [node-serialport](https://github.com/EmergingTechnologyAdvisors/node-serialport), which need to be compiled against the Electron version of Node.js in order for them to work correctly.
+Electron, however, ships with its own version of Node.js, which may be different from the version you have installed on your computer. osc.js depends on native Node.js modules such as [node-serialport](https://github.com/EmergingTechnologyAdvisors/node-serialport), which need to be compiled against the Electron version of Node.js in order for them to work correctly.
 
 To install osc.js for Electron applications, there are two options:
 
@@ -96,8 +91,7 @@ runtime=electron
 build_from_source=true
 ```
 
-How osc.js Works
-----------------
+## How osc.js Works
 
 osc.js consists of two distinct layers:
 
@@ -106,8 +100,7 @@ osc.js consists of two distinct layers:
 
 Typically, you'll use the Port API for sending and receiving OSC packets over a particular transport, but if you want to write your own transports or want a lower-level interface, you can use the functional API directly.
 
-Port API
---------
+## Port API
 
 ### Methods
 
@@ -190,12 +183,9 @@ All <code>osc.Port</code>s implement the [Event Emitter API](https://nodejs.org/
     </tbody>
 </table>
 
-
-Examples
---------
+## Examples
 
 In-depth example osc.js applications for the browser, Node.js, and Chrome OS are available in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples).
-
 
 ### Web Sockets in the Browser
 
@@ -227,6 +217,7 @@ OSC messages over Web Sockets.
 _More code examples showing how osc.js can be used in browser-based, Node.js, and Chrome App applications can be found in the [osc.js examples repository](https://github.com/colinbdclark/osc.js-examples)._
 
 ##### Including osc.js in your HTML page:
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -240,6 +231,7 @@ _More code examples showing how osc.js can be used in browser-based, Node.js, an
 ```
 
 ##### Creating an OSC Web Socket Port object:
+
 ```javascript
 var oscPort = new osc.WebSocketPort({
     url: "ws://localhost:8081", // URL to your Web Socket server.
@@ -248,11 +240,13 @@ var oscPort = new osc.WebSocketPort({
 ```
 
 ##### Opening the Port:
+
 ```javascript
 oscPort.open();
 ```
 
 ##### Listening for incoming OSC messages:
+
 ```javascript
 oscPort.on("message", function (oscMsg) {
     console.log("An OSC message just arrived!", oscMsg);
@@ -260,6 +254,7 @@ oscPort.on("message", function (oscMsg) {
 ```
 
 ##### Sending OSC messages:
+
 ```javascript
 // For most Ports, send() should only be called after the "ready" event fires.
 oscPort.on("ready", function () {
@@ -276,6 +271,7 @@ oscPort.on("ready", function () {
 ```
 
 ##### Sending OSC bundles:
+
 ```javascript
 oscPort.on("ready", function () {
     oscPort.send({
@@ -307,10 +303,37 @@ oscPort.on("ready", function () {
         ]
     });
 });
-
 ```
 
-##### Using osc.js with Require.js
+### Serial in a Browser Using WebSerial
+
+WebSerial is not widely supported and considered as experimental technology. It is currently supported in Chromium-based browsers (Chrome, Edge, and Opera) only. Check the Browser [compatibility table carefully](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility) before using.
+
+#### Connecting to the serial port and listening for OSC messages
+
+```javascript
+// Instantiate a new OSC Serial Port.
+var serialPort = new osc.SerialPort({
+    baudRate: 9600,
+    metadata: true
+});
+
+// Listen for the message event and map the OSC message to the synth.
+serialPort.on("message", function (oscMsg) {
+    console.log("An OSC message was received!", oscMsg);
+});
+
+// Open the port.
+// For a security reason webserial port can be only open via user inteaction
+
+const connectButton = document.getElementById("connect");
+button.addEventListener("click", () => {
+    serialPort.open();
+});
+```
+
+### Using osc.js with Require.js
+
 ```javascript
 // Define your module paths, including osc.js' dependencies.
 // Note: these paths must resolve to wherever you have placed
@@ -330,7 +353,8 @@ require(["osc"], function (osc) {
 });
 ```
 
-##### Using osc.js with WebPack, etc. - help wanted!
+### Using osc.js with WebPack, etc. - help wanted!
+
 Users have reported that osc.js can be used in browser-based applications with WebPack by loading the pre-built <code>osc-browser.js</code> package in their code:
 
 ```javascript
@@ -472,7 +496,6 @@ udpPort.on("message", function (oscMsg, timeTag, info) {
 // Open the socket.
 udpPort.open();
 
-
 // When the port is read, send an OSC message to, say, SuperCollider
 udpPort.on("ready", function () {
     udpPort.send({
@@ -494,11 +517,13 @@ udpPort.on("ready", function () {
 ### Serial in a Chrome App
 
 #### Including osc.js in your Chrome App page
+
 ```html
 <script src="../bower_components/osc.js/dist/osc-chromeapp.min.js"></script>
 ```
 
 #### Defining the appropriate permissions in manifest.json
+
 ```json
 {
     "name": "OSC.js Chrome App Demo",
@@ -517,6 +542,7 @@ udpPort.on("ready", function () {
 ```
 
 #### Connecting to the serial port and listening for OSC messages
+
 ```javascript
 // Instantiate a new OSC Serial Port.
 var serialPort = new osc.SerialPort({
@@ -588,9 +614,7 @@ OSC messages over a <code>chrome.sockets.udp</code> socket. It also supports bro
     </tr>
 </table>
 
-
-Handling Errors
----------------
+## Handling Errors
 
 All osc.js Transport objects emit <code>"error"</code> messages whenever an error occurs,
 such as when a malformed message is received. You should always listen for errors and
@@ -617,14 +641,14 @@ try {
 }
 ```
 
-The osc.js Low-Level API
-------------------------
+## The osc.js Low-Level API
 
 ### OSC Bundle and Message Objects
 
 osc.js represents bundles and messages as (mostly) JSON-compatible objects. Here's how they are structured:
 
 #### Messages
+
 OSC Message objects consist of two properties, `address`, which contains the URL-style address path and `args` which is an array of either raw argument values or type-annotated Argument objects (depending on the value of the <code>metadata</code> option used when reading the message).
 
 ```javascript
@@ -653,7 +677,7 @@ OSC bundle objects consist of a time tag and an array of `packets`. Packets can 
 
 #### Argument Objects with Type Metadata
 
-Type-annotated argument objects contain two properties:  `type`, which contains the OSC type tag character (e.g. `"i"`, `"f"`, `"t"`, etc.) and the raw `value`.
+Type-annotated argument objects contain two properties: `type`, which contains the OSC type tag character (e.g. `"i"`, `"f"`, `"t"`, etc.) and the raw `value`.
 
 ```javascript
 {
@@ -664,8 +688,8 @@ Type-annotated argument objects contain two properties:  `type`, which contains 
 
 If you are using type-annotated arguments, you should also set the <code>metadata</code> option to <code>true</code> when you instantiate your <code>OSCPort</code> instance (or in the <code>options</code> argument to <code>osc.writeMessage</code> if you're using the low-level API).
 
-
 #### Time Tags
+
 Time tag objects contain two different representations: the raw NTP time and the equivalent (though less precise) native JavaScript timestamp. NTP times consist of a pair of values in an array. The first value represents the number of seconds since January 1, 1900. The second value is a Uint32 value (i.e. between 0 and 4294967296) that represents fractions of a second.
 
 JavaScript timestamps are represented as milliseconds since January 1, 1970, which is the same unit as is returned by calls to `Date.now()`.
@@ -679,7 +703,9 @@ JavaScript timestamps are represented as milliseconds since January 1, 1970, whi
     native: Number // Milliseconds since January 1, 1970
 }
 ```
+
 #### Colours
+
 Colours are automatically normalized to CSS 3 rgba values (i.e. the alpha channel is represented as a float from `0.0` to `1.0`).
 
 ```javascript
@@ -731,9 +757,7 @@ Many osc.js functions take an <code>options</code> object that can be used to cu
 * <code>metadata</code>: specifies if the OSC type metadata should be included. By default, type metadata isn't included when reading packets, and is inferred automatically when writing packets. If you need greater precision in regards to the arguments in an OSC message, set the <code>metadata</code> argument to true. Defaults to <code>false</code>.
 * <code>unpackSingleArgs</code>: specifies if osc.js should automatically unpack single-argument messages so that their <code>args</code> property isn't wrapped in an array. Defaults to <code>true</code>.
 
-
-Mapping OSC to JS
-------------------
+## Mapping OSC to JS
 
 Here are a few examples showing how OSC packets are mapped to plain JavaScript objects by osc.js.
 
@@ -829,13 +853,11 @@ Here are a few examples showing how OSC packets are mapped to plain JavaScript o
 }</pre></code</td>
 </table>
 
-License
--------
+## License
 
 osc.js is maintained by Colin Clark and distributed under the MIT and GPL 3 licenses.
 
-Supported Environments
-----------------------
+## Supported Environments
 
 osc.js releases are tested and supported on a best-effort basis in the following environments:
 
@@ -853,8 +875,7 @@ osc.js releases are tested and supported on a best-effort basis in the following
     </tbody>
 </table>
 
-Contributing to osc.js
-----------------------
+## Contributing to osc.js
 
 Contributions and pull requests to osc.js are hugely appreciated. Wherever possible, all fixes and new features should be accompanied by unit tests to help verify that they work and avoid regressions. When new features are introduced, a pull request to the [osc.js-examples repository](https://github.com/colinbdclark/osc.js-examples) with an example of how to use it is also appreciated.
 
@@ -877,13 +898,12 @@ Running the unit tests:
 1. To run the fully automated tests, run "npm test"
 2. To run the electron tests, run "npm run electron-test"
 
-Contributors
-------------
+## Contributors
 
- * @colinbdclark wrote osc.js.
- * @jacoscaz and @xseignard fixed bugs.
- * @drart made and helped test some examples.
- * @egasimus added support for 64-bit integers.
- * @heisters contributed fixes for broadcast and multicast UDP on Node.js and improved time tag support.
- * @tambien fixed error handling bugs in the transports layer.
- * @janslow added support for passing remote information to all Port data events.
+- @colinbdclark wrote osc.js.
+- @jacoscaz and @xseignard fixed bugs.
+- @drart made and helped test some examples.
+- @egasimus added support for 64-bit integers.
+- @heisters contributed fixes for broadcast and multicast UDP on Node.js and improved time tag support.
+- @tambien fixed error handling bugs in the transports layer.
+- @janslow added support for passing remote information to all Port data events.

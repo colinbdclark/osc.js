@@ -900,10 +900,12 @@ Running the unit tests:
 
 ## Contributors
 
-- @colinbdclark wrote osc.js.
-- @jacoscaz and @xseignard fixed bugs.
-- @drart made and helped test some examples.
-- @egasimus added support for 64-bit integers.
-- @heisters contributed fixes for broadcast and multicast UDP on Node.js and improved time tag support.
-- @tambien fixed error handling bugs in the transports layer.
-- @janslow added support for passing remote information to all Port data events.
+* @colinbdclark wrote and maintains osc.js.
+* @patrykwegrzyn added support for WebSerial.
+* @jean-emmanuel answered many user questions and shared feedback.
+* @jacoscaz and @xseignard fixed bugs.
+* @drart made and helped test some examples.
+* @egasimus added support for 64-bit integers.
+* @heisters contributed fixes for broadcast and multicast UDP on Node.js and improved time tag support.
+* @tambien fixed error handling bugs in the transports layer.
+* @janslow added support for passing remote information to all Port data events.
